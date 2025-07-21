@@ -46,7 +46,7 @@ Inspirado em sistemas como MarketUP, porém focado em funcionalidades essenciais
 
 ## 3. Protótipo
 
-- Protótipo disponível no Figma: [🔗 Link para o protótipo]([COLE_AQUI_O_LINK_DO_FIGMA](https://www.figma.com/design/wL3AvazQxUGj2QCTrtWvRa/PedeA%C3%AD-Gest%C3%A3o?node-id=104599-3038&t=qBQTFmlUa3TSjEEZ-1))
+- Protótipo disponível no Figma: [🔗 Link para o protótipo](https://www.figma.com/proto/wL3AvazQxUGj2QCTrtWvRa/PedeA%C3%AD-Gest%C3%A3o?node-id=104599-4662&p=f&t=qBQTFmlUa3TSjEEZ-0&scaling=scale-down&content-scaling=fixed&page-id=104599%3A3038)
 
 **Validação com Usuário:**  
 O protótipo foi validado por:
