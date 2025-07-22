@@ -53,9 +53,6 @@
 
 > [🔗 Visualizar Protótipo no Figma](https://www.figma.com/proto/wL3AvazQxUGj2QCTrtWvRa/PedeA%C3%AD-Gest%C3%A3o?node-id=104599-4662&p=f&t=qBQTFmlUa3TSjEEZ-0&scaling=scale-down&content-scaling=fixed&page-id=104599%3A3038)
 
-#### **Validação com Usuários**
-- 2 gestores de restaurante
-- 1 operador de caixa
 
 **Principais melhorias incorporadas após feedback:**  
 - Navegação mais simples  
