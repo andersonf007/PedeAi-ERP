@@ -1,4 +1,3 @@
-<h1 align="center">🍽️ PedeAí ERP</h1>
 
 <p align="center">
   <b>Sistema de Gestão Integrada para Pequenos Negócios do Setor Alimentício</b><br>
@@ -54,10 +53,8 @@
 > [🔗 Visualizar Protótipo no Figma](https://www.figma.com/proto/wL3AvazQxUGj2QCTrtWvRa/PedeA%C3%AD-Gest%C3%A3o?node-id=104599-4662&p=f&t=qBQTFmlUa3TSjEEZ-0&scaling=scale-down&content-scaling=fixed&page-id=104599%3A3038)
 
 
-**Principais melhorias incorporadas após feedback:**  
-- Navegação mais simples  
-- Alertas visuais para estoque  
-- Acesso rápido ao fechamento de vendas
+*Prototipo de estudo e referências*  
+> [NEXTPOS-APP-UIUX-CASE-STUDY](https://www.behance.net/gallery/224241701/NEXTPOS-APP-UIUX-CASE-STUDY?tracking_source=search_projects|erp+app+design)
 
 ---
 
@@ -82,8 +79,6 @@ As estórias/tarefas estão divididas entre os integrantes e podem ser acompanha
 ---
 
 ## 📑 Requisitos Funcionais
-
-> **Detalhamento completo:** [`docs/requisitos para um sistema ERP.pdf`](docs/requisitos%20para%20um%20sistema%20ERP.pdf)
 
 - Gestão de pedidos (balcão/delivery)
 - Controle de estoque (alertas, pedidos automáticos)
