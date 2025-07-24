@@ -60,7 +60,8 @@
 
 ## 📝 Backlog & Organização
 
-- Backlog detalhado e gerenciamento no [GitHub Projects](https://github.com/users/AdnRamos/projects/1)
+- Backlog detalhado no [Google Docs](https://docs.google.com/document/d/1Zw1q2-hSiHgR6gL3lAkvFnQQf5xueKES/edit?usp=sharing&ouid=113332345002356486614&rtpof=true&sd=true)
+- Gerenciamento no [GitHub Projects](https://github.com/users/AdnRamos/projects/1)
 
 As estórias/tarefas estão divididas entre os integrantes e podem ser acompanhadas pelo quadro do projeto.
 
