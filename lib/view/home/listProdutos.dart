@@ -9,7 +9,7 @@ class ProductsListPage extends StatefulWidget {
 }
 
 class _ProductsListPageState extends State<ProductsListPage> {
-  int _selectedIndex = 1; // Produtos está selecionado
+  int _selectedIndex = 2; // Produtos está selecionado
   String _selectedFilter = 'Ativos';
   TextEditingController _searchController = TextEditingController();
 
