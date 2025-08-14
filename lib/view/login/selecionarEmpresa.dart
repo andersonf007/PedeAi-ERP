@@ -20,7 +20,7 @@ class _SelecionarEmpresaPageState extends State<SelecionarEmpresaPage> {
     final empresaController = EmpresaController();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Selecionar Empresa')),
+      appBar: AppBar(title: const Text('Selecionar Empresa'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
