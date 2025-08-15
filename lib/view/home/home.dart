@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedeai/IHttpService.dart';
 import 'package:pedeai/controller/testeController.dart';
 import 'package:pedeai/repositorio/testerepositorio.dart';
-import 'package:pedeai/view/home/listProdutos.dart';
+import 'package:pedeai/view/produto/listProdutos.dart';
 import 'package:pedeai/view/produto/cadastroProduto.dart';
 
 class HomePage extends StatefulWidget {

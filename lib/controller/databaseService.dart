@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DatabaseService {
   final SupabaseClient _client = SupabaseConfig.client;
+  final SupabaseClient _adminClient = SupabaseConfig.adminClient;
 
   Future<List<Map<String, dynamic>>> executeSql(String sql, {Map<String, dynamic>? params, required String schema}) async {
     try {
@@ -57,6 +58,83 @@ class DatabaseService {
       }
     } catch (e) {
       throw Exception('Erro ao executar SQL: ${e.toString()}');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> executeSqlInserirProduto({Map<String, dynamic>? params}) async {
+    try {
+      final response = await _client.rpc('inserir_produto_com_preco', params: {'descricao': params?['descricao'], 'codigo': params?['codigo'], 'preco': params?['preco'], 'estoque': params?['estoque'], 'schema_empresa': params?['schema_empresa']});
+      if (response is List) {
+        if (response.isNotEmpty && response.first is int) {
+          return [
+            {'id': response.first},
+          ];
+        }
+        return List<Map<String, dynamic>>.from(response);
+      } else if (response is Map) {
+        return [Map<String, dynamic>.from(response)];
+      } else if (response == null) {
+        return [];
+      } else if (response is int) {
+        return [
+          {'id': response},
+        ];
+      } else if (response.data['id'] == null) {
+        return [];
+      } else {
+        return [
+          {'id': response},
+        ];
+      }
+    } catch (e) {
+      throw Exception('Erro ao executar SQL: ${e.toString()}');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> executeSqlListar({String? sql}) async {
+    try {
+      final response = await _client.rpc('executar_select', params: {'select_sql': sql});
+      if (response is List) {
+        if (response.isNotEmpty && response.first is int) {
+          return [
+            {'id': response.first},
+          ];
+        }
+        return List<Map<String, dynamic>>.from(response);
+      } else if (response is Map) {
+        return [Map<String, dynamic>.from(response)];
+      } else if (response == null) {
+        return [];
+      } else if (response is int) {
+        return [
+          {'id': response},
+        ];
+      } else if (response.data['id'] == null) {
+        return [];
+      } else {
+        return [
+          {'id': response},
+        ];
+      }
+    } catch (e) {
+      throw Exception('Erro ao executar SQL: ${e.toString()}');
+    }
+  }
+
+  // Adicione este método na classe DatabaseService
+
+  Future<void> executeSqlUpdate({required String sql, required String schema, Map<String, dynamic>? params}) async {
+    try {
+      String finalSql = sql.replaceAll('{schema}', schema);
+      print('SQL Update: $finalSql');
+      print('Params: $params');
+
+      final response = await _client.rpc('executar_update', params: {'update_sql': finalSql});
+
+      print('Update executado com sucesso');
+    } catch (e) {
+      print('Erro no update: $e');
+      throw Exception('Erro ao executar UPDATE SQL: ${e.toString()}');
     }
   }
 
