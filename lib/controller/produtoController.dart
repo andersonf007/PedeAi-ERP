@@ -1,5 +1,6 @@
 import 'package:pedeai/controller/authService.dart';
 import 'package:pedeai/controller/databaseService.dart';
+import 'package:pedeai/controller/empresaController.dart';
 import 'package:pedeai/script/script.dart';
 import 'package:pedeai/model/empresa.dart';
 import 'package:pedeai/model/produto.dart';
@@ -11,39 +12,28 @@ class Produtocontroller {
   final DatabaseService _databaseService = DatabaseService();
   final Script script = Script();
   late SharedPreferences prefs;
+  final EmpresaController empresaController = EmpresaController();
 
-  Future<void> inserirProdutoComPreco(Map<String, dynamic> dados) async {
-    await _databaseService.executeSqlInserirProduto(params: {'descricao': dados['descricao'], 'codigo': dados['codigo'], 'preco': dados['preco'], 'estoque': dados['estoque'], 'schema_empresa': dados['schema_empresa']});
-  }
+  Future<void> inserirProduto(Map<String, dynamic> dados) async {
 
-  // Buscar dados da empresa no SharedPreferences
-  Future<Empresa?> _getEmpresaFromSharedPreferences() async {
-    try {
-      prefs = await SharedPreferences.getInstance();
-      String? empresaJson = prefs.getString('empresa');
+    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
-      if (empresaJson != null) {
-        Map<String, dynamic> empresaMap = json.decode(empresaJson);
-        return Empresa.fromJson(empresaMap);
-      }
-      return null;
-    } catch (e) {
-      print('Erro ao buscar empresa do SharedPreferences: $e');
-      return null;
+    if (empresa == null) {
+      throw Exception('Dados da empresa não encontrados');
     }
+    dados['schema_empresa'] = empresa.schema;
+    await _databaseService.executeSqlInserirProduto(params: dados);
   }
 
-  // Listar todos os produtos da empresa
   Future<List<Produto>> listarProdutos() async {
     try {
       // Buscar dados da empresa
-      Empresa? empresa = await _getEmpresaFromSharedPreferences();
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
       }
 
-      // Query para buscar produtos com JOIN entre as tabelas
       String query = script.listagemProdutos(empresa.schema);
       // Executar query
       final response = await _databaseService.executeSqlListar(sql: query);
@@ -54,7 +44,7 @@ class Produtocontroller {
 
       // Converter resposta para lista de produtos
       List<Produto> produtos = response.map<Produto>((item) {
-        return Produto.fromJson({'id': item['id'], 'created_at': item['created_at'], 'preco': item['preco'], 'estoque': item['estoque'], 'produto_id_public': item['produto_id_public'], 'descricao': item['descricao'], 'codigo': item['codigo']});
+        return Produto.fromJson(item);
       }).toList();
 
       return produtos;
@@ -64,18 +54,15 @@ class Produtocontroller {
     }
   }
 
-  // Adicione este método na classe Produtocontroller
-
   Future<Produto?> buscarProdutoPorId(int produtoId) async {
     try {
       // Buscar dados da empresa
-      Empresa? empresa = await _getEmpresaFromSharedPreferences();
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
       }
 
-      // Query para buscar produto específico
       String query = script.buscarDadosProdutoPorId(produtoId, empresa.schema);
 
       // Executar query
@@ -87,7 +74,7 @@ class Produtocontroller {
 
       // Converter resposta para Produto
       final item = response.first;
-      Produto produto = Produto.fromJson({'id': item['id'], 'created_at': item['created_at'], 'preco': item['preco'], 'estoque': item['estoque'], 'produto_id_public': item['produto_id_public'], 'descricao': item['descricao'], 'codigo': item['codigo']});
+      Produto produto = Produto.fromJson(item);
 
       return produto;
     } catch (e) {
@@ -101,19 +88,17 @@ class Produtocontroller {
   Future<void> atualizarProduto(Map<String, dynamic> dados) async {
     try {
       // Buscar dados da empresa
-      Empresa? empresa = await _getEmpresaFromSharedPreferences();
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
       }
 
-      // Query para atualizar produto
-      String query = script.atualizarProduto(empresa.schema).replaceAll(':descricao', "'${dados['descricao']}'").replaceAll(':codigo', "'${dados['codigo']}'").replaceAll(':preco', dados['preco'].toString()).replaceAll(':estoque', dados['estoque'].toString()).replaceAll(':produto_id_public', dados['produto_id_public'].toString());
+    String query = script.atualizarProduto(empresa.schema, dados);
 
       // Executar query de update
       await _databaseService.executeSqlUpdate(sql: query, schema: empresa.schema);
 
-      print('Produto atualizado com sucesso!');
     } catch (e) {
       print('Erro ao atualizar produto: $e');
       throw Exception('Erro ao atualizar produto: $e');

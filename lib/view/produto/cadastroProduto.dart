@@ -256,8 +256,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     });
                   } else {
                     // Inserir novo produto
-                    await produtocontroller.inserirProdutoComPreco({
-                      'schema_empresa': 'georgiadoceria', // Idealmente pegar da empresa atual
+                    await produtocontroller.inserirProduto({
                       'descricao': _nameController.text,
                       'codigo': _codeController.text,
                       'preco': double.tryParse(_priceController.text) ?? 0.0,

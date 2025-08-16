@@ -45,4 +45,22 @@ class EmpresaController {
 
     return dados;
   }
+
+
+  // Buscar dados da empresa no SharedPreferences
+  Future<Empresa?> getEmpresaFromSharedPreferences() async {
+    try {
+      prefs = await SharedPreferences.getInstance();
+      String? empresaJson = prefs.getString('empresa');
+
+      if (empresaJson != null) {
+        Map<String, dynamic> empresaMap = json.decode(empresaJson);
+        return Empresa.fromJson(empresaMap);
+      }
+      return null;
+    } catch (e) {
+      print('Erro ao buscar empresa do SharedPreferences: $e');
+      return null;
+    }
+  }
 }

@@ -1,4 +1,6 @@
 class Script {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////EMPRESA
   String buscarIdDasEmpresasDoUsuario(String uid) {
     // Use alias para evitar conflito com palavra reservada
     return 'select id_empresa from public.usuarios_empresas where uid_usuario = \'$uid\'';
@@ -12,12 +14,7 @@ class Script {
     return "select * from public.empresas where id = $id";
   }
 
-  String inserirProduto(Map<String, dynamic> dados) {
-    return """
-
-""";
-  }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////PRODUTO
   String listagemProdutos(String schema) {
     return """
     SELECT 
@@ -33,8 +30,6 @@ class Script {
     ORDER BY pe.id DESC
   """;
   }
-
-// Adicione este método na classe Script
 
 String buscarDadosProdutoPorId(int produtoId, String schema) {
   return """
@@ -53,7 +48,7 @@ String buscarDadosProdutoPorId(int produtoId, String schema) {
   """;
 }
 
-String atualizarProduto(String schema) {
+/*String atualizarProduto(String schema) {
   return """
     UPDATE public.produtos 
     SET descricao = :descricao, codigo = :codigo 
@@ -63,5 +58,31 @@ String atualizarProduto(String schema) {
     SET preco = :preco, estoque = :estoque 
     WHERE produto_id_public = :produto_id_public;
   """;
+}*/
+String atualizarProduto(String schema, Map<String, dynamic> dados) {
+  String sql = """
+    UPDATE public.produtos 
+    SET descricao = :descricao, codigo = :codigo 
+    WHERE id = :produto_id_public;
+    
+    UPDATE ${schema}.produto_empresa 
+    SET preco = :preco, estoque = :estoque 
+    WHERE produto_id_public = :produto_id_public;
+  """;
+
+  dados.forEach((key, value) {
+    if (value is String) {
+      // Escapa aspas simples para evitar erro no SQL
+      String safeValue = value.replaceAll("'", "''");
+      sql = sql.replaceAll(':$key', "'$safeValue'");
+    } else if (value == null) {
+      sql = sql.replaceAll(':$key', 'NULL');
+    } else {
+      sql = sql.replaceAll(':$key', value.toString());
+    }
+  });
+
+  return sql;
 }
+
 }

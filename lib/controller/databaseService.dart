@@ -63,7 +63,7 @@ class DatabaseService {
 
   Future<List<Map<String, dynamic>>> executeSqlInserirProduto({Map<String, dynamic>? params}) async {
     try {
-      final response = await _client.rpc('inserir_produto_com_preco', params: {'descricao': params?['descricao'], 'codigo': params?['codigo'], 'preco': params?['preco'], 'estoque': params?['estoque'], 'schema_empresa': params?['schema_empresa']});
+      final response = await _client.rpc('inserir_produto_com_preco', params: params);
       if (response is List) {
         if (response.isNotEmpty && response.first is int) {
           return [
