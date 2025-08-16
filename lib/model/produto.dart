@@ -6,6 +6,8 @@ class Produto {
   final double preco;
   final int estoque;
   final int produtoIdPublic;
+  final int id_unidade;
+  final int id_categoria;
 
   Produto({
     required this.id,
@@ -15,6 +17,8 @@ class Produto {
     required this.preco,
     required this.estoque,
     required this.produtoIdPublic,
+    required this.id_unidade,
+    required this.id_categoria,
   });
 
   Map<String, dynamic> toJson() {
@@ -26,6 +30,8 @@ class Produto {
       'preco': preco,
       'estoque': estoque,
       'produto_id_public': produtoIdPublic,
+      'id_unidade': id_unidade,
+      'id_categoria': id_categoria,
     };
   }
 
@@ -40,6 +46,8 @@ class Produto {
       preco: (json['preco'] ?? 0).toDouble(),
       estoque: json['estoque']?.toInt() ?? 0,
       produtoIdPublic: json['produto_id_public']?.toInt() ?? 0,
+      id_unidade: json['id_unidade']?.toInt() ?? 0,
+      id_categoria: json['id_categoria']?.toInt() ?? 0,
     );
   }
 

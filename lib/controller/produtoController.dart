@@ -15,7 +15,6 @@ class Produtocontroller {
   final EmpresaController empresaController = EmpresaController();
 
   Future<void> inserirProduto(Map<String, dynamic> dados) async {
-
     Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
     if (empresa == null) {
@@ -56,7 +55,6 @@ class Produtocontroller {
 
   Future<Produto?> buscarProdutoPorId(int produtoId) async {
     try {
-      // Buscar dados da empresa
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
       if (empresa == null) {
@@ -65,16 +63,13 @@ class Produtocontroller {
 
       String query = script.buscarDadosProdutoPorId(produtoId, empresa.schema);
 
-      // Executar query
       final response = await _databaseService.executeSql2(query, schema: empresa.schema);
 
       if (response.isEmpty) {
         return null;
       }
 
-      // Converter resposta para Produto
-      final item = response.first;
-      Produto produto = Produto.fromJson(item);
+      Produto produto = Produto.fromJson(response.first);
 
       return produto;
     } catch (e) {
@@ -83,22 +78,21 @@ class Produtocontroller {
     }
   }
 
-  // Adicione este método na classe Produtocontroller
-
   Future<void> atualizarProduto(Map<String, dynamic> dados) async {
     try {
-      // Buscar dados da empresa
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
       }
 
-    String query = script.atualizarProduto(empresa.schema, dados);
+      if (!dados.containsKey('produto_id_public') || dados['produto_id_public'] == null) {
+        throw Exception('ID do produto é obrigatório para atualização');
+      }
 
-      // Executar query de update
+      String query = script.atualizarProduto(empresa.schema, dados);
+
       await _databaseService.executeSqlUpdate(sql: query, schema: empresa.schema);
-
     } catch (e) {
       print('Erro ao atualizar produto: $e');
       throw Exception('Erro ao atualizar produto: $e');

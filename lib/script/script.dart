@@ -1,6 +1,5 @@
 class Script {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////EMPRESA
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////EMPRESA
   String buscarIdDasEmpresasDoUsuario(String uid) {
     // Use alias para evitar conflito com palavra reservada
     return 'select id_empresa from public.usuarios_empresas where uid_usuario = \'$uid\'';
@@ -14,7 +13,7 @@ class Script {
     return "select * from public.empresas where id = $id";
   }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////PRODUTO
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////PRODUTO
   String listagemProdutos(String schema) {
     return """
     SELECT 
@@ -23,6 +22,8 @@ class Script {
       pe.preco,
       pe.estoque,
       pe.produto_id_public,
+      pe.id_categoria,
+      pe.id_unidade,
       p.descricao,
       p.codigo
     FROM ${schema}.produto_empresa pe
@@ -31,8 +32,8 @@ class Script {
   """;
   }
 
-String buscarDadosProdutoPorId(int produtoId, String schema) {
-  return """
+  String buscarDadosProdutoPorId(int produtoId, String schema) {
+    return """
     SELECT 
       p.id as produto_id_public,
       p.descricao,
@@ -40,49 +41,72 @@ String buscarDadosProdutoPorId(int produtoId, String schema) {
       pe.id,
       pe.created_at,
       pe.preco,
-      pe.estoque
+      pe.estoque,
+      pe.id_categoria,
+      pe.id_unidade
     FROM public.produtos p
     INNER JOIN ${schema}.produto_empresa pe ON p.id = pe.produto_id_public
     WHERE p.id = $produtoId
     LIMIT 1
   """;
-}
+  }
 
-/*String atualizarProduto(String schema) {
-  return """
+  String atualizarProduto(String schema, Map<String, dynamic> dados) {
+    String sql =
+        """
     UPDATE public.produtos 
     SET descricao = :descricao, codigo = :codigo 
     WHERE id = :produto_id_public;
     
     UPDATE ${schema}.produto_empresa 
-    SET preco = :preco, estoque = :estoque 
-    WHERE produto_id_public = :produto_id_public;
-  """;
-}*/
-String atualizarProduto(String schema, Map<String, dynamic> dados) {
-  String sql = """
-    UPDATE public.produtos 
-    SET descricao = :descricao, codigo = :codigo 
-    WHERE id = :produto_id_public;
-    
-    UPDATE ${schema}.produto_empresa 
-    SET preco = :preco, estoque = :estoque 
+    SET preco = :preco, estoque = :estoque, id_categoria = :id_categoria, id_unidade = :id_unidade 
     WHERE produto_id_public = :produto_id_public;
   """;
 
-  dados.forEach((key, value) {
-    if (value is String) {
-      // Escapa aspas simples para evitar erro no SQL
-      String safeValue = value.replaceAll("'", "''");
-      sql = sql.replaceAll(':$key', "'$safeValue'");
-    } else if (value == null) {
-      sql = sql.replaceAll(':$key', 'NULL');
-    } else {
-      sql = sql.replaceAll(':$key', value.toString());
-    }
-  });
+    dados.forEach((key, value) {
+      if (value is String) {
+        // Escapa aspas simples para evitar erro no SQL
+        String safeValue = value.replaceAll("'", "''");
+        sql = sql.replaceAll(':$key', "'$safeValue'");
+      } else if (value == null) {
+        sql = sql.replaceAll(':$key', 'NULL');
+      } else {
+        sql = sql.replaceAll(':$key', value.toString());
+      }
+    });
 
-  return sql;
-}
+    return sql;
+  }
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////CATEGORIA
+  String inserirCategoria(String schema, Map<String, dynamic> dados) {
+    return '''
+      INSERT INTO ${schema}.categoria (nome, descricao)
+      VALUES ('${dados['nome']}', '${dados['descricao']}') returning id;
+    ''';
+  }
+
+  String buscarCategoriaPorId(int id, String schema) {
+    return "select * from ${schema}.categoria where id = $id";
+  }
+
+  String buscarListaCategorias(String schema) {
+    return "select * from ${schema}.categoria";
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////UNIDADE
+  String inserirUnidade(String schema, Map<String, dynamic> dados) {
+    return '''
+      INSERT INTO ${schema}.unidade (nome, sigla)
+      VALUES ('${dados['nome']}', '${dados['sigla']}') returning id;
+    ''';
+  }
+
+  String buscarUnidadePorId(int id, String schema) {
+    return "select * from ${schema}.unidade where id = $id";
+  }
+
+  String buscarListaUnidades(String schema) {
+    return "select * from ${schema}.unidade";
+  }
 }

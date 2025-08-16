@@ -63,7 +63,7 @@ class DatabaseService {
 
   Future<List<Map<String, dynamic>>> executeSqlInserirProduto({Map<String, dynamic>? params}) async {
     try {
-      final response = await _client.rpc('inserir_produto_com_preco', params: params);
+      final response = await _client.rpc('inserir_produto', params: params);
       if (response is List) {
         if (response.isNotEmpty && response.first is int) {
           return [
@@ -120,8 +120,6 @@ class DatabaseService {
       throw Exception('Erro ao executar SQL: ${e.toString()}');
     }
   }
-
-  // Adicione este método na classe DatabaseService
 
   Future<void> executeSqlUpdate({required String sql, required String schema, Map<String, dynamic>? params}) async {
     try {
