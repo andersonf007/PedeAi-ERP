@@ -431,6 +431,16 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     return;
                   }
 
+                  if (_selectedCategory == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Selecione uma categoria para o produto!'), backgroundColor: Colors.red));
+                    return;
+                  }
+
+                  if (_selectedUnit == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Selecione uma unidade de medida para o produto!'), backgroundColor: Colors.red));
+                    return;
+                  }
+
                   Map<String, dynamic> dadosProduto = {'descricao': _nameController.text.trim(), 'codigo': _codeController.text.trim(), 'preco': double.tryParse(_priceController.text) ?? 0.0, 'estoque': double.tryParse(_stockController.text) ?? 0, 'id_categoria': _selectedCategory?.id, 'id_unidade': _selectedUnit?.id};
 
                   if (_isEdicao) {
