@@ -1,8 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
+import 'package:pedeai/controller/authService.dart';
+import 'package:pedeai/controller/empresaController.dart';
+import 'package:pedeai/controller/usuarioController.dart';
+import 'package:pedeai/view/login/selecionarEmpresa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,27 +13,42 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
+  final AuthService _authService = AuthService();
   TextEditingController textSenha = TextEditingController();
   TextEditingController textUsuario = TextEditingController();
+  Usuariocontroller usuariocontroller = Usuariocontroller();
+  EmpresaController empresaController = EmpresaController();
+  List<Map<String, dynamic>> listFantasias = [];
 
   late SharedPreferences prefs;
   String versaoApi = '1.0.0';
-  @override
-  void initState() {
-    super.initState();
-  }
-
+ @override
+void initState() {
+  super.initState();
+  SharedPreferences.getInstance().then((instance) {
+    prefs = instance;
+  });
+}
   Future<String?> _onRecoverPassword(String name) async {
     return null;
   }
 
   Future<String?> _loginUser(LoginData data) async {
-    try {
-      return null;
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
-      return 'Erro ao fazer login: ${e.toString()}';
+    listFantasias.clear();
+    String? resultado = await usuariocontroller.buscarLogin(data);
+    if (resultado == null) {
+      String uid = prefs.getString('uid') ?? '';
+      List<int> listIds = await empresaController.buscarIdDasEmpresasDoUsuario(uid);
+    
+         listFantasias = await empresaController.buscarNomeFantasiaDasEmpresasDoUsuario(listIds);
+      // Se só tem uma empresa, já busca os dados e vai para home
+      if (listFantasias.length == 1) {
+        final empresa = listFantasias.first;
+        await empresaController.buscarDadosDaEmpresa(empresa['id']);
+        return null;
+      }
     }
+    return resultado;
   }
 
   Future<String?> _signupUser(SignupData data) async {
@@ -47,8 +64,13 @@ class LoginPageState extends State<LoginPage> {
         onLogin: _loginUser,
         onRecoverPassword: _onRecoverPassword,
         onSignup: _signupUser,
-        onSubmitAnimationCompleted: () {
-          Navigator.of(context).pushNamedAndRemoveUntil('/home', (p0) => false);
+        onSubmitAnimationCompleted: () async {
+          // Se houver mais de uma empresa, navega para SelecionarEmpresaPage
+          if (listFantasias.length > 1) {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => SelecionarEmpresaPage(empresas: listFantasias)));
+          } else {
+            Navigator.of(context).pushNamedAndRemoveUntil('/home', (p0) => false);
+          }
         },
         messages: LoginMessages(
           userHint: 'E-mail',

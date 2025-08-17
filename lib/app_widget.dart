@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:pedeai/view/home/home.dart';
 import 'package:pedeai/view/login/login.dart';
+import 'package:pedeai/view/login/selecionarEmpresa.dart';
 
 class AppWidget extends StatelessWidget {
   const AppWidget({super.key});
@@ -15,7 +16,11 @@ class AppWidget extends StatelessWidget {
       theme: ThemeData(primaryColor: const Color(0xFF1e5977)),
       initialRoute: '/login',
 
-      routes: {'/login': (context) => LoginPage(), '/home': (context) => HomePage()},
+      routes: {
+        '/login': (context) => LoginPage(),
+        '/home': (context) => HomePage(),
+        //'SelecionarEmpresaPage': (context) => SelecionarEmpresaPage(empresas: []),
+      },
     );
   }
 }
