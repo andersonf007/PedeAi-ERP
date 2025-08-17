@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pedeai/IHttpService.dart';
-import 'package:pedeai/controller/testeController.dart';
-import 'package:pedeai/repositorio/testerepositorio.dart';
 import 'package:pedeai/view/produto/listProdutos.dart';
 import 'package:pedeai/view/produto/cadastroProduto.dart';
 
@@ -221,10 +218,8 @@ class _HomePageState extends State<HomePage> {
             Navigator.push(context, MaterialPageRoute(builder: (context) => CadastroProdutoPage()));
           }
 
-          if (title == 'Registrar Produtos') {
-            Testecontroller controller = Testecontroller(repositorio: Testerepositorio(http: IHttpService()));
-            controller.inserirTeste("nome aqui", "clienteteste");
-          }
+          /*if (title == 'Registrar Produtos') {
+          }*/
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

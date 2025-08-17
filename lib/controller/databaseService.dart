@@ -136,6 +136,30 @@ class DatabaseService {
     }
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//NENHUM DESSES METODOS ESTA SENDO USADO
   // Exemplo: SELECT * FROM schema.usuario;
   Future<List<Map<String, dynamic>>> selectUsuarios(String schema) async {
     const sql = 'SELECT * FROM {schema}.usuario;';
