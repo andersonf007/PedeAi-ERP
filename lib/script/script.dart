@@ -19,11 +19,15 @@ class Script {
     SELECT 
       pe.id,
       pe.created_at,
-      pe.preco,
+      pe.preco_custo,
+      pe.preco_venda,
+      pe.validade,
+      pe.image_url,
       pe.estoque,
       pe.produto_id_public,
       pe.id_categoria,
       pe.id_unidade,
+      pe.ativo,
       p.descricao,
       p.codigo
     FROM ${schema}.produto_empresa pe
@@ -40,8 +44,12 @@ class Script {
       p.codigo,
       pe.id,
       pe.created_at,
-      pe.preco,
+      pe.preco_custo,
+      pe.preco_venda,
+      pe.validade,
+      pe.image_url,
       pe.estoque,
+      pe.ativo,
       pe.id_categoria,
       pe.id_unidade
     FROM public.produtos p
@@ -59,9 +67,9 @@ class Script {
     WHERE id = :produto_id_public;
     
     UPDATE ${schema}.produto_empresa 
-    SET preco = :preco, estoque = :estoque, id_categoria = :id_categoria, id_unidade = :id_unidade 
+    SET ativo = :ativo, preco_custo = :preco_custo, preco_venda = :preco_venda, validade = :validade, image_url = :image_url, estoque = :estoque, id_categoria = :id_categoria, id_unidade = :id_unidade 
     WHERE produto_id_public = :produto_id_public;
-  """;
+    """;
 
     dados.forEach((key, value) {
       if (value is String) {

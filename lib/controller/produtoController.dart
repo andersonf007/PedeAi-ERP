@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:pedeai/controller/authService.dart';
 import 'package:pedeai/controller/databaseService.dart';
 import 'package:pedeai/controller/empresaController.dart';
@@ -96,6 +98,15 @@ class Produtocontroller {
     } catch (e) {
       print('Erro ao atualizar produto: $e');
       throw Exception('Erro ao atualizar produto: $e');
+    }
+  }
+
+  Future<String?> uploadImage(File file) async {
+    try {
+      return await _databaseService.uploadImage(file);
+    } catch (e) {
+      print('Erro ao fazer upload da imagem: $e');
+      throw Exception('Erro ao fazer upload da imagem: $e');
     }
   }
 
