@@ -21,11 +21,11 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
   late TabController _tabController;
 
   // Controllers para os campos
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _codeController = TextEditingController();
-  TextEditingController _priceController = TextEditingController();
-  TextEditingController _stockController = TextEditingController();
-  TextEditingController _validityController = TextEditingController();
+  TextEditingController _nomeController = TextEditingController();
+  TextEditingController _codigoController = TextEditingController();
+  TextEditingController _precoVendaController = TextEditingController();
+  TextEditingController _estoqueController = TextEditingController();
+  TextEditingController _validadeController = TextEditingController();
 
   Produtocontroller produtocontroller = Produtocontroller();
   Categoriacontroller categoriaController = Categoriacontroller();
@@ -80,10 +80,10 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
       if (produto != null) {
         setState(() {
           _produtoEdicao = produto;
-          _nameController.text = produto.descricao;
-          _codeController.text = produto.codigo;
-          _priceController.text = produto.preco.toString();
-          _stockController.text = produto.estoque.toString();
+          _nomeController.text = produto.descricao;
+          _codigoController.text = produto.codigo;
+          _precoVendaController.text = produto.preco.toString();
+          _estoqueController.text = produto.estoque.toString();
 
           // Buscar e definir categoria selecionada
           if (produto.id_categoria != null) {
@@ -260,11 +260,11 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
   @override
   void dispose() {
     _tabController.dispose();
-    _nameController.dispose();
-    _codeController.dispose();
-    _priceController.dispose();
-    _stockController.dispose();
-    _validityController.dispose();
+    _nomeController.dispose();
+    _codigoController.dispose();
+    _precoVendaController.dispose();
+    _estoqueController.dispose();
+    _validadeController.dispose();
     super.dispose();
   }
 
@@ -312,14 +312,14 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
         children: [
           // Nome do Produto
           _buildLabel('Nome do Produto'),
-          _buildTextField(_nameController, 'Digite o nome do produto'),
+          _buildTextField(_nomeController, 'Digite o nome do produto'),
           SizedBox(height: 16),
 
           // Código do Produto
           _buildLabel('Código do Produto'),
           Row(
             children: [
-              Expanded(child: _buildTextField(_codeController, 'Digite o código ou escaneie')),
+              Expanded(child: _buildTextField(_codigoController, 'Digite o código ou escaneie')),
               SizedBox(width: 8),
               Container(
                 height: 48,
@@ -374,18 +374,18 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
           // Preço de Venda
           _buildLabel('Preço de Venda'),
-          _buildTextField(_priceController, 'R\$ 0,00', keyboardType: TextInputType.number),
+          _buildTextField(_precoVendaController, 'R\$ 0,00', keyboardType: TextInputType.number),
           SizedBox(height: 16),
 
           // Estoque Inicial
           _buildLabel(_isEdicao ? 'Estoque Atual' : 'Estoque Inicial'),
-          _buildTextField(_stockController, '0', keyboardType: TextInputType.number),
+          _buildTextField(_estoqueController, '0', keyboardType: TextInputType.number),
           SizedBox(height: 16),
 
           // Data de Validade
           _buildLabel('Data de Validade (opcional)'),
           _buildTextField(
-            _validityController,
+            _validadeController,
             'DD/MM/AAAA',
             onTap: () {
               // Implementar date picker
@@ -421,12 +421,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
               onPressed: () async {
                 try {
                   // Validações básicas
-                  if (_nameController.text.trim().isEmpty) {
+                  if (_nomeController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nome do produto é obrigatório!'), backgroundColor: Colors.red));
                     return;
                   }
 
-                  if (_codeController.text.trim().isEmpty) {
+                  if (_codigoController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Código do produto é obrigatório!'), backgroundColor: Colors.red));
                     return;
                   }
@@ -441,7 +441,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     return;
                   }
 
-                  Map<String, dynamic> dadosProduto = {'descricao': _nameController.text.trim(), 'codigo': _codeController.text.trim(), 'preco': double.tryParse(_priceController.text) ?? 0.0, 'estoque': double.tryParse(_stockController.text) ?? 0, 'id_categoria': _selectedCategory?.id, 'id_unidade': _selectedUnit?.id};
+                  Map<String, dynamic> dadosProduto = {'descricao': _nomeController.text.trim(), 'codigo': _codigoController.text.trim(), 'preco': double.tryParse(_precoVendaController.text) ?? 0.0, 'estoque': double.tryParse(_estoqueController.text) ?? 0, 'id_categoria': _selectedCategory?.id, 'id_unidade': _selectedUnit?.id};
 
                   if (_isEdicao) {
                     // Atualizar produto existente
