@@ -115,7 +115,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
           // Filtros
           Container(
             padding: EdgeInsets.all(16),
-            child: Row(children: [_buildFilterButton('Ativos', _selectedFilter == 'Ativos'), SizedBox(width: 8), _buildFilterButton('Inativos', _selectedFilter == 'Inativos'), SizedBox(width: 8), _buildFilterButton('Todos', _selectedFilter == 'Todos')]),
+            child: Row(children: [_buildFilterButton('Todos', _selectedFilter == 'Todos'), _buildFilterButton('Ativos', _selectedFilter == 'Ativos'), SizedBox(width: 8), _buildFilterButton('Inativos', _selectedFilter == 'Inativos'), SizedBox(width: 8)]),
           ),
 
           // Barra de pesquisa
@@ -143,7 +143,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => CadastroProdutoPage()));
+          final result = await Navigator.of(context).pushNamed('/cadastro-produto', arguments: null);
 
           // Recarregar lista se um produto foi adicionado
           if (result == true) {
@@ -241,14 +241,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
     return GestureDetector(
       onTap: () async {
         // Navegar para tela de edição
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CadastroProdutoPage(
-              produtoId: produto.produtoIdPublic, // Passa o ID do produto para edição
-            ),
-          ),
-        );
+        final result = await Navigator.of(context).pushNamed('/cadastro-produto', arguments: produto.produtoIdPublic);
 
         // Recarregar lista se houve alteração
         if (result == true) {

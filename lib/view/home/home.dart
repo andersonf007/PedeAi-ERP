@@ -215,7 +215,7 @@ class _HomePageState extends State<HomePage> {
         onPressed: () {
           // Adicione esta condição para navegar quando for o botão "Criar Produto"
           if (title == 'Criar Produto') {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => CadastroProdutoPage()));
+            Navigator.of(context).pushNamed('/cadastro-produto', arguments: null);
           }
 
           /*if (title == 'Registrar Produtos') {
@@ -251,7 +251,7 @@ class _HomePageState extends State<HomePage> {
           _selectedIndex = index;
         });
         if (index == 2) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsListPage()));
+          Navigator.of(context).pushNamed('/listProdutos', arguments: null);
         }
       },
       items: [
