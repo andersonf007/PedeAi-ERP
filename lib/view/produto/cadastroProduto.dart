@@ -66,6 +66,8 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
       final unidades = await unidadeController.listarUnidade();
 
       setState(() {
+        _categorias.clear();
+        _unidades.clear();
         _categorias = categorias;
         _unidades = unidades;
       });
@@ -208,7 +210,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
                     Navigator.of(context).pop();
                     await _carregarListas(); // Recarregar a lista
-
+                    setState(() {
+                      // Seleciona a categoria recém criada (exemplo: última da lista)
+                      if (_categorias.isNotEmpty) {
+                        _selectedCategory = _categorias.last;
+                      }
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Categoria criada com sucesso!'), backgroundColor: Colors.green));
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao criar categoria: $e'), backgroundColor: Colors.red));
@@ -281,7 +288,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
                     Navigator.of(context).pop();
                     await _carregarListas(); // Recarregar a lista
-
+                    setState(() {
+                      // Seleciona a unidade recém criada (exemplo: última da lista)
+                      if (_unidades.isNotEmpty) {
+                        _selectedUnit = _unidades.last;
+                      }
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unidade criada com sucesso!'), backgroundColor: Colors.green));
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao criar unidade: $e'), backgroundColor: Colors.red));
