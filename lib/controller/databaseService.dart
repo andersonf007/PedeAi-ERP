@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:pedeai/Commom/supabaseConf.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -136,6 +138,48 @@ class DatabaseService {
     }
   }
 
+Future<String?> uploadImage(File file) async {
+  final supabase = Supabase.instance.client;
+
+  // Gera um nome único pro arquivo
+  final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+
+  try {
+    // 1. Upload da imagem para o bucket "imagens"
+    await supabase.storage.from('imagens').upload(fileName, file);
+
+    // 2. Obter a URL pública
+    final publicUrl = supabase.storage.from('imagens').getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (e) {
+    print('Erro ao enviar: $e');
+    return null;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//NENHUM DESSES METODOS ESTA SENDO USADO
   // Exemplo: SELECT * FROM schema.usuario;
   Future<List<Map<String, dynamic>>> selectUsuarios(String schema) async {
     const sql = 'SELECT * FROM {schema}.usuario;';

@@ -1,13 +1,9 @@
 import 'package:flutter_login/flutter_login.dart';
 import 'package:pedeai/controller/authService.dart';
-import 'package:pedeai/controller/databaseService.dart';
-import 'package:pedeai/script/script.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Usuariocontroller {
   final AuthService _authService = AuthService();
-  final DatabaseService _databaseService = DatabaseService();
-  final Script script = Script();
   late SharedPreferences prefs;
 
   Future<String?> buscarLogin(LoginData data) async {

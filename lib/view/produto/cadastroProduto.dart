@@ -1,5 +1,8 @@
 // cadastroProduto.dart
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pedeai/controller/produtoController.dart';
 import 'package:pedeai/controller/usuarioController.dart';
 import 'package:pedeai/controller/categoriaController.dart';
@@ -21,11 +24,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
   late TabController _tabController;
 
   // Controllers para os campos
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _codeController = TextEditingController();
-  TextEditingController _priceController = TextEditingController();
-  TextEditingController _stockController = TextEditingController();
-  TextEditingController _validityController = TextEditingController();
+  TextEditingController _nomeController = TextEditingController();
+  TextEditingController _codigoController = TextEditingController();
+  TextEditingController _precoVendaController = TextEditingController();
+  TextEditingController _precoCustoController = TextEditingController();
+  TextEditingController _estoqueController = TextEditingController();
+  TextEditingController _validadeController = TextEditingController();
 
   Produtocontroller produtocontroller = Produtocontroller();
   Categoriacontroller categoriaController = Categoriacontroller();
@@ -39,6 +43,9 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
   bool _isLoading = false;
   bool _isEdicao = false;
   Produto? _produtoEdicao;
+  String? imageUrl = '';
+  bool _isUploadingImage = false;
+  bool _ativo = true;
 
   @override
   void initState() {
@@ -59,6 +66,8 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
       final unidades = await unidadeController.listarUnidade();
 
       setState(() {
+        _categorias.clear();
+        _unidades.clear();
         _categorias = categorias;
         _unidades = unidades;
       });
@@ -78,12 +87,16 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
       Produto? produto = await produtocontroller.buscarProdutoPorId(widget.produtoId!);
 
       if (produto != null) {
+        if (_categorias.isEmpty || _unidades.isEmpty) {
+          await _carregarListas();
+        }
+
         setState(() {
           _produtoEdicao = produto;
-          _nameController.text = produto.descricao;
-          _codeController.text = produto.codigo;
-          _priceController.text = produto.preco.toString();
-          _stockController.text = produto.estoque.toString();
+          _nomeController.text = produto.descricao;
+          _codigoController.text = produto.codigo;
+          _precoVendaController.text = produto.preco.toString();
+          _estoqueController.text = produto.estoque.toString();
 
           // Buscar e definir categoria selecionada
           if (produto.id_categoria != null) {
@@ -95,6 +108,8 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
             _selectedUnit = _unidades.firstWhere((unidade) => unidade.id == produto.id_unidade, orElse: () => _unidades.first);
           }
 
+          imageUrl = produto.image_url ?? '';
+          _ativo = produto.ativo ?? true;
           _isLoading = false;
         });
       } else {
@@ -109,6 +124,31 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao carregar produto: $e'), backgroundColor: Colors.red));
+    }
+  }
+
+  Future<void> pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    final file = File(pickedFile.path);
+    try {
+      final url = await produtocontroller.uploadImage(file);
+      setState(() {
+        imageUrl = url;
+        _isUploadingImage = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isUploadingImage = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao enviar imagem: $e'), backgroundColor: Colors.red));
     }
   }
 
@@ -170,7 +210,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
                     Navigator.of(context).pop();
                     await _carregarListas(); // Recarregar a lista
-
+                    setState(() {
+                      // Seleciona a categoria recém criada (exemplo: última da lista)
+                      if (_categorias.isNotEmpty) {
+                        _selectedCategory = _categorias.last;
+                      }
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Categoria criada com sucesso!'), backgroundColor: Colors.green));
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao criar categoria: $e'), backgroundColor: Colors.red));
@@ -243,7 +288,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
                     Navigator.of(context).pop();
                     await _carregarListas(); // Recarregar a lista
-
+                    setState(() {
+                      // Seleciona a unidade recém criada (exemplo: última da lista)
+                      if (_unidades.isNotEmpty) {
+                        _selectedUnit = _unidades.last;
+                      }
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unidade criada com sucesso!'), backgroundColor: Colors.green));
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao criar unidade: $e'), backgroundColor: Colors.red));
@@ -260,11 +310,11 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
   @override
   void dispose() {
     _tabController.dispose();
-    _nameController.dispose();
-    _codeController.dispose();
-    _priceController.dispose();
-    _stockController.dispose();
-    _validityController.dispose();
+    _nomeController.dispose();
+    _codigoController.dispose();
+    _precoVendaController.dispose();
+    _estoqueController.dispose();
+    _validadeController.dispose();
     super.dispose();
   }
 
@@ -312,14 +362,14 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
         children: [
           // Nome do Produto
           _buildLabel('Nome do Produto'),
-          _buildTextField(_nameController, 'Digite o nome do produto'),
+          _buildTextField(_nomeController, 'Digite o nome do produto'),
           SizedBox(height: 16),
 
           // Código do Produto
           _buildLabel('Código do Produto'),
           Row(
             children: [
-              Expanded(child: _buildTextField(_codeController, 'Digite o código ou escaneie')),
+              Expanded(child: _buildTextField(_codigoController, 'Digite o código ou escaneie')),
               SizedBox(width: 8),
               Container(
                 height: 48,
@@ -372,42 +422,126 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
           ),
           SizedBox(height: 16),
 
+          // Preço de Custo
+          _buildLabel('Preço de Custo'),
+          _buildTextField(_precoCustoController, 'R\$ 0,00', keyboardType: TextInputType.number),
+          SizedBox(height: 16),
+
           // Preço de Venda
           _buildLabel('Preço de Venda'),
-          _buildTextField(_priceController, 'R\$ 0,00', keyboardType: TextInputType.number),
+          _buildTextField(_precoVendaController, 'R\$ 0,00', keyboardType: TextInputType.number),
           SizedBox(height: 16),
 
           // Estoque Inicial
           _buildLabel(_isEdicao ? 'Estoque Atual' : 'Estoque Inicial'),
-          _buildTextField(_stockController, '0', keyboardType: TextInputType.number),
+          _buildTextField(_estoqueController, '0', keyboardType: TextInputType.number),
+          SizedBox(height: 16),
+
+          // Status Ativo
+          Row(
+            children: [
+              Checkbox(
+                value: _ativo,
+                onChanged: (value) {
+                  setState(() {
+                    _ativo = value ?? true;
+                  });
+                },
+                activeColor: Colors.orange,
+                checkColor: Colors.white,
+              ),
+              Text(
+                'Produto Ativo',
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
           SizedBox(height: 16),
 
           // Data de Validade
           _buildLabel('Data de Validade (opcional)'),
           _buildTextField(
-            _validityController,
+            _validadeController,
             'DD/MM/AAAA',
-            onTap: () {
-              // Implementar date picker
+            onTap: () async {
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(), // Só permite datas atuais ou futuras
+                lastDate: DateTime(2100),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: ColorScheme.light(primary: Colors.orange, onPrimary: Colors.white, onSurface: Colors.black),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (pickedDate != null) {
+                _validadeController.text = "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+              }
             },
           ),
           SizedBox(height: 24),
 
           // Adicionar Imagem
-          Container(
+          SizedBox(
             width: double.infinity,
             height: 100,
-            decoration: BoxDecoration(
-              color: Color(0xFF4A3429),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white30, style: BorderStyle.solid, width: 1),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
               children: [
-                Icon(Icons.add_a_photo, color: Colors.white54, size: 30),
-                SizedBox(height: 8),
-                Text('Adicionar Imagem', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                if (_isUploadingImage)
+                  Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)))
+                else if (imageUrl != null && imageUrl!.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      imageUrl!,
+                      width: double.infinity,
+                      height: 100,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white54)),
+                    ),
+                  ),
+                if (!_isUploadingImage)
+                  GestureDetector(
+                    onTap: () async {
+                      try {
+                        await pickAndUploadImage();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao enviar imagem: $e'), backgroundColor: Colors.red));
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: imageUrl != null && imageUrl!.isNotEmpty ? Colors.transparent : Color(0xFF4A3429),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white30, style: BorderStyle.solid, width: 1),
+                      ),
+                      child: imageUrl != null && imageUrl!.isNotEmpty
+                          ? Align(
+                              alignment: Alignment.topRight,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(20)),
+                                  child: Icon(Icons.edit, color: Colors.white, size: 24),
+                                ),
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_a_photo, color: Colors.white54, size: 30),
+                                SizedBox(height: 8),
+                                Text('Adicionar Imagem', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                              ],
+                            ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -421,12 +555,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
               onPressed: () async {
                 try {
                   // Validações básicas
-                  if (_nameController.text.trim().isEmpty) {
+                  if (_nomeController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nome do produto é obrigatório!'), backgroundColor: Colors.red));
                     return;
                   }
 
-                  if (_codeController.text.trim().isEmpty) {
+                  if (_codigoController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Código do produto é obrigatório!'), backgroundColor: Colors.red));
                     return;
                   }
@@ -441,7 +575,18 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     return;
                   }
 
-                  Map<String, dynamic> dadosProduto = {'descricao': _nameController.text.trim(), 'codigo': _codeController.text.trim(), 'preco': double.tryParse(_priceController.text) ?? 0.0, 'estoque': double.tryParse(_stockController.text) ?? 0, 'id_categoria': _selectedCategory?.id, 'id_unidade': _selectedUnit?.id};
+                  Map<String, dynamic> dadosProduto = {
+                    'descricao': _nomeController.text.trim(),
+                    'codigo': _codigoController.text.trim(),
+                    'preco_venda': double.tryParse(_precoVendaController.text) ?? 0.0,
+                    'estoque': double.tryParse(_estoqueController.text) ?? 0,
+                    'id_categoria': _selectedCategory?.id,
+                    'id_unidade': _selectedUnit?.id,
+                    'preco_custo': double.tryParse(_precoCustoController.text) ?? 0.0,
+                    'validade': _validadeController.text.trim(),
+                    'image_url': imageUrl ?? '',
+                    'ativo': _ativo,
+                  };
 
                   if (_isEdicao) {
                     // Atualizar produto existente

@@ -11,9 +11,9 @@ class ProductsListPage extends StatefulWidget {
 
 class _ProductsListPageState extends State<ProductsListPage> {
   int _selectedIndex = 2;
-  String _selectedFilter = 'Ativos';
+  String _selectedFilter = 'Todos';
   TextEditingController _searchController = TextEditingController();
-  
+
   final Produtocontroller _produtoController = Produtocontroller();
   List<Produto> _produtos = [];
   List<Produto> _produtosFiltrados = [];
@@ -62,13 +62,12 @@ class _ProductsListPageState extends State<ProductsListPage> {
   void _filtrarProdutos() {
     List<Produto> produtosFiltrados = List.from(_produtos);
 
-    // Filtrar por status (Ativos/Inativos/Todos)
     switch (_selectedFilter) {
       case 'Ativos':
-        produtosFiltrados = produtosFiltrados.where((produto) => produto.estoque > 0).toList();
+        produtosFiltrados = produtosFiltrados.where((produto) => produto.ativo == true).toList();
         break;
       case 'Inativos':
-        produtosFiltrados = produtosFiltrados.where((produto) => produto.estoque == 0).toList();
+        produtosFiltrados = produtosFiltrados.where((produto) => produto.ativo == false).toList();
         break;
       case 'Todos':
       default:
@@ -79,8 +78,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
     String termoBusca = _searchController.text.toLowerCase();
     if (termoBusca.isNotEmpty) {
       produtosFiltrados = produtosFiltrados.where((produto) {
-        return produto.descricao.toLowerCase().contains(termoBusca) ||
-               produto.codigo.toLowerCase().contains(termoBusca);
+        return produto.descricao.toLowerCase().contains(termoBusca) || produto.codigo.toLowerCase().contains(termoBusca);
       }).toList();
     }
 
@@ -117,15 +115,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
           // Filtros
           Container(
             padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                _buildFilterButton('Ativos', _selectedFilter == 'Ativos'),
-                SizedBox(width: 8),
-                _buildFilterButton('Inativos', _selectedFilter == 'Inativos'),
-                SizedBox(width: 8),
-                _buildFilterButton('Todos', _selectedFilter == 'Todos'),
-              ]
-            ),
+            child: Row(children: [_buildFilterButton('Todos', _selectedFilter == 'Todos'), _buildFilterButton('Ativos', _selectedFilter == 'Ativos'), SizedBox(width: 8), _buildFilterButton('Inativos', _selectedFilter == 'Inativos'), SizedBox(width: 8)]),
           ),
 
           // Barra de pesquisa
@@ -139,10 +129,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
                 prefixIcon: Icon(Icons.search, color: Colors.white54),
                 filled: true,
                 fillColor: Color(0xFF4A3429),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
               ),
               style: TextStyle(color: Colors.white),
             ),
@@ -151,18 +138,13 @@ class _ProductsListPageState extends State<ProductsListPage> {
           SizedBox(height: 16),
 
           // Conteúdo principal
-          Expanded(
-            child: _buildMainContent(),
-          ),
+          Expanded(child: _buildMainContent()),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CadastroProdutoPage())
-          );
-          
+          final result = await Navigator.of(context).pushNamed('/cadastro-produto', arguments: null);
+
           // Recarregar lista se um produto foi adicionado
           if (result == true) {
             _carregarProdutos();
@@ -177,11 +159,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
 
   Widget _buildMainContent() {
     if (_isLoading) {
-      return Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-        ),
-      );
+      return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)));
     }
 
     if (_errorMessage.isNotEmpty) {
@@ -215,9 +193,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
             Icon(Icons.inventory_2_outlined, color: Colors.white54, size: 64),
             SizedBox(height: 16),
             Text(
-              _searchController.text.isNotEmpty 
-                  ? 'Nenhum produto encontrado para "${_searchController.text}"'
-                  : 'Nenhum produto encontrado',
+              _searchController.text.isNotEmpty ? 'Nenhum produto encontrado para "${_searchController.text}"' : 'Nenhum produto encontrado',
               style: TextStyle(color: Colors.white54, fontSize: 16),
               textAlign: TextAlign.center,
             ),
@@ -250,37 +226,23 @@ class _ProductsListPageState extends State<ProductsListPage> {
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.orange : Color(0xFF4A3429),
-          borderRadius: BorderRadius.circular(20)
-        ),
+        decoration: BoxDecoration(color: isSelected ? Colors.orange : Color(0xFF4A3429), borderRadius: BorderRadius.circular(20)),
         child: Text(
           text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
         ),
       ),
     );
   }
 
-// Modifique o método _buildProductCard na classe ProductsListPage:
+  // Modifique o método _buildProductCard na classe ProductsListPage:
 
   Widget _buildProductCard(Produto produto) {
     return GestureDetector(
       onTap: () async {
         // Navegar para tela de edição
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CadastroProdutoPage(
-              produtoId: produto.produtoIdPublic, // Passa o ID do produto para edição
-            )
-          )
-        );
-        
+        final result = await Navigator.of(context).pushNamed('/cadastro-produto', arguments: produto.produtoIdPublic);
+
         // Recarregar lista se houve alteração
         if (result == true) {
           _carregarProdutos();
@@ -289,25 +251,24 @@ class _ProductsListPageState extends State<ProductsListPage> {
       child: Container(
         margin: EdgeInsets.only(bottom: 12),
         padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Color(0xFF4A3429),
-          borderRadius: BorderRadius.circular(8)
-        ),
+        decoration: BoxDecoration(color: Color(0xFF4A3429), borderRadius: BorderRadius.circular(8)),
         child: Row(
           children: [
-            // Ícone do produto
+            // Ícone ou imagem do produto
             Container(
               width: 60,
               height: 60,
-              decoration: BoxDecoration(
-                color: Color(0xFF2D2419),
-                borderRadius: BorderRadius.circular(8)
-              ),
-              child: Icon(
-                produto.estoque > 0 ? Icons.inventory : Icons.inventory_2_outlined,
-                color: produto.estoque > 0 ? Colors.orange : Colors.white54,
-                size: 30
-              ),
+              decoration: BoxDecoration(color: Color(0xFF2D2419), borderRadius: BorderRadius.circular(8)),
+              clipBehavior: Clip.hardEdge,
+              child: produto.image_url != null && produto.image_url!.isNotEmpty
+                  ? Image.network(
+                      produto.image_url!,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover, // ou BoxFit.contain se preferir ver tudo
+                      errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.white54, size: 30),
+                    )
+                  : Icon(produto.estoque > 0 ? Icons.inventory : Icons.inventory_2_outlined, color: produto.estoque > 0 ? Colors.orange : Colors.white54, size: 30),
             ),
             SizedBox(width: 16),
 
@@ -316,24 +277,14 @@ class _ProductsListPageState extends State<ProductsListPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Código: ${produto.codigo}',
-                    style: TextStyle(color: Colors.white54, fontSize: 10)
-                  ),
+                  Text('Código: ${produto.codigo}', style: TextStyle(color: Colors.white54, fontSize: 10)),
                   SizedBox(height: 2),
                   Text(
                     produto.descricao,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 4),
-                  Text(
-                    '${produto.precoFormatado} | ${produto.unidadesFormatado}',
-                    style: TextStyle(color: Colors.white70, fontSize: 12)
-                  ),
+                  Text('${produto.precoFormatado} | ${produto.unidadesFormatado}', style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),
@@ -343,25 +294,14 @@ class _ProductsListPageState extends State<ProductsListPage> {
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: produto.estoque > 0 ? Colors.green : Colors.red,
-                    borderRadius: BorderRadius.circular(12)
-                  ),
+                  decoration: BoxDecoration(color: produto.ativo == true ? Colors.green : Colors.red, borderRadius: BorderRadius.circular(12)),
                   child: Text(
-                    produto.estoque > 0 ? 'Ativo' : 'Inativo',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold
-                    ),
+                    produto.ativo == true ? 'Ativo' : 'Inativo',
+                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
                 SizedBox(height: 8),
-                Icon(
-                  Icons.edit,
-                  color: Colors.orange,
-                  size: 18,
-                ),
+                Icon(Icons.edit, color: Colors.orange, size: 18),
               ],
             ),
           ],

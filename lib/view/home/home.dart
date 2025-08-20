@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pedeai/IHttpService.dart';
-import 'package:pedeai/controller/testeController.dart';
-import 'package:pedeai/repositorio/testerepositorio.dart';
 import 'package:pedeai/view/produto/listProdutos.dart';
 import 'package:pedeai/view/produto/cadastroProduto.dart';
 
@@ -93,19 +90,19 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Expanded(child: _buildQuickAccessButton(Icons.add, 'Criar Produto')),
                 SizedBox(width: 12),
-                Expanded(child: _buildQuickAccessButton(Icons.refresh, 'Registrar Produtos')),
+                Expanded(child: _buildQuickAccessButton(Icons.bar_chart, 'Relatórios')),
               ],
             ),
             SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _buildQuickAccessButton(Icons.launch, 'Lançar Despesas')),
+                Expanded(child: _buildQuickAccessButton(Icons.receipt_long_sharp, 'Resumo de caixa')),
                 SizedBox(width: 12),
                 Expanded(child: _buildQuickAccessButton(Icons.receipt, 'Receber Pagamento')),
               ],
             ),
             SizedBox(height: 12),
-            _buildQuickAccessButton(Icons.swap_horiz, 'Transferência de Caixa', isFullWidth: true),
+            _buildQuickAccessButton(Icons.attach_money, 'PDV', isFullWidth: true),
           ],
         ),
       ),
@@ -169,6 +166,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Fluxo de Caixa
   Widget _buildFinanceCard(String title, String value, Color color, {bool isFullWidth = false}) {
     return Container(
       width: isFullWidth ? double.infinity : null,
@@ -188,6 +186,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  //resumo diário
   Widget _buildSummaryCard(String title, String value) {
     return Container(
       padding: EdgeInsets.all(16),
@@ -207,7 +206,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildQuickAccessButton(IconData icon, String title, {bool isFullWidth = false}) {
-    return Container(
+    return SizedBox(
       width: isFullWidth ? double.infinity : null,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
@@ -218,13 +217,11 @@ class _HomePageState extends State<HomePage> {
         onPressed: () {
           // Adicione esta condição para navegar quando for o botão "Criar Produto"
           if (title == 'Criar Produto') {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => CadastroProdutoPage()));
+            Navigator.of(context).pushNamed('/cadastro-produto', arguments: null);
           }
 
-          if (title == 'Registrar Produtos') {
-            Testecontroller controller = Testecontroller(repositorio: Testerepositorio(http: IHttpService()));
-            controller.inserirTeste("nome aqui", "clienteteste");
-          }
+          /*if (title == 'Registrar Produtos') {
+          }*/
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -256,7 +253,7 @@ class _HomePageState extends State<HomePage> {
           _selectedIndex = index;
         });
         if (index == 2) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsListPage()));
+          Navigator.of(context).pushNamed('/listProdutos', arguments: null);
         }
       },
       items: [

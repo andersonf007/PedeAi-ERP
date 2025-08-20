@@ -3,14 +3,14 @@ import 'package:pedeai/controller/databaseService.dart';
 import 'package:pedeai/controller/empresaController.dart';
 import 'package:pedeai/model/categoria.dart';
 import 'package:pedeai/model/empresa.dart';
-import 'package:pedeai/script/script.dart';
+import 'package:pedeai/script/scriptCategoria.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Categoriacontroller {
 
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
-  final Script script = Script();
+  final ScriptCategoria script = ScriptCategoria();
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
 

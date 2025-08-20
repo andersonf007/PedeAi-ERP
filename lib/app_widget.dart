@@ -3,6 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:pedeai/view/home/home.dart';
 import 'package:pedeai/view/login/login.dart';
 import 'package:pedeai/view/login/selecionarEmpresa.dart';
+import 'package:pedeai/view/produto/cadastroProduto.dart';
+import 'package:pedeai/view/produto/listProdutos.dart';
 
 class AppWidget extends StatelessWidget {
   const AppWidget({super.key});
@@ -19,7 +21,11 @@ class AppWidget extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/home': (context) => HomePage(),
-        //'SelecionarEmpresaPage': (context) => SelecionarEmpresaPage(empresas: []),
+        '/listProdutos': (context) => ProductsListPage(),
+        '/cadastro-produto': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as int?;
+          return CadastroProdutoPage(produtoId: args);
+        },
       },
     );
   }
