@@ -3,16 +3,16 @@ import 'dart:io';
 import 'package:pedeai/controller/authService.dart';
 import 'package:pedeai/controller/databaseService.dart';
 import 'package:pedeai/controller/empresaController.dart';
-import 'package:pedeai/script/script.dart';
 import 'package:pedeai/model/empresa.dart';
 import 'package:pedeai/model/produto.dart';
+import 'package:pedeai/script/scriptProduto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class Produtocontroller {
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
-  final Script script = Script();
+  final ScriptProduto script = ScriptProduto();
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
 

@@ -1,19 +1,4 @@
-class Script {
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////EMPRESA
-  String buscarIdDasEmpresasDoUsuario(String uid) {
-    // Use alias para evitar conflito com palavra reservada
-    return 'select id_empresa from public.usuarios_empresas where uid_usuario = \'$uid\'';
-  }
-
-  String buscarNomeFantasiaDasEmpresasDoUsuario(int id) {
-    return "select id,fantasia from public.empresas where id = $id";
-  }
-
-  String buscarDadosDaEmpresa(int id) {
-    return "select * from public.empresas where id = $id";
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////PRODUTO
+class ScriptProduto{
   String listagemProdutos(String schema) {
     return """
     SELECT 
@@ -86,35 +71,4 @@ class Script {
     return sql;
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////CATEGORIA
-  String inserirCategoria(String schema, Map<String, dynamic> dados) {
-    return '''
-      INSERT INTO ${schema}.categoria (nome, descricao)
-      VALUES ('${dados['nome']}', '${dados['descricao']}') returning id;
-    ''';
-  }
-
-  String buscarCategoriaPorId(int id, String schema) {
-    return "select * from ${schema}.categoria where id = $id";
-  }
-
-  String buscarListaCategorias(String schema) {
-    return "select * from ${schema}.categoria";
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////UNIDADE
-  String inserirUnidade(String schema, Map<String, dynamic> dados) {
-    return '''
-      INSERT INTO ${schema}.unidade (nome, sigla)
-      VALUES ('${dados['nome']}', '${dados['sigla']}') returning id;
-    ''';
-  }
-
-  String buscarUnidadePorId(int id, String schema) {
-    return "select * from ${schema}.unidade where id = $id";
-  }
-
-  String buscarListaUnidades(String schema) {
-    return "select * from ${schema}.unidade";
-  }
 }

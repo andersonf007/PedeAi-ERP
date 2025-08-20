@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:pedeai/controller/authService.dart';
 import 'package:pedeai/controller/databaseService.dart';
 import 'package:pedeai/model/empresa.dart';
-import 'package:pedeai/script/script.dart';
+import 'package:pedeai/script/scriptEmpresa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EmpresaController {
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
-  final Script script = Script();
+  final ScriptEmpresa script = ScriptEmpresa();
   late SharedPreferences prefs;
 
   Future<List<int>> buscarIdDasEmpresasDoUsuario(String uid) async {
