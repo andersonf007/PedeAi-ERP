@@ -12,7 +12,7 @@ import 'package:pedeai/model/produto.dart';
 import 'package:pedeai/model/unidade.dart';
 
 class CadastroProdutoPage extends StatefulWidget {
-  final int? produtoId; // Null para cadastro, preenchido para edição
+  final int? produtoId;
 
   const CadastroProdutoPage({Key? key, this.produtoId}) : super(key: key);
 

@@ -254,6 +254,8 @@ class _HomePageState extends State<HomePage> {
         });
         if (index == 2) {
           Navigator.of(context).pushNamed('/listProdutos', arguments: null);
+        } else if (index == 4) {
+          Navigator.of(context).pushNamed('/listUsuarios', arguments: null);
         }
       },
       items: [
@@ -261,7 +263,7 @@ class _HomePageState extends State<HomePage> {
         BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Vendas'),
         BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Produtos'),
         BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Estoque'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Usuários'),
       ],
     );
   }
