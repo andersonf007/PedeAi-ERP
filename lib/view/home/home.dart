@@ -252,7 +252,11 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _selectedIndex = index;
         });
-        if (index == 2) {
+        if (index == 0) {
+          Navigator.of(context).pushNamed('/home', arguments: null);
+        } /*else if (index == 1) {
+          Navigator.of(context).pushNamed('/listVendas', arguments: null);
+        } */ else if (index == 2) {
           Navigator.of(context).pushNamed('/listProdutos', arguments: null);
         } else if (index == 4) {
           Navigator.of(context).pushNamed('/listUsuarios', arguments: null);

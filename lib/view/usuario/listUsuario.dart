@@ -9,6 +9,7 @@ class ListUsuarioPage extends StatefulWidget {
 }
 
 class _ListUsuarioPageState extends State<ListUsuarioPage> {
+  int _selectedIndex = 4;
   final Usuariocontroller usuariocontroller = Usuariocontroller();
   List<Usuario> _usuarios = [];
   bool _isLoading = true;
@@ -41,9 +42,19 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
         backgroundColor: Color(0xFF2D2419),
         centerTitle: true,
         title: Text(
-          'Usuários',
+          'Lista de Usuários',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: Colors.white),
+            onPressed: _carregarUsuarios,
+          ),
+          IconButton(
+            icon: Icon(Icons.more_vert, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
         elevation: 0,
       ),
       body: _isLoading
@@ -99,7 +110,10 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
                         ),
                       ),
                       SizedBox(width: 8),
-                      IconButton(icon: Icon(Icons.edit, color: Colors.orange, size: 20), onPressed: () => _abrirCadastroUsuario(usuario)),
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Colors.orange, size: 20),
+                        onPressed: () => _abrirCadastroUsuario(usuario),
+                      ),
                     ],
                   ),
                 );
@@ -110,6 +124,38 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
         child: Icon(Icons.add, color: Colors.white),
         backgroundColor: Colors.orange,
       ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      backgroundColor: Color(0xFF2D2419),
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.orange,
+      unselectedItemColor: Colors.white70,
+      currentIndex: _selectedIndex,
+      onTap: (index) {
+        setState(() {
+          _selectedIndex = index;
+        });
+        if (index == 0) {
+          Navigator.of(context).pushNamed('/home', arguments: null);
+        } /*else if (index == 1) {
+          Navigator.of(context).pushNamed('/listVendas', arguments: null);
+        } */ else if (index == 2) {
+          Navigator.of(context).pushNamed('/listProdutos', arguments: null);
+        } else if (index == 4) {
+          Navigator.of(context).pushNamed('/listUsuarios', arguments: null);
+        }
+      },
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Painel'),
+        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Vendas'),
+        BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Produtos'),
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Estoque'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Usuário'),
+      ],
     );
   }
 }
