@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_login/flutter_login.dart';
 import 'package:pedeai/controller/authService.dart';
 import 'package:pedeai/controller/databaseService.dart';
@@ -106,6 +108,33 @@ class Usuariocontroller {
       await _databaseService.executeSql(script.scriptAtualizarUsuario(dados), schema: 'public');
     } catch (e) {
       throw Exception('Erro ao salvar usuário: ${e.toString()}');
+    }
+  }
+
+  //NAO ESTA SALVANDO EM NENHUM LUGAR O USUARIO ATEA AGORA
+  Future<Usuario?> getUsuarioFromSharedPreferences() async {
+    try {
+      prefs = await SharedPreferences.getInstance();
+      String? usuarioJson = prefs.getString('usuario');
+
+      if (usuarioJson != null) {
+        Map<String, dynamic> usuarioMap = json.decode(usuarioJson);
+        return Usuario.fromJson(usuarioMap);
+      }
+      return null;
+    } catch (e) {
+      print('Erro ao buscar usuário do SharedPreferences: $e');
+      return null;
+    }
+  }
+
+Future<String?> getUidUsuarioFromSharedPreferences() async {
+    try {
+      prefs = await SharedPreferences.getInstance();
+      return  prefs.getString('uid');
+    } catch (e) {
+      print('Erro ao buscar usuário do SharedPreferences: $e');
+      return null;
     }
   }
 }

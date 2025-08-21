@@ -16,14 +16,20 @@ class Produtocontroller {
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
 
-  Future<void> inserirProduto(Map<String, dynamic> dados) async {
-    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+  Future<int> inserirProduto(Map<String, dynamic> dados) async {
+    try {
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
-    if (empresa == null) {
-      throw Exception('Dados da empresa não encontrados');
+      if (empresa == null) {
+        throw Exception('Dados da empresa não encontrados');
+      }
+      dados['schema_empresa'] = empresa.schema;
+      final resultado = await _databaseService.executeSqlInserirProduto(params: dados);
+      return resultado.first['id'] as int;
+    } catch (e) {
+      print('Erro ao inserir produto: $e');
+      throw Exception('Erro ao inserir produto: $e');
     }
-    dados['schema_empresa'] = empresa.schema;
-    await _databaseService.executeSqlInserirProduto(params: dados);
   }
 
   Future<List<Produto>> listarProdutos() async {

@@ -15,7 +15,7 @@ class Produto {
   Produto({required this.id, required this.createdAt, required this.descricao, required this.codigo, required this.preco, required this.estoque, required this.produtoIdPublic, required this.id_unidade, required this.id_categoria, required this.precoCusto, required this.validade, required this.image_url, required this.ativo});
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'created_at': createdAt.toIso8601String(), 'descricao': descricao, 'codigo': codigo, 'preco_venda': preco, 'estoque': estoque, 'produto_id_public': produtoIdPublic, 'id_unidade': id_unidade, 'id_categoria': id_categoria, 'preco_custo': precoCusto, 'validade': validade, 'image_url': image_url, 'ativo': ativo};
+    return {'id': id, 'created_at': createdAt.toIso8601String(), 'descricao': descricao, 'codigo': codigo, 'preco_venda': preco, 'quantidade': estoque, 'produto_id_public': produtoIdPublic, 'id_unidade': id_unidade, 'id_categoria': id_categoria, 'preco_custo': precoCusto, 'validade': validade, 'image_url': image_url, 'ativo': ativo};
   }
 
   factory Produto.fromJson(Map<String, dynamic> json) {
@@ -25,7 +25,7 @@ class Produto {
       descricao: json['descricao'] ?? '',
       codigo: json['codigo'] ?? '',
       preco: (json['preco_venda'] ?? 0).toDouble(),
-      estoque: json['estoque']?.toInt() ?? 0,
+      estoque: json['quantidade']?.toInt() ?? 0,
       produtoIdPublic: json['produto_id_public']?.toInt() ?? 0,
       id_unidade: json['id_unidade']?.toInt() ?? 0,
       id_categoria: json['id_categoria']?.toInt() ?? 0,

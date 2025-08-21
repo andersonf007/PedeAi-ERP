@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedeai/controller/estoqueController.dart';
 import 'package:pedeai/controller/usuarioController.dart';
 import 'package:pedeai/model/usuario.dart';
 import 'package:pedeai/script/scriptUsuario.dart';
@@ -15,6 +16,7 @@ class CadastroUsuarioPage extends StatefulWidget {
 
 class _CadastroUsuarioPageState extends State<CadastroUsuarioPage> {
   final Usuariocontroller usuariocontroller = Usuariocontroller();
+  final Estoquecontroller estoquecontroller = Estoquecontroller();
   final DatabaseService databaseService = DatabaseService();
   final ScriptUsuario scriptUsuario = ScriptUsuario();
 

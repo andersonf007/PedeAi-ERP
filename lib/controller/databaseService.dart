@@ -95,6 +95,7 @@ class DatabaseService {
 
   Future<List<Map<String, dynamic>>> executeSqlListar({String? sql}) async {
     try {
+      print('SQL Listar: $sql');
       final response = await _client.rpc('executar_select', params: {'select_sql': sql});
       if (response is List) {
         if (response.isNotEmpty && response.first is int) {
@@ -138,48 +139,27 @@ class DatabaseService {
     }
   }
 
-Future<String?> uploadImage(File file) async {
-  final supabase = Supabase.instance.client;
+  Future<String?> uploadImage(File file) async {
+    final supabase = Supabase.instance.client;
 
-  // Gera um nome único pro arquivo
-  final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+    // Gera um nome único pro arquivo
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
 
-  try {
-    // 1. Upload da imagem para o bucket "imagens"
-    await supabase.storage.from('imagens').upload(fileName, file);
+    try {
+      // 1. Upload da imagem para o bucket "imagens"
+      await supabase.storage.from('imagens').upload(fileName, file);
 
-    // 2. Obter a URL pública
-    final publicUrl = supabase.storage.from('imagens').getPublicUrl(fileName);
+      // 2. Obter a URL pública
+      final publicUrl = supabase.storage.from('imagens').getPublicUrl(fileName);
 
-    return publicUrl;
-  } catch (e) {
-    print('Erro ao enviar: $e');
-    return null;
+      return publicUrl;
+    } catch (e) {
+      print('Erro ao enviar: $e');
+      return null;
+    }
   }
-}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//NENHUM DESSES METODOS ESTA SENDO USADO
+  //NENHUM DESSES METODOS ESTA SENDO USADO
   // Exemplo: SELECT * FROM schema.usuario;
   Future<List<Map<String, dynamic>>> selectUsuarios(String schema) async {
     const sql = 'SELECT * FROM {schema}.usuario;';

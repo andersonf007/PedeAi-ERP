@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pedeai/controller/estoqueController.dart';
 import 'package:pedeai/controller/produtoController.dart';
 import 'package:pedeai/controller/usuarioController.dart';
 import 'package:pedeai/controller/categoriaController.dart';
@@ -34,6 +35,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
   Produtocontroller produtocontroller = Produtocontroller();
   Categoriacontroller categoriaController = Categoriacontroller();
   Unidadecontroller unidadeController = Unidadecontroller();
+  Estoquecontroller estoqueController = Estoquecontroller();
 
   List<Categoria> _categorias = [];
   List<Unidade> _unidades = [];
@@ -434,7 +436,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
           // Estoque Inicial
           _buildLabel(_isEdicao ? 'Estoque Atual' : 'Estoque Inicial'),
-          _buildTextField(_estoqueController, '0', keyboardType: TextInputType.number),
+          _buildTextField(_estoqueController, '0', keyboardType: TextInputType.number, readOnly: _isEdicao),
           SizedBox(height: 16),
 
           // Status Ativo
@@ -588,14 +590,21 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     'ativo': _ativo,
                   };
 
+                  Map<String, dynamic> dadosQuantidadeEstoque = {'quantidade': double.tryParse(_estoqueController.text) ?? 0};
+
+                  Map<String, dynamic> dadosMovimentacaoEstoque = {'quantidade': double.tryParse(_estoqueController.text) ?? 0, 'tipo_movimentacao': 'Entrada'};
+
                   if (_isEdicao) {
-                    // Atualizar produto existente
+                    dadosQuantidadeEstoque['id_produto_empresa'] = _produtoEdicao!.id;
+                    dadosMovimentacaoEstoque['id_produto_empresa'] = _produtoEdicao!.id;
                     dadosProduto['produto_id_public'] = _produtoEdicao!.produtoIdPublic;
                     await produtocontroller.atualizarProduto(dadosProduto);
                   } else {
-                    // Inserir novo produto
-                    dadosProduto['schema_empresa'] = 'georgiadoceria';
-                    await produtocontroller.inserirProduto(dadosProduto);
+                    int idProduto = await produtocontroller.inserirProduto(dadosProduto);
+                    dadosQuantidadeEstoque['id_produto_empresa'] = idProduto;
+                    dadosMovimentacaoEstoque['id_produto_empresa'] = idProduto;
+                    await estoqueController.inserirQuantidadeEstoque(dadosQuantidadeEstoque);
+                    await estoqueController.inserirMovimentacaoEstoque(dadosMovimentacaoEstoque);
                   }
 
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_isEdicao ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!'), backgroundColor: Colors.green));
@@ -706,12 +715,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hintText, {TextInputType? keyboardType, VoidCallback? onTap}) {
+  Widget _buildTextField(TextEditingController controller, String hintText, {TextInputType? keyboardType, VoidCallback? onTap, bool readOnly = false}) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       onTap: onTap,
-      readOnly: onTap != null,
+      readOnly: onTap != null || readOnly,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.white54),
