@@ -581,7 +581,6 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     'descricao': _nomeController.text.trim(),
                     'codigo': _codigoController.text.trim(),
                     'preco_venda': double.tryParse(_precoVendaController.text) ?? 0.0,
-                    'estoque': double.tryParse(_estoqueController.text) ?? 0,
                     'id_categoria': _selectedCategory?.id,
                     'id_unidade': _selectedUnit?.id,
                     'preco_custo': double.tryParse(_precoCustoController.text) ?? 0.0,
@@ -592,7 +591,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
                   Map<String, dynamic> dadosQuantidadeEstoque = {'quantidade': double.tryParse(_estoqueController.text) ?? 0};
 
-                  Map<String, dynamic> dadosMovimentacaoEstoque = {'quantidade': double.tryParse(_estoqueController.text) ?? 0, 'tipo_movimentacao': 'Entrada'};
+                  Map<String, dynamic> dadosMovimentacaoEstoque = {'quantidade': double.tryParse(_estoqueController.text) ?? 0, 'tipo_movimento': 'Entrada'};
 
                   if (_isEdicao) {
                     dadosQuantidadeEstoque['id_produto_empresa'] = _produtoEdicao!.id;
