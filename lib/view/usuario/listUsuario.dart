@@ -145,7 +145,9 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
           Navigator.of(context).pushNamed('/listVendas', arguments: null);
         } */ else if (index == 2) {
           Navigator.of(context).pushNamed('/listProdutos', arguments: null);
-        } else if (index == 4) {
+        } else if (index == 3) {
+          Navigator.of(context).pushNamed('/estoque', arguments: null);
+        }else if (index == 4) {
           Navigator.of(context).pushNamed('/listUsuarios', arguments: null);
         }
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pedeai/model/usuario.dart';
+import 'package:pedeai/view/estoque/estoque.dart';
 import 'package:pedeai/view/home/home.dart';
 import 'package:pedeai/view/login/login.dart';
 import 'package:pedeai/view/produto/cadastroProduto.dart';
@@ -49,6 +50,7 @@ class _AppWidgetState extends State<AppWidget> {
           final args = ModalRoute.of(context)?.settings.arguments as Usuario?;
           return CadastroUsuarioPage(usuario: args);
         },
+        '/estoque': (context) => EstoquePage(),
       },
     );
   }

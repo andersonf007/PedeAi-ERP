@@ -4,7 +4,7 @@ class Produto {
   final String descricao;
   final String codigo;
   final double preco;
-  final int estoque;
+  final double estoque;
   final int produtoIdPublic;
   final int id_unidade;
   final int id_categoria;
@@ -25,7 +25,7 @@ class Produto {
       descricao: json['descricao'] ?? '',
       codigo: json['codigo'] ?? '',
       preco: (json['preco_venda'] ?? 0).toDouble(),
-      estoque: json['quantidade']?.toInt() ?? 0,
+      estoque: json['quantidade']?.toDouble() ?? 0,
       produtoIdPublic: json['produto_id_public']?.toInt() ?? 0,
       id_unidade: json['id_unidade']?.toInt() ?? 0,
       id_categoria: json['id_categoria']?.toInt() ?? 0,
