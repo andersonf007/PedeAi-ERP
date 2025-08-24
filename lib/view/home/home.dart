@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedeai/view/home/drawer.dart';
 import 'package:pedeai/view/produto/listProdutos.dart';
 import 'package:pedeai/view/produto/cadastroProduto.dart';
 
@@ -34,7 +35,7 @@ class _HomePageState extends State<HomePage> {
         ],
         elevation: 0,
       ),
-      drawer: _buildDrawer(),
+      drawer: DrawerPage(),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -107,62 +108,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
-    );
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: Color(0xFF2D2419),
-      child: Column(
-        children: [
-          Container(
-            height: 100,
-            width: double.infinity,
-            color: Color(0xFF1A1A1A),
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.restaurant, color: Colors.orange, size: 30),
-                  SizedBox(width: 8),
-                  Text(
-                    'PedeAi',
-                    style: TextStyle(color: Colors.orange, fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(width: 4),
-                  Text('ERP', style: TextStyle(color: Colors.white, fontSize: 16)),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildDrawerItem(Icons.shopping_cart, 'Vendas'),
-                _buildDrawerItem(Icons.app_registration, 'Cadastro'),
-                _buildDrawerItem(Icons.warehouse, 'Estoque'),
-                _buildDrawerItem(Icons.point_of_sale, 'Caixa'),
-                _buildDrawerItem(Icons.attach_money, 'Financeiro'),
-                _buildDrawerItem(Icons.bar_chart, 'Relatórios'),
-                _buildDrawerItem(Icons.settings, 'Configurações'),
-                Divider(color: Colors.grey.shade600, thickness: 1),
-                _buildDrawerItem(Icons.exit_to_app, 'Sair'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrawerItem(IconData icon, String title) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white70, size: 20),
-      title: Text(title, style: TextStyle(color: Colors.white, fontSize: 14)),
-      onTap: () {
-        Navigator.pop(context);
-      },
     );
   }
 
@@ -258,7 +203,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.of(context).pushNamed('/listVendas', arguments: null);
         } */ else if (index == 2) {
           Navigator.of(context).pushNamed('/listProdutos', arguments: null);
-        }else if (index == 3) {
+        } else if (index == 3) {
           Navigator.of(context).pushNamed('/estoque', arguments: null);
         } else if (index == 4) {
           Navigator.of(context).pushNamed('/listUsuarios', arguments: null);
