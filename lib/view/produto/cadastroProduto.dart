@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pedeai/controller/estoqueController.dart';
 import 'package:pedeai/controller/produtoController.dart';
 import 'package:pedeai/controller/usuarioController.dart';
 import 'package:pedeai/controller/categoriaController.dart';
@@ -12,7 +13,7 @@ import 'package:pedeai/model/produto.dart';
 import 'package:pedeai/model/unidade.dart';
 
 class CadastroProdutoPage extends StatefulWidget {
-  final int? produtoId; // Null para cadastro, preenchido para edição
+  final int? produtoId;
 
   const CadastroProdutoPage({Key? key, this.produtoId}) : super(key: key);
 
@@ -30,10 +31,10 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
   TextEditingController _precoCustoController = TextEditingController();
   TextEditingController _estoqueController = TextEditingController();
   TextEditingController _validadeController = TextEditingController();
-
   Produtocontroller produtocontroller = Produtocontroller();
   Categoriacontroller categoriaController = Categoriacontroller();
   Unidadecontroller unidadeController = Unidadecontroller();
+  Estoquecontroller estoqueController = Estoquecontroller();
 
   List<Categoria> _categorias = [];
   List<Unidade> _unidades = [];
@@ -53,26 +54,36 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
     _tabController = TabController(length: 5, vsync: this);
     _isEdicao = widget.produtoId != null;
 
-    _carregarListas();
-
+    _carregarListasUnidade();
+    _carregarListasCategoria();
     if (_isEdicao) {
       _carregarDadosProduto();
     }
   }
 
-  Future<void> _carregarListas() async {
+  Future<void> _carregarListasUnidade() async {
     try {
-      final categorias = await categoriaController.listarCategoria();
       final unidades = await unidadeController.listarUnidade();
 
       setState(() {
-        _categorias.clear();
         _unidades.clear();
-        _categorias = categorias;
         _unidades = unidades;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao carregar listas: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao carregar listas de unidade: $e'), backgroundColor: Colors.red));
+    }
+  }
+
+  Future<void> _carregarListasCategoria() async {
+    try {
+      final categorias = await categoriaController.listarCategoria();
+
+      setState(() {
+        _categorias.clear();
+        _categorias = categorias;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao carregar listas de categoria: $e'), backgroundColor: Colors.red));
     }
   }
 
@@ -84,19 +95,24 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
     });
 
     try {
-      Produto? produto = await produtocontroller.buscarProdutoPorId(widget.produtoId!);
+
+      print(widget.produtoId);
+      Produto? produto  = await produtocontroller.buscarProdutoPorId(widget.produtoId!);
 
       if (produto != null) {
-        if (_categorias.isEmpty || _unidades.isEmpty) {
-          await _carregarListas();
+        if (_categorias.isEmpty) {
+          await _carregarListasCategoria();
         }
-
+        if (_unidades.isEmpty) {
+          await _carregarListasUnidade();
+        }
         setState(() {
           _produtoEdicao = produto;
           _nomeController.text = produto.descricao;
           _codigoController.text = produto.codigo;
           _precoVendaController.text = produto.preco.toString();
           _estoqueController.text = produto.estoque.toString();
+          _precoCustoController.text = produto.precoCusto.toString();
 
           // Buscar e definir categoria selecionada
           if (produto.id_categoria != null) {
@@ -209,7 +225,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     await categoriaController.inserirCategoria({'nome': nomeController.text, 'descricao': descricaoController.text});
 
                     Navigator.of(context).pop();
-                    await _carregarListas(); // Recarregar a lista
+                    await _carregarListasCategoria(); // Recarregar a lista
                     setState(() {
                       // Seleciona a categoria recém criada (exemplo: última da lista)
                       if (_categorias.isNotEmpty) {
@@ -287,7 +303,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     await unidadeController.inserirUnidade({'nome': nomeController.text, 'sigla': siglaController.text});
 
                     Navigator.of(context).pop();
-                    await _carregarListas(); // Recarregar a lista
+                    await _carregarListasUnidade(); // Recarregar a lista
                     setState(() {
                       // Seleciona a unidade recém criada (exemplo: última da lista)
                       if (_unidades.isNotEmpty) {
@@ -434,7 +450,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
           // Estoque Inicial
           _buildLabel(_isEdicao ? 'Estoque Atual' : 'Estoque Inicial'),
-          _buildTextField(_estoqueController, '0', keyboardType: TextInputType.number),
+          _buildTextField(_estoqueController, '0', keyboardType: TextInputType.number, readOnly: _isEdicao),
           SizedBox(height: 16),
 
           // Status Ativo
@@ -579,7 +595,6 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     'descricao': _nomeController.text.trim(),
                     'codigo': _codigoController.text.trim(),
                     'preco_venda': double.tryParse(_precoVendaController.text) ?? 0.0,
-                    'estoque': double.tryParse(_estoqueController.text) ?? 0,
                     'id_categoria': _selectedCategory?.id,
                     'id_unidade': _selectedUnit?.id,
                     'preco_custo': double.tryParse(_precoCustoController.text) ?? 0.0,
@@ -588,14 +603,23 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
                     'ativo': _ativo,
                   };
 
+                  Map<String, dynamic> dadosQuantidadeEstoque = {'quantidade': double.tryParse(_estoqueController.text) ?? 0};
+
+                  Map<String, dynamic> dadosMovimentacaoEstoque = {'quantidade': double.tryParse(_estoqueController.text) ?? 0, 'tipo_movimento': 'Entrada'};
+
                   if (_isEdicao) {
-                    // Atualizar produto existente
+                    dadosQuantidadeEstoque['id_produto_empresa'] = _produtoEdicao!.id;
+                    dadosMovimentacaoEstoque['id_produto_empresa'] = _produtoEdicao!.id;
                     dadosProduto['produto_id_public'] = _produtoEdicao!.produtoIdPublic;
                     await produtocontroller.atualizarProduto(dadosProduto);
                   } else {
-                    // Inserir novo produto
-                    dadosProduto['schema_empresa'] = 'georgiadoceria';
-                    await produtocontroller.inserirProduto(dadosProduto);
+                    int idProduto = await produtocontroller.inserirProduto(dadosProduto);
+                    dadosQuantidadeEstoque['id_produto_empresa'] = idProduto;
+                    dadosMovimentacaoEstoque['id_produto_empresa'] = idProduto;
+                    await estoqueController.inserirQuantidadeEstoque(dadosQuantidadeEstoque);
+                    if(double.tryParse(_estoqueController.text) != 0){
+                      await estoqueController.inserirMovimentacaoEstoque(dadosMovimentacaoEstoque);
+                    }
                   }
 
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_isEdicao ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!'), backgroundColor: Colors.green));
@@ -706,12 +730,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hintText, {TextInputType? keyboardType, VoidCallback? onTap}) {
+  Widget _buildTextField(TextEditingController controller, String hintText, {TextInputType? keyboardType, VoidCallback? onTap, bool readOnly = false}) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       onTap: onTap,
-      readOnly: onTap != null,
+      readOnly: onTap != null || readOnly,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.white54),

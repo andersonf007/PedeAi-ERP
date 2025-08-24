@@ -16,14 +16,20 @@ class Produtocontroller {
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
 
-  Future<void> inserirProduto(Map<String, dynamic> dados) async {
-    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+  Future<int> inserirProduto(Map<String, dynamic> dados) async {
+    try {
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
-    if (empresa == null) {
-      throw Exception('Dados da empresa não encontrados');
+      if (empresa == null) {
+        throw Exception('Dados da empresa não encontrados');
+      }
+      dados['schema_empresa'] = empresa.schema;
+      final resultado = await _databaseService.executeSqlInserirProduto(params: dados);
+      return resultado.first['id'] as int;
+    } catch (e) {
+      print('Erro ao inserir produto: $e');
+      throw Exception('Erro ao inserir produto: $e');
     }
-    dados['schema_empresa'] = empresa.schema;
-    await _databaseService.executeSqlInserirProduto(params: dados);
   }
 
   Future<List<Produto>> listarProdutos() async {
@@ -37,7 +43,35 @@ class Produtocontroller {
 
       String query = script.listagemProdutos(empresa.schema);
       // Executar query
-      final response = await _databaseService.executeSqlListar(sql: query);
+      final response = await _databaseService.executeSql2( query, schema: empresa.schema);
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      // Converter resposta para lista de produtos
+      List<Produto> produtos = response.map<Produto>((item) {
+        return Produto.fromJson(item);
+      }).toList();
+
+      return produtos;
+    } catch (e) {
+      print('Erro ao listar produtos: $e');
+      return [];
+    }
+  }
+
+  Future<List<Produto>> listagemSimplesDeProdutos() async {
+    try {
+      // Buscar dados da empresa
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+
+      if (empresa == null) {
+        throw Exception('Dados da empresa não encontrados');
+      }
+
+      // Executar query
+      final response = await _databaseService.listagemSimplesDeProdutos(empresa.schema);
 
       if (response.isEmpty) {
         return [];
@@ -109,6 +143,57 @@ class Produtocontroller {
       throw Exception('Erro ao fazer upload da imagem: $e');
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /*
   // Buscar produtos com filtro de pesquisa
