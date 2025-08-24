@@ -45,7 +45,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
     });
 
     try {
-      List<Produto> produtos = await _produtoController.listarProdutos();
+      List<Produto> produtos = await _produtoController.listagemSimplesDeProdutos();
       setState(() {
         _produtos = produtos;
         _isLoading = false;

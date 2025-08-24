@@ -43,7 +43,35 @@ class Produtocontroller {
 
       String query = script.listagemProdutos(empresa.schema);
       // Executar query
-      final response = await _databaseService.executeSqlListar(sql: query);
+      final response = await _databaseService.executeSql2( query, schema: empresa.schema);
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      // Converter resposta para lista de produtos
+      List<Produto> produtos = response.map<Produto>((item) {
+        return Produto.fromJson(item);
+      }).toList();
+
+      return produtos;
+    } catch (e) {
+      print('Erro ao listar produtos: $e');
+      return [];
+    }
+  }
+
+  Future<List<Produto>> listagemSimplesDeProdutos() async {
+    try {
+      // Buscar dados da empresa
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+
+      if (empresa == null) {
+        throw Exception('Dados da empresa não encontrados');
+      }
+
+      // Executar query
+      final response = await _databaseService.listagemSimplesDeProdutos(empresa.schema);
 
       if (response.isEmpty) {
         return [];
@@ -115,6 +143,57 @@ class Produtocontroller {
       throw Exception('Erro ao fazer upload da imagem: $e');
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /*
   // Buscar produtos com filtro de pesquisa

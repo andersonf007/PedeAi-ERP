@@ -97,29 +97,15 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> executeSqlListar({String? sql}) async {
     try {
       print('SQL Listar: $sql');
-      final response = await _client.rpc('executar_select', params: {'select_sql': sql});
-      if (response is List) {
-        if (response.isNotEmpty && response.first is int) {
-          return [
-            {'id': response.first},
-          ];
-        }
-        return List<Map<String, dynamic>>.from(response);
-      } else if (response is Map) {
-        return [Map<String, dynamic>.from(response)];
-      } else if (response == null) {
-        return [];
-      } else if (response is int) {
-        return [
-          {'id': response},
-        ];
-      } else if (response.data['id'] == null) {
-        return [];
-      } else {
-        return [
-          {'id': response},
-        ];
-      }
+      final response = await _adminClient.rpc(
+        'execute_sql_permissao_todal',
+        params: {'sql_query': sql},
+      );
+      print("Resposta bruta do Supabase: ${response.runtimeType} => $response");
+
+      if (response == null) return [];
+
+      return List<Map<String, dynamic>>.from(response as List);
     } catch (e) {
       throw Exception('Erro ao executar SQL: ${e.toString()}');
     }
@@ -159,6 +145,158 @@ class DatabaseService {
       return null;
     }
   }
+
+  Future<List<Map<String, dynamic>>> listagemSimplesDeProdutos(String schema) async {
+    try {
+      print('Chamando listagemSimplesDeProdutos para schema: $schema');
+
+      final response = await _client.rpc(
+        'listagem_simples_de_produtos',
+        params: {'schema_empresa': schema},
+      );
+
+      print("Resposta bruta do Supabase: ${response.runtimeType} => $response");
+
+      if (response == null) return [];
+
+      return List<Map<String, dynamic>>.from(response as List);
+    } catch (e) {
+      throw Exception('Erro em listagemSimplesDeProdutos: ${e.toString()}');
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   //NENHUM DESSES METODOS ESTA SENDO USADO
   // Exemplo: SELECT * FROM schema.usuario;

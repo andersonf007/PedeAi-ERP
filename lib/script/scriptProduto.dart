@@ -22,6 +22,11 @@ class ScriptProduto{
   """;
   }
 
+  String listagemSimplesDeProdutos(String schema) {
+    return """ SELECT pe.id, pe.image_url, pe.produto_id_public, pe.ativo, p.descricao, p.codigo, e.quantidade FROM ${schema}.produto_empresa pe INNER JOIN public.produtos p ON pe.produto_id_public = p.id LEFT JOIN ${schema}.quantidade_estoque e ON pe.id = e.id_produto_empresa ORDER BY pe.id DESC
+  """;
+  }
+
   String buscarDadosProdutoPorId(int produtoId, String schema) {
     return """
     SELECT 
