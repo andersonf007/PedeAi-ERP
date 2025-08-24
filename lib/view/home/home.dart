@@ -164,7 +164,9 @@ class _HomePageState extends State<HomePage> {
           if (title == 'Criar Produto') {
             Navigator.of(context).pushNamed('/cadastro-produto', arguments: null);
           }
-
+          if (title == 'PDV') {
+            Navigator.of(context).pushNamed('/pdv', arguments: null);
+          }
           /*if (title == 'Registrar Produtos') {
           }*/
         },

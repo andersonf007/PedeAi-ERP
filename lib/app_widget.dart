@@ -3,12 +3,12 @@ import 'package:pedeai/model/usuario.dart';
 import 'package:pedeai/view/estoque/estoque.dart';
 import 'package:pedeai/view/home/home.dart';
 import 'package:pedeai/view/login/login.dart';
+import 'package:pedeai/view/venda/pdv.dart';
 import 'package:pedeai/view/produto/cadastroProduto.dart';
 import 'package:pedeai/view/produto/listProdutos.dart';
 import 'package:pedeai/view/usuario/cadastroUsuario.dart';
 import 'package:pedeai/view/usuario/listUsuario.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 
 class AppWidget extends StatefulWidget {
   const AppWidget({super.key});
@@ -32,9 +32,7 @@ class _AppWidgetState extends State<AppWidget> {
     return MaterialApp(
       title: 'PedeAi ERP',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-      ),
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
       // sua configuração de rotas continua igual
       initialRoute: '/login',
       routes: {
@@ -51,6 +49,7 @@ class _AppWidgetState extends State<AppWidget> {
           return CadastroUsuarioPage(usuario: args);
         },
         '/estoque': (context) => EstoquePage(),
+        '/pdv': (context) => PDVPage(),
       },
     );
   }

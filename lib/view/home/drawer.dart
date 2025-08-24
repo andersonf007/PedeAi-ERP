@@ -26,10 +26,18 @@ class DrawerPage extends StatelessWidget {
                 ],
               ),
             ),
-            ListTile(
+            ExpansionTile(
               leading: Icon(Icons.shopping_cart, color: Colors.orange),
               title: Text('Venda', style: TextStyle(color: Colors.white)),
-              onTap: () {},
+              backgroundColor: Color(0xFF4A3429),
+              collapsedBackgroundColor: Color(0xFF2D2419),
+              children: [
+                ListTile(
+                  leading: Icon(Icons.shopping_cart_outlined, color: Colors.orange),
+                  title: Text('PDV', style: TextStyle(color: Colors.white)),
+                  onTap: () => Navigator.of(context).pushNamed('/pdv', arguments: null),
+                ),
+              ],
             ),
             ExpansionTile(
               leading: Icon(Icons.app_registration, color: Colors.orange),
