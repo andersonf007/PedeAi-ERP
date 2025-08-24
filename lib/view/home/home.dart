@@ -139,10 +139,10 @@ class _HomePageState extends State<HomePage> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildDrawerItem(Icons.inventory, 'Gestão de Produtos'),
-                _buildDrawerItem(Icons.shopping_cart, 'Compras e Fornecedores'),
-                _buildDrawerItem(Icons.warehouse, 'Gestão de Estoque'),
-                _buildDrawerItem(Icons.people, 'Vendas e Clientes'),
+                _buildDrawerItem(Icons.shopping_cart, 'Vendas'),
+                _buildDrawerItem(Icons.app_registration, 'Cadastro'),
+                _buildDrawerItem(Icons.warehouse, 'Estoque'),
+                _buildDrawerItem(Icons.point_of_sale, 'Caixa'),
                 _buildDrawerItem(Icons.attach_money, 'Financeiro'),
                 _buildDrawerItem(Icons.bar_chart, 'Relatórios'),
                 _buildDrawerItem(Icons.settings, 'Configurações'),
