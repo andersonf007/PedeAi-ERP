@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedeai/view/home/drawer.dart';
-import 'package:pedeai/view/produto/listProdutos.dart';
-import 'package:pedeai/view/produto/cadastroProduto.dart';
+import 'package:pedeai/view/cadastro/produto/listProdutos.dart';
+import 'package:pedeai/view/cadastro/produto/cadastroProduto.dart';
 
 class HomePage extends StatefulWidget {
   @override

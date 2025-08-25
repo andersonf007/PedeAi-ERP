@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pedeai/view/home/home.dart';
-import 'package:pedeai/view/produto/cadastroProduto.dart';
+import 'package:pedeai/view/cadastro/produto/cadastroProduto.dart';
 import 'package:pedeai/controller/produtoController.dart';
 import 'package:pedeai/model/produto.dart';
 

@@ -25,8 +25,9 @@ class AppNavBar extends StatelessWidget {
         return '/estoque';
       case '/pdv':
         return '/pdv';
+      case '/listUsuarios':
+      case '/cadastro-usuario':
       case '/config':
-      case '/perfil':
         return '/listUsuarios';
       case '/listCategorias':
       case '/home':
