@@ -115,7 +115,7 @@ class _DrawerPageState extends State<DrawerPage> {
                             selected: current == '/listFormasPagamento',
                             onTap: () => _go(context, '/listFormasPagamento'),
                           ),
-                           _NavItem(
+                          _NavItem(
                             icon: Icons.inventory,
                             label: 'Produto',
                             selected: current == '/listProdutos',
@@ -159,8 +159,8 @@ class _DrawerPageState extends State<DrawerPage> {
                       _PlainEntry(
                         icon: Icons.settings,
                         label: 'Configurações',
-                        selected: current == '/configuracoes',
-                        onTap: () => _go(context, '/configuracoes'),
+                        selected: current == '/config',
+                        onTap: () => _go(context, '/config'),
                       ),
                       const SizedBox(height: 12),
                     ],
