@@ -56,4 +56,34 @@ class Categoriacontroller {
       return [];
     }
   }
+
+  Future<void> atualizarCategoria(Map<String, dynamic> dados) async {
+    Empresa? empresa = await empresaController
+        .getEmpresaFromSharedPreferences();
+    if (empresa == null) {
+      throw Exception('Dados da empresa não encontrados');
+    }
+    dados['schema_empresa'] = empresa.schema;
+    String sql = script.atualizarCategoria(empresa.schema, dados);
+    try {
+      await _databaseService.executeSql(sql, schema: empresa.schema);
+    } catch (e) {
+      throw Exception('Erro ao atualizar categoria: ${e.toString()}');
+    }
+  }
+  Future<void> atualizarStatusCategoria(Map<String, dynamic> dados) async {
+    Empresa? empresa = await empresaController
+        .getEmpresaFromSharedPreferences();
+    if (empresa == null) {
+      throw Exception('Dados da empresa não encontrados');
+    }
+    dados['schema_empresa'] = empresa.schema;
+    String sql = script.atualizarStatusCategoria(empresa.schema, dados);
+    try {
+      await _databaseService.executeSql(sql, schema: empresa.schema);
+    } catch (e) {
+      throw Exception('Erro ao atualizar categoria: ${e.toString()}');
+    }
+  }
+
 }
