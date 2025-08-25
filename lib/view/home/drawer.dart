@@ -104,16 +104,22 @@ class _DrawerPageState extends State<DrawerPage> {
                         onToggle: () => _toggle('cadastro'),
                         children: [
                           _NavItem(
-                            icon: Icons.inventory,
-                            label: 'Produto',
-                            selected: current == '/listProdutos',
-                            onTap: () => _go(context, '/listProdutos'),
-                          ),
-                          _NavItem(
                             icon: Icons.category,
                             label: 'Categoria',
                             selected: current == '/listCategorias',
                             onTap: () => _go(context, '/listCategorias'),
+                          ),
+                          _NavItem(
+                            icon: Icons.payment,
+                            label: 'Formas de Pagamento',
+                            selected: current == '/listFormasPagamento',
+                            onTap: () => _go(context, '/listFormasPagamento'),
+                          ),
+                           _NavItem(
+                            icon: Icons.inventory,
+                            label: 'Produto',
+                            selected: current == '/listProdutos',
+                            onTap: () => _go(context, '/listProdutos'),
                           ),
                           _NavItem(
                             icon: Icons.straighten,
