@@ -6,8 +6,11 @@ import 'package:pedeai/theme/color_tokens.dart';
 import 'package:pedeai/controller/formaPagamentoController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
 
-// ⬇️ novo: helper de notificações
+// Notificações
 import 'package:pedeai/utils/app_notify.dart';
+
+// ⬇️ Barra de navegação inferior
+import 'package:pedeai/app_nav_bar.dart';
 
 class FormasPagamentoPage extends StatefulWidget {
   const FormasPagamentoPage({Key? key}) : super(key: key);
@@ -59,7 +62,6 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
         _error = 'Erro ao carregar formas de pagamento: $e';
         _loading = false;
       });
-      // feedback visual mesmo no bloco de erro
       AppNotify.error(context, 'Falha ao carregar: $e');
     }
   }
@@ -102,10 +104,7 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
               final dados = {'id': existente.id, ...payload};
               await _fpController.atualizarFormaPagamento(dados);
               if (!mounted) return;
-              AppNotify.success(
-                context,
-                'Forma "${payload['nome']}" atualizada.',
-              );
+              AppNotify.success(context, 'Forma "${payload['nome']}" atualizada.');
             }
             if (!mounted) return;
             Navigator.pop(context, true);
@@ -126,24 +125,16 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
   Future<void> _toggleAtivo(FormaPagamento f) async {
     try {
       final novo = !(f.ativo ?? true);
-      await _fpController.atualizarStatusFormaPagamento({
-        'id': f.id,
-        'ativo': novo,
-      });
+      await _fpController.atualizarStatusFormaPagamento({'id': f.id, 'ativo': novo});
       if (!mounted) return;
 
-      // notificação com "Desfazer"
       AppNotify.info(
         context,
         'Forma "${f.nome}" ${novo ? 'ativada' : 'desativada'}.',
         actionLabel: 'Desfazer',
         onAction: () async {
-          // reverte o status
           try {
-            await _fpController.atualizarStatusFormaPagamento({
-              'id': f.id,
-              'ativo': !novo,
-            });
+            await _fpController.atualizarStatusFormaPagamento({'id': f.id, 'ativo': !novo});
             if (!mounted) return;
             AppNotify.success(context, 'Alteração desfeita.');
             await _load();
@@ -168,19 +159,10 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: cs.surface,
-        title: Text(
-          'Excluir forma de pagamento',
-          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Tem certeza que deseja excluir "${f.nome}"?',
-          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
-        ),
+        title: Text('Excluir forma de pagamento', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
+        content: Text('Tem certeza que deseja excluir "${f.nome}"?', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancelar', style: TextStyle(color: cs.onSurface)),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancelar', style: TextStyle(color: cs.onSurface))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: cs.error),
             onPressed: () => Navigator.pop(ctx, true),
@@ -208,33 +190,27 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: cs.background,
+      backgroundColor: cs.surface, // alinhado ao resto das telas
       appBar: AppBar(
-        backgroundColor: cs.background,
+        backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: cs.onBackground),
+            icon: Icon(Icons.menu, color: cs.onSurface),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: Text(
-          'Formas de Pagamento',
-          style: TextStyle(
-            color: cs.onBackground,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: _load,
-            icon: Icon(Icons.refresh, color: cs.onBackground),
-          ),
-        ],
+        title: Text('Formas de Pagamento', style: TextStyle(color: cs.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
+        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh, color: cs.onSurface))],
       ),
       drawer: DrawerPage(currentRoute: ModalRoute.of(context)?.settings.name),
+
+      // ⬇️ Barra de navegação inferior
+      bottomNavigationBar: AppNavBar(
+        currentRoute: ModalRoute.of(context)?.settings.name,
+      ),
+
       body: Column(
         children: [
           // Busca
@@ -244,23 +220,12 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
               controller: _searchCtrl,
               decoration: InputDecoration(
                 hintText: 'Buscar forma de pagamento...',
-                hintStyle: TextStyle(
-                  color: cs.onSurface.withValues(alpha: 0.5),
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: cs.onSurface.withValues(alpha: 0.5),
-                ),
+                hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
+                prefixIcon: Icon(Icons.search, color: cs.onSurface.withValues(alpha: 0.5)),
                 filled: true,
                 fillColor: cs.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               style: TextStyle(color: cs.onSurface),
             ),
@@ -272,10 +237,7 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
           // Botão fixo
           SafeArea(
             top: false,
-            minimum: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
+            minimum: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: SizedBox(
               width: double.infinity,
               height: 46,
@@ -283,17 +245,9 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
                 onPressed: () => _openSheet(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: cs.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text(
-                  'Cadastrar Nova Forma',
-                  style: TextStyle(
-                    color: cs.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text('Cadastrar Nova Forma', style: TextStyle(color: cs.onPrimary, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
@@ -307,11 +261,7 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
     final cs = Theme.of(context).colorScheme;
 
     if (_loading) {
-      return Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation(cs.primary),
-        ),
-      );
+      return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(cs.primary)));
     }
     if (_error.isNotEmpty) {
       return Center(
@@ -322,19 +272,12 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
             children: [
               Icon(Icons.error_outline, size: 56, color: cs.primary),
               const SizedBox(height: 12),
-              Text(
-                _error,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
-              ),
+              Text(_error, textAlign: TextAlign.center, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _load,
                 style: ElevatedButton.styleFrom(backgroundColor: cs.primary),
-                child: Text(
-                  'Tentar novamente',
-                  style: TextStyle(color: cs.onPrimary),
-                ),
+                child: Text('Tentar novamente', style: TextStyle(color: cs.onPrimary)),
               ),
             ],
           ),
@@ -342,12 +285,7 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
       );
     }
     if (_filtrados.isEmpty) {
-      return Center(
-        child: Text(
-          'Nenhuma forma de pagamento encontrada',
-          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
-        ),
-      );
+      return Center(child: Text('Nenhuma forma de pagamento encontrada', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))));
     }
 
     return RefreshIndicator(
@@ -374,10 +312,7 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -386,23 +321,12 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${index + 1}. ${f.nome ?? ''}',
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text('${index + 1}. ${f.nome ?? ''}', style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
                   if ((f.descricao ?? '').trim().isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       f.descricao!.trim(),
-                      style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.7),
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 12),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -422,10 +346,7 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
                   icon: const Icon(Icons.edit),
                   color: isDark ? Colors.white : cs.primary,
                   onPressed: () => _openSheet(existente: f),
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
-                  ),
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                   padding: EdgeInsets.zero,
                 ),
               ],
@@ -446,7 +367,6 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = ativo ? BrandColors.success700 : BrandColors.warning700;
-
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
@@ -455,41 +375,12 @@ class _StatusChip extends StatelessWidget {
       child: Container(
         height: 32,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(999),
-        ),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
         alignment: Alignment.center,
         child: Text(
           ativo ? 'Ativo' : 'Inativo',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
         ),
-      ),
-    );
-  }
-}
-
-class _ChipLabel extends StatelessWidget {
-  const _ChipLabel();
-
-  @override
-  Widget build(BuildContext context) {
-    // pega o bool do pai através de dependência implícita
-    // (mais simples: passe o texto direto – abaixo mostro versão direta)
-    return Text(
-      // NÃO deixe vazio 😉
-      // Se preferir, remova essa classe e passe o texto diretamente:
-      // Text(ativo ? 'Ativo' : 'Inativo', style: ...);
-      // Aqui vou só manter como exemplo:
-      '',
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
       ),
     );
   }
@@ -500,15 +391,10 @@ class _FormaPagamentoFormSheet extends StatefulWidget {
   final FormaPagamento? existente;
   final Future<void> Function(Map<String, dynamic> payload) onSalvar;
 
-  const _FormaPagamentoFormSheet({
-    Key? key,
-    required this.existente,
-    required this.onSalvar,
-  }) : super(key: key);
+  const _FormaPagamentoFormSheet({Key? key, required this.existente, required this.onSalvar}) : super(key: key);
 
   @override
-  State<_FormaPagamentoFormSheet> createState() =>
-      _FormaPagamentoFormSheetState();
+  State<_FormaPagamentoFormSheet> createState() => _FormaPagamentoFormSheetState();
 }
 
 class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
@@ -577,23 +463,14 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
             width: 40,
             height: 5,
             margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: cs.onSurface.withValues(alpha: 0.24),
-              borderRadius: BorderRadius.circular(12),
-            ),
+            decoration: BoxDecoration(color: cs.onSurface.withValues(alpha: 0.24), borderRadius: BorderRadius.circular(12)),
           ),
           // Título
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              _isEdicao
-                  ? 'Atualizar Forma de Pagamento'
-                  : 'Cadastrar Forma de Pagamento',
-              style: TextStyle(
-                color: cs.onSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              _isEdicao ? 'Atualizar Forma de Pagamento' : 'Cadastrar Forma de Pagamento',
+              style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
           const SizedBox(height: 16),
@@ -605,36 +482,19 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Nome',
-                    style: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.9),
-                      fontSize: 12,
-                    ),
-                  ),
+                  child: Text('Nome', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.9), fontSize: 12)),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _nomeCtrl,
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Obrigatório' : null,
+                  validator: (v) => v == null || v.trim().isEmpty ? 'Obrigatório' : null,
                   decoration: InputDecoration(
-                    hintText: _isEdicao
-                        ? null
-                        : 'Ex.: Dinheiro, Cartão de Crédito…',
-                    hintStyle: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.5),
-                    ),
+                    hintText: _isEdicao ? null : 'Ex.: Dinheiro, Cartão de Crédito…',
+                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
                     filled: true,
                     fillColor: cs.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 14,
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   ),
                   style: TextStyle(color: cs.onSurface),
                 ),
@@ -643,13 +503,7 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
 
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Descrição (opcional)',
-                    style: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.9),
-                      fontSize: 12,
-                    ),
-                  ),
+                  child: Text('Descrição (opcional)', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.9), fontSize: 12)),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -657,19 +511,11 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
                   maxLines: 2,
                   decoration: InputDecoration(
                     hintText: 'Algum detalhe sobre a forma…',
-                    hintStyle: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.5),
-                    ),
+                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
                     filled: true,
                     fillColor: cs.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 14,
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   ),
                   style: TextStyle(color: cs.onSurface),
                 ),
@@ -685,12 +531,8 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: cs.primary, width: 1.5),
                             foregroundColor: cs.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            textStyle: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
                             overlayColor: cs.primary.withValues(alpha: 0.08),
                           ),
                           onPressed: () => Navigator.pop(context, false),
@@ -700,12 +542,8 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: cs.primary,
                             foregroundColor: cs.onPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            textStyle: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
                             overlayColor: cs.onPrimary.withValues(alpha: 0.08),
                           ),
                           onPressed: _handleSalvar,

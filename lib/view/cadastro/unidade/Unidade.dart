@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pedeai/view/home/drawer.dart';
+import 'package:pedeai/app_nav_bar.dart'; // ⬅️ navegação rápida
 import 'package:pedeai/theme/color_tokens.dart'; // BrandColors (verde/laranja)
-import 'package:pedeai/controller/unidadeController.dart'; // ajuste se o caminho/nome forem outros
-import 'package:pedeai/model/unidade.dart';               // ajuste se o caminho/nome forem outros
+import 'package:pedeai/controller/unidadeController.dart';
+import 'package:pedeai/model/unidade.dart';
+
+// Notificações
+import 'package:pedeai/utils/app_notify.dart';
 
 /// Tela de listagem/gestão de Unidades.
 /// - Busca em memória (nome/sigla)
@@ -20,7 +24,7 @@ class UnidadesPage extends StatefulWidget {
 
 class _UnidadesPageState extends State<UnidadesPage> {
   // Controllers
-  final Unidadecontroller _unidadeController = Unidadecontroller(); // <— ajuste o nome se diferente
+  final Unidadecontroller _unidadeController = Unidadecontroller();
   final TextEditingController _searchCtrl = TextEditingController();
 
   // Estado
@@ -50,7 +54,6 @@ class _UnidadesPageState extends State<UnidadesPage> {
       _error = '';
     });
     try {
-      // LISTAR — ajuste o nome do método se for diferente:
       final lista = await _unidadeController.listarUnidade();
       _unidades = List.from(lista);
       _applyFilter();
@@ -62,6 +65,7 @@ class _UnidadesPageState extends State<UnidadesPage> {
         _error = 'Erro ao carregar unidades: $e';
         _loading = false;
       });
+      AppNotify.error(context, 'Falha ao carregar: $e');
     }
   }
 
@@ -84,12 +88,10 @@ class _UnidadesPageState extends State<UnidadesPage> {
 
   /// Abre bottom-sheet para criar/editar
   Future<void> _openUnidadeSheet({Unidade? unidade}) async {
-    final cs = Theme.of(context).colorScheme;
-
-    final result = await showModalBottomSheet<bool>(
+    final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: cs.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -98,65 +100,56 @@ class _UnidadesPageState extends State<UnidadesPage> {
         onSalvar: (payload) async {
           try {
             if (unidade == null) {
-              // CRIAR — ajuste se o método tiver outro nome
               await _unidadeController.inserirUnidade(payload);
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Unidade criada com sucesso!'),
-                  backgroundColor: cs.primary,
-                ),
-              );
+              AppNotify.success(context, 'Unidade "${payload['nome']}" criada.');
             } else {
-              // ATUALIZAR — ajuste se o método tiver outro nome
               final toUpdate = {'id': unidade.id, ...payload};
               await _unidadeController.atualizarUnidade(toUpdate);
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Unidade atualizada com sucesso!'),
-                  backgroundColor: cs.primary,
-                ),
-              );
+              AppNotify.success(context, 'Unidade "${payload['nome']}" atualizada.');
             }
             if (!mounted) return;
             Navigator.pop(context, true);
           } catch (e) {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Erro ao salvar unidade: $e'),
-                backgroundColor: cs.error,
-              ),
-            );
+            AppNotify.error(context, 'Erro ao salvar unidade: $e');
           }
         },
       ),
     );
 
-    if (result == true) await _load();
+    if (ok == true) await _load();
   }
 
-  /// Alterna ativo/inativo (apenas o boolean)
+  /// Alterna ativo/inativo (apenas o boolean) com ação de desfazer
   Future<void> _toggleAtivo(Unidade u) async {
-    final cs = Theme.of(context).colorScheme;
     try {
       final novoAtivo = !(u.ativo ?? true);
-      // ATUALIZAR STATUS — ajuste se o método tiver outro nome
       await _unidadeController.atualizarStatusUnidade({'id': u.id, 'ativo': novoAtivo});
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(novoAtivo ? 'Unidade ativada' : 'Unidade desativada'),
-          backgroundColor: cs.primary,
-        ),
+
+      AppNotify.info(
+        context,
+        'Unidade "${u.nome}" ${novoAtivo ? 'ativada' : 'desativada'}.',
+        actionLabel: 'Desfazer',
+        onAction: () async {
+          try {
+            await _unidadeController.atualizarStatusUnidade({'id': u.id, 'ativo': !novoAtivo});
+            if (!mounted) return;
+            AppNotify.success(context, 'Alteração desfeita.');
+            await _load();
+          } catch (e) {
+            if (!mounted) return;
+            AppNotify.error(context, 'Falha ao desfazer: $e');
+          }
+        },
       );
+
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao alterar status: $e'), backgroundColor: cs.error),
-      );
+      AppNotify.error(context, 'Erro ao alterar status: $e');
     }
   }
 
@@ -186,18 +179,13 @@ class _UnidadesPageState extends State<UnidadesPage> {
 
     if (ok == true) {
       try {
-        // DELETAR — ajuste se o método tiver outro nome
         await _unidadeController.deletarUnidade(u.id);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Unidade excluída com sucesso.'), backgroundColor: cs.primary),
-        );
+        AppNotify.success(context, 'Unidade "${u.nome}" excluída.');
         await _load();
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao excluir: $e'), backgroundColor: cs.error),
-        );
+        AppNotify.error(context, 'Erro ao excluir: $e');
       }
     }
   }
@@ -207,24 +195,30 @@ class _UnidadesPageState extends State<UnidadesPage> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: cs.background,
+      backgroundColor: cs.surface, // preferir surface/onSurface
       appBar: AppBar(
-        backgroundColor: cs.background,
+        backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: cs.onBackground),
+            icon: Icon(Icons.menu, color: cs.onSurface),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
         title: Text('Unidades',
-            style: TextStyle(color: cs.onBackground, fontSize: 18, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: cs.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(onPressed: _load, icon: Icon(Icons.refresh, color: cs.onBackground)),
+          IconButton(onPressed: _load, icon: Icon(Icons.refresh, color: cs.onSurface)),
         ],
       ),
       drawer: DrawerPage(currentRoute: ModalRoute.of(context)?.settings.name),
+
+      // ⬇️ navegação rápida adicionada
+      bottomNavigationBar: AppNavBar(
+        currentRoute: ModalRoute.of(context)?.settings.name,
+      ),
+
       body: Column(
         children: [
           // Busca
@@ -349,7 +343,6 @@ class _UnidadesPageState extends State<UnidadesPage> {
                 IconButton(
                   tooltip: 'Editar',
                   icon: const Icon(Icons.edit),
-                  // lápis branco no dark, cor de destaque no light (igual você usa em Categorias)
                   color: isDark ? Colors.white : cs.primary,
                   onPressed: () => _openUnidadeSheet(unidade: u),
                   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -364,7 +357,7 @@ class _UnidadesPageState extends State<UnidadesPage> {
   }
 }
 
-/// Chip de status "Ativo/Inativo" (mesma paleta que Categorias)
+/// Chip de status "Ativo/Inativo" (paleta igual a Categorias/Forma de Pagamento)
 class _StatusChip extends StatelessWidget {
   final bool ativo;
   final VoidCallback onTap;
@@ -372,18 +365,30 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final bg = ativo ? BrandColors.success700 : BrandColors.warning700; // verde/laranja escuros
-    return InkWell(
-      onTap: onTap,
+    final bg = ativo ? BrandColors.success700 : BrandColors.warning700;
+    final label = ativo ? 'Ativo' : 'Inativo';
+
+    return Material(
+      color: bg,
       borderRadius: BorderRadius.circular(999),
-      splashColor: Colors.white.withValues(alpha: 0.06),
-      highlightColor: Colors.white.withValues(alpha: 0.04),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-        child: const Text('Ativo', // o texto muda abaixo
-            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        splashColor: Colors.white.withOpacity(0.06),
+        highlightColor: Colors.white.withOpacity(0.04),
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          alignment: Alignment.center,
+          child: Text(
+            label, // dinâmico
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -469,8 +474,10 @@ class _UnidadeFormSheetState extends State<_UnidadeFormSheet> {
             width: 40,
             height: 5,
             margin: const EdgeInsets.only(bottom: 16),
-            decoration:
-                BoxDecoration(color: cs.onSurface.withValues(alpha: 0.24), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: cs.onSurface.withValues(alpha: 0.24),
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
 
           Align(
@@ -489,8 +496,14 @@ class _UnidadeFormSheetState extends State<_UnidadeFormSheet> {
                 // Nome
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Nome da Unidade',
-                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.9), fontSize: 12, fontWeight: FontWeight.w500)),
+                  child: Text(
+                    'Nome da Unidade',
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -512,8 +525,14 @@ class _UnidadeFormSheetState extends State<_UnidadeFormSheet> {
                 // Sigla
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Sigla',
-                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.9), fontSize: 12, fontWeight: FontWeight.w500)),
+                  child: Text(
+                    'Sigla',
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

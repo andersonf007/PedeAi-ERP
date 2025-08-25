@@ -15,13 +15,19 @@ class Categoriacontroller {
   final EmpresaController empresaController = EmpresaController();
 
   Future<void> inserirCategoria(Map<String, dynamic> dados) async {
-    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
-
+    final empresa = await empresaController.getEmpresaFromSharedPreferences();
     if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
     }
-    dados['schema_empresa'] = empresa.schema;
-    String sql = script.inserirCategoria(empresa.schema, dados);
+
+    // default: true quando null; respeita false se vier explicitamente
+    final payload = {
+      'nome': (dados['nome'] ?? '').toString().trim(),
+      'sigla': (dados['sigla'] ?? '').toString().trim(),
+      'ativo': (dados['ativo'] is bool) ? dados['ativo'] as bool : true,
+    };
+
+    final sql = script.inserirCategoria(empresa.schema, payload);
     try {
       await _databaseService.executeSql(sql, schema: empresa.schema);
     } catch (e) {

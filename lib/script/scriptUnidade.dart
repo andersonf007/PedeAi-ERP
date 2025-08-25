@@ -7,8 +7,8 @@ class ScriptUnidade {
 
   String inserirUnidade(String schema, Map<String, dynamic> dados) {
     return '''
-      INSERT INTO ${schema}.unidade (nome, sigla)
-      VALUES ('${dados['nome']}', '${dados['sigla']}') returning id;
+      INSERT INTO ${schema}.unidade (nome, sigla, ativo)
+      VALUES ('${dados['nome']}', '${dados['sigla']}', ${dados['ativo']}) returning id;
     ''';
   }
 

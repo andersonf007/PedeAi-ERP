@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pedeai/controller/categoriaController.dart';
 import 'package:pedeai/model/categoria.dart';
 import 'package:pedeai/view/home/drawer.dart';
-import 'package:pedeai/theme/color_tokens.dart'; // <— adicione
+import 'package:pedeai/theme/color_tokens.dart';
+import 'package:pedeai/utils/app_notify.dart';
+// ⬇️ importe a barra de navegação
+import 'package:pedeai/app_nav_bar.dart';
 
 /// Tela de listagem/gestão de Categorias.
 /// - Busca em memória
@@ -10,7 +13,7 @@ import 'package:pedeai/theme/color_tokens.dart'; // <— adicione
 /// - Ícone de lápis para editar
 /// - Long-press no card para excluir
 /// - Formulário em bottom-sheet
-/// - Cores via Theme (ColorScheme), sem hex solto
+/// - Cores via Theme (ColorScheme), usando surface/onSurface
 class CategoriasPage extends StatefulWidget {
   const CategoriasPage({Key? key}) : super(key: key);
 
@@ -61,6 +64,7 @@ class _CategoriasPageState extends State<CategoriasPage> {
         _error = 'Erro ao carregar categorias: $e';
         _loading = false;
       });
+      AppNotify.error(context, 'Falha ao carregar: $e');
     }
   }
 
@@ -83,12 +87,10 @@ class _CategoriasPageState extends State<CategoriasPage> {
 
   /// Abre o bottom-sheet de criação/edição
   Future<void> _openCategoriaSheet({Categoria? categoria}) async {
-    final cs = Theme.of(context).colorScheme;
-
-    final result = await showModalBottomSheet<bool>(
+    final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: cs.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -100,71 +102,65 @@ class _CategoriasPageState extends State<CategoriasPage> {
               // Criar
               await _categoriaController.inserirCategoria(payload);
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Categoria criada com sucesso!'),
-                  backgroundColor: cs.primary,
-                ),
-              );
+              AppNotify.success(context, 'Categoria "${payload['nome']}" criada.');
             } else {
               // Atualizar
               final mapAtualizar = {'id': categoria.id, ...payload};
               await _categoriaController.atualizarCategoria(mapAtualizar);
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Categoria atualizada com sucesso!'),
-                  backgroundColor: cs.primary,
-                ),
-              );
+              AppNotify.success(context, 'Categoria "${payload['nome']}" atualizada.');
             }
             if (!mounted) return;
             Navigator.pop(context, true);
           } catch (e) {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Erro ao salvar categoria: $e'),
-                backgroundColor: cs.error,
-              ),
-            );
+            AppNotify.error(context, 'Erro ao salvar categoria: $e');
           }
         },
       ),
     );
 
-    if (result == true) {
+    if (ok == true) {
       await _load();
     }
   }
 
   /// Alterna o status ativo/inativo
   Future<void> _toggleAtivo(Categoria c) async {
-    final cs = Theme.of(context).colorScheme;
     try {
       final novoAtivo = !(c.ativo ?? true);
+
       await _categoriaController.atualizarStatusCategoria({
         'id': c.id,
         'ativo': novoAtivo,
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            novoAtivo ? 'Categoria ativada' : 'Categoria desativada',
-          ),
-          backgroundColor: cs.primary,
-        ),
+
+      // Notificação com "Desfazer"
+      AppNotify.info(
+        context,
+        'Categoria "${c.nome}" ${novoAtivo ? 'ativada' : 'desativada'}.',
+        actionLabel: 'Desfazer',
+        onAction: () async {
+          try {
+            await _categoriaController.atualizarStatusCategoria({
+              'id': c.id,
+              'ativo': !novoAtivo,
+            });
+            if (!mounted) return;
+            AppNotify.success(context, 'Alteração desfeita.');
+            await _load();
+          } catch (e) {
+            if (!mounted) return;
+            AppNotify.error(context, 'Falha ao desfazer: $e');
+          }
+        },
       );
+
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao alterar status: $e'),
-          backgroundColor: cs.error,
-        ),
-      );
+      AppNotify.error(context, 'Erro ao alterar status: $e');
     }
   }
 
@@ -199,23 +195,14 @@ class _CategoriasPageState extends State<CategoriasPage> {
 
     if (ok == true) {
       try {
-        //await _categoriaController.deletarCategoria(c.id);
+        // Se quiser realmente excluir, descomente a linha abaixo:
+        // await _categoriaController.deletarCategoria(c.id);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Categoria excluída com sucesso.'),
-            backgroundColor: cs.primary,
-          ),
-        );
+        AppNotify.success(context, 'Categoria "${c.nome}" excluída.');
         await _load();
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir: $e'),
-            backgroundColor: cs.error,
-          ),
-        );
+        AppNotify.error(context, 'Erro ao excluir: $e');
       }
     }
   }
@@ -225,21 +212,21 @@ class _CategoriasPageState extends State<CategoriasPage> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: cs.background,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: cs.background,
+        backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: cs.onBackground),
+            icon: Icon(Icons.menu, color: cs.onSurface),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
         title: Text(
           'Categorias',
           style: TextStyle(
-            color: cs.onBackground,
+            color: cs.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -247,12 +234,18 @@ class _CategoriasPageState extends State<CategoriasPage> {
         actions: [
           IconButton(
             onPressed: _load,
-            icon: Icon(Icons.refresh, color: cs.onBackground),
+            icon: Icon(Icons.refresh, color: cs.onSurface),
           ),
         ],
       ),
-      // passa a rota atual para o drawer destacar corretamente
+      // Drawer lateral
       drawer: DrawerPage(currentRoute: ModalRoute.of(context)?.settings.name),
+
+      // ⬇️ Barra de navegação inferior adicionada
+      bottomNavigationBar: AppNavBar(
+        currentRoute: ModalRoute.of(context)?.settings.name,
+      ),
+
       body: Column(
         children: [
           // Busca
@@ -260,25 +253,9 @@ class _CategoriasPageState extends State<CategoriasPage> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: TextField(
               controller: _searchCtrl,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Buscar categoria...',
-                hintStyle: TextStyle(
-                  color: cs.onSurface.withValues(alpha: 0.5),
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: cs.onSurface.withValues(alpha: 0.5),
-                ),
-                filled: true,
-                fillColor: cs.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                prefixIcon: Icon(Icons.search),
               ),
               style: TextStyle(color: cs.onSurface),
             ),
@@ -290,10 +267,7 @@ class _CategoriasPageState extends State<CategoriasPage> {
           // Botão fixo (SafeArea)
           SafeArea(
             top: false,
-            minimum: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
+            minimum: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: SizedBox(
               width: double.infinity,
               height: 46,
@@ -380,17 +354,14 @@ class _CategoriasPageState extends State<CategoriasPage> {
     );
   }
 
-  /// Card de item da lista:
-  /// - coluna esquerda: nome e (se existir) descrição
-  /// - coluna direita: chip de status e ícone de edição
-  /// - long-press do card exclui
+  /// Card de item da lista
   Widget _buildItem(Categoria c, int index) {
     final cs = Theme.of(context).colorScheme;
     final ativo = c.ativo ?? true;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return InkWell(
-      onLongPress: () => _confirmDelete(c), // segurar para excluir
+      onLongPress: () => _confirmDelete(c),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -399,8 +370,7 @@ class _CategoriasPageState extends State<CategoriasPage> {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.center, // centraliza verticalmente
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Texto à esquerda
             Expanded(
@@ -434,10 +404,9 @@ class _CategoriasPageState extends State<CategoriasPage> {
 
             const SizedBox(width: 12),
 
-            // Ações à direita (lado a lado)
+            // Ações à direita
             Row(
-              mainAxisSize:
-                  MainAxisSize.min, // não ocupa espaço além do necessário
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _StatusChip(ativo: ativo, onTap: () => _toggleAtivo(c)),
                 const SizedBox(width: 8),
@@ -446,10 +415,7 @@ class _CategoriasPageState extends State<CategoriasPage> {
                   icon: const Icon(Icons.edit),
                   color: isDark ? Colors.white : cs.primary,
                   onPressed: () => _openCategoriaSheet(categoria: c),
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
-                  ),
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                   padding: EdgeInsets.zero,
                 ),
               ],
@@ -469,27 +435,23 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    // Verde mais escuro da paleta (harmoniza com os tons do laranja)
     final bg = ativo ? BrandColors.success700 : BrandColors.warning700;
-    final fg = Colors.white;
-
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
-      splashColor: Colors.white.withValues(alpha: 0.06),
-      highlightColor: Colors.white.withValues(alpha: 0.04),
+      splashColor: Colors.white.withOpacity(0.06),
+      highlightColor: Colors.white.withOpacity(0.04),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(999),
         ),
+        alignment: Alignment.center,
         child: Text(
           ativo ? 'Ativo' : 'Inativo',
-          style: TextStyle(
-            color: fg,
+          style: const TextStyle(
+            color: Colors.white,
             fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
@@ -622,15 +584,9 @@ class _CategoriaFormSheetState extends State<_CategoriaFormSheet> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _nomeCtrl,
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Obrigatório' : null,
+                  validator: (v) => v == null || v.trim().isEmpty ? 'Obrigatório' : null,
                   decoration: InputDecoration(
-                    hintText: _isEdicao
-                        ? null
-                        : 'Insira o nome da categoria...',
-                    hintStyle: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.5),
-                    ),
+                    hintText: _isEdicao ? null : 'Insira o nome da categoria...',
                     filled: true,
                     fillColor: cs.surface,
                     border: OutlineInputBorder(
@@ -664,9 +620,6 @@ class _CategoriaFormSheetState extends State<_CategoriaFormSheet> {
                   maxLines: 2,
                   decoration: InputDecoration(
                     hintText: 'Ex: categorias usadas no balcão…',
-                    hintStyle: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.5),
-                    ),
                     filled: true,
                     fillColor: cs.surface,
                     border: OutlineInputBorder(
@@ -698,9 +651,7 @@ class _CategoriaFormSheetState extends State<_CategoriaFormSheet> {
                             textStyle: const TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
-                            overlayColor: cs.primary.withValues(
-                              alpha: 0.08,
-                            ), // hover/pressed
+                            overlayColor: cs.primary.withValues(alpha: 0.08), // hover/pressed
                           ),
                           onPressed: () => Navigator.pop(context, false),
                           child: const Text('Cancelar'),
@@ -715,9 +666,7 @@ class _CategoriaFormSheetState extends State<_CategoriaFormSheet> {
                             textStyle: const TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
-                            overlayColor: cs.onPrimary.withValues(
-                              alpha: 0.08,
-                            ), // hover/pressed
+                            overlayColor: cs.onPrimary.withValues(alpha: 0.08), // hover/pressed
                           ),
                           onPressed: _handleSalvar,
                           child: const Text('Salvar'),
