@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'color_tokens.dart';
 import 'spacing_tokens.dart';
 import 'typography.dart';
+import 'semantic_colors.dart';
 
 /// -----------------------------
 /// TEMA CLARO
@@ -20,12 +21,13 @@ ThemeData buildLightTheme() {
     secondaryContainer: BrandColors.neutral100,
     onSecondaryContainer: BrandColors.neutral900,
 
+    // sua paleta: "warning" é vermelho ⇒ usamos como error
     error: BrandColors.warning500,
     onError: Colors.white,
     errorContainer: BrandColors.warning50,
     onErrorContainer: BrandColors.warning900,
 
-    // Use somente surface/onSurface no lugar de background/onBackground
+    // use surface/onSurface no lugar de background/onBackground
     surface: Colors.white,
     onSurface: BrandColors.neutral900,
   );
@@ -42,7 +44,7 @@ ThemeData buildLightTheme() {
     outlinedButtonTheme: _outlined(light),
     textButtonTheme: _textButton(light),
     appBarTheme: _appBar(light),
-    cardTheme: _cardTheme(light), // agora CardThemeData
+    cardTheme: _cardTheme(light), // CardThemeData
     iconTheme: IconThemeData(color: light.onSurface),
     listTileTheme: ListTileThemeData(
       iconColor: light.onSurface,
@@ -52,11 +54,20 @@ ThemeData buildLightTheme() {
     dividerTheme: DividerThemeData(
       color: light.onSurface.withValues(alpha: 0.12),
     ),
-    drawerTheme: DrawerThemeData(
-      backgroundColor: light.surface,
+    drawerTheme: const DrawerThemeData(
       surfaceTintColor: Colors.transparent,
+      // background herdará de scaffold/background da tela
     ),
-    extensions: const [AppSpacing()],
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      contentTextStyle: const TextStyle(fontWeight: FontWeight.w600),
+    ),
+    // ⬇️ registre também as extensões
+    extensions: [
+      const AppSpacing(),
+      AppSemanticColors.light(),
+    ],
   );
 }
 
@@ -83,7 +94,6 @@ ThemeData buildDarkTheme() {
     errorContainer: BrandColors.warning700,
     onErrorContainer: BrandColors.neutral50,
 
-    // Use somente surface/onSurface no lugar de background/onBackground
     surface: BrandColors.neutral800,
     onSurface: BrandColors.neutral50,
   );
@@ -100,7 +110,7 @@ ThemeData buildDarkTheme() {
     outlinedButtonTheme: _outlined(dark),
     textButtonTheme: _textButton(dark),
     appBarTheme: _appBar(dark),
-    cardTheme: _cardTheme(dark), // agora CardThemeData
+    cardTheme: _cardTheme(dark),
     iconTheme: IconThemeData(color: dark.onSurface),
     listTileTheme: ListTileThemeData(
       iconColor: dark.onSurface,
@@ -110,11 +120,18 @@ ThemeData buildDarkTheme() {
     dividerTheme: DividerThemeData(
       color: dark.onSurface.withValues(alpha: 0.12),
     ),
-    drawerTheme: DrawerThemeData(
-      backgroundColor: dark.surface,
+    drawerTheme: const DrawerThemeData(
       surfaceTintColor: Colors.transparent,
     ),
-    extensions: const [AppSpacing()],
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      contentTextStyle: const TextStyle(fontWeight: FontWeight.w600),
+    ),
+    extensions: [
+      const AppSpacing(),
+      AppSemanticColors.dark(), // ⬅️ extensão semântica no dark
+    ],
   );
 }
 
@@ -205,7 +222,7 @@ TextButtonThemeData _textButton(ColorScheme cs) {
 }
 
 AppBarTheme _appBar(ColorScheme cs) {
-  // Adeus background/onBackground; viva surface/onSurface.
+  // surface/onSurface no lugar de background/onBackground.
   return AppBarTheme(
     backgroundColor: cs.surface,
     foregroundColor: cs.onSurface,
@@ -220,7 +237,7 @@ AppBarTheme _appBar(ColorScheme cs) {
   );
 }
 
-// ATENÇÃO: agora retorna CardThemeData (não CardTheme).
+// CardThemeData (Material 3)
 CardThemeData _cardTheme(ColorScheme cs) {
   return CardThemeData(
     color: cs.surface,
