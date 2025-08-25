@@ -20,7 +20,8 @@ class _DrawerPageState extends State<DrawerPage> {
     if (r.startsWith('/listProdutos') ||
         r.startsWith('/listCategorias') ||
         r.startsWith('/cadastro-unidade') ||
-        r.startsWith('/listUsuarios')) _openKey = 'cadastro';
+        r.startsWith('/listUsuarios'))
+      _openKey = 'cadastro';
   }
 
   void _toggle(String k) => setState(() => _openKey = _openKey == k ? null : k);
@@ -28,7 +29,8 @@ class _DrawerPageState extends State<DrawerPage> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final current = widget.currentRoute ?? (ModalRoute.of(context)?.settings.name ?? '');
+    final current =
+        widget.currentRoute ?? (ModalRoute.of(context)?.settings.name ?? '');
 
     return Drawer(
       child: SafeArea(
@@ -46,9 +48,23 @@ class _DrawerPageState extends State<DrawerPage> {
                   children: [
                     Icon(Icons.restaurant_menu, color: cs.primary, size: 28),
                     const SizedBox(width: 10),
-                    Text('PedeAi', style: TextStyle(color: cs.primary, fontSize: 22, fontWeight: FontWeight.w800)),
+                    Text(
+                      'PedeAi',
+                      style: TextStyle(
+                        color: cs.primary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(width: 6),
-                    Text('ERP', style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w600)),
+                    Text(
+                      'ERP',
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -102,8 +118,8 @@ class _DrawerPageState extends State<DrawerPage> {
                           _NavItem(
                             icon: Icons.straighten,
                             label: 'Unidade',
-                            selected: current == '/cadastro-unidade',
-                            onTap: () => _go(context, '/cadastro-unidade'),
+                            selected: current == '/listUnidades',
+                            onTap: () => _go(context, '/listUnidades'),
                           ),
                           _NavItem(
                             icon: Icons.person,
@@ -200,7 +216,9 @@ class _NavSection extends StatelessWidget {
 
     final header = InkWell(
       onTap: onToggle,
-      overlayColor: MaterialStatePropertyAll(cs.onSurface.withValues(alpha: 0.06)),
+      overlayColor: MaterialStatePropertyAll(
+        cs.onSurface.withValues(alpha: 0.06),
+      ),
       borderRadius: BorderRadius.circular(10),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -216,8 +234,14 @@ class _NavSection extends StatelessWidget {
             Icon(icon, color: iconTitleColor),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(title,
-                  style: TextStyle(color: iconTitleColor, fontSize: 14, fontWeight: FontWeight.w700)),
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: iconTitleColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
             AnimatedRotation(
               turns: isOpen ? 0.5 : 0.0,
@@ -236,9 +260,19 @@ class _NavSection extends StatelessWidget {
         header,
         Container(
           margin: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-          decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: Column(
-            children: children.map((w) => Padding(padding: const EdgeInsets.only(left: 8), child: w)).toList(),
+            children: children
+                .map(
+                  (w) => Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: w,
+                  ),
+                )
+                .toList(),
           ),
         ),
       ],
@@ -274,7 +308,13 @@ class _NavItem extends StatelessWidget {
       ),
       child: ListTile(
         leading: Icon(icon, color: iconColor),
-        title: Text(label, style: TextStyle(color: textColor, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+        title: Text(
+          label,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
         onTap: onTap,
         titleAlignment: ListTileTitleAlignment.center,
       ),
@@ -302,7 +342,9 @@ class _PlainEntry extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     final tileColor = selected ? cs.primary : Colors.transparent;
-    final iconColor = danger ? Colors.redAccent : (selected ? cs.onPrimary : cs.onSurface);
+    final iconColor = danger
+        ? Colors.redAccent
+        : (selected ? cs.onPrimary : cs.onSurface);
     final textColor = iconColor;
 
     return Container(
@@ -311,7 +353,13 @@ class _PlainEntry extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         tileColor: tileColor,
         leading: Icon(icon, color: iconColor),
-        title: Text(label, style: TextStyle(color: textColor, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+        title: Text(
+          label,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
         onTap: onTap,
       ),
     );

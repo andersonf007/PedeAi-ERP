@@ -4,6 +4,7 @@ import 'package:pedeai/theme/app_theme.dart';
 import 'package:pedeai/model/usuario.dart';
 import 'package:pedeai/view/estoque/estoque.dart';
 import 'package:pedeai/view/cadastro/categoria/Categoria.dart';
+import 'package:pedeai/view/cadastro/unidade/Unidade.dart';
 import 'package:pedeai/view/home/home.dart';
 import 'package:pedeai/view/login/login.dart';
 import 'package:pedeai/view/venda/pdv.dart';
@@ -43,6 +44,7 @@ class _AppWidgetState extends State<AppWidget> {
         '/login': (context) => LoginPage(),
         '/home': (context) => HomePage(),
         '/listCategorias': (context) => CategoriasPage(),
+        '/listUnidades': (context) => UnidadesPage(),
         '/listProdutos': (context) => ProductsListPage(),
         '/cadastro-produto': (context) {
           final args = ModalRoute.of(context)?.settings.arguments as int?;
