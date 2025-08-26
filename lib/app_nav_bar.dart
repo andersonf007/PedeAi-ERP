@@ -8,11 +8,11 @@ class AppNavBar extends StatelessWidget {
 
   // Abas em ordem
   static const List<String> _routes = <String>[
-    '/home',         // Dashboard
+    '/home', // Dashboard
     '/listProdutos', // Produtos
-    '/estoque',      // Estoque
-    '/pdv',          // Compras/PDV
-    '/listUsuarios',       // Perfil/Configurações
+    '/estoque', // Estoque
+    '/pdv', // Compras/PDV
+    '/listUsuarios', // Perfil/Configurações
   ];
 
   // Normaliza rotas filhas para a aba “mãe”
@@ -58,7 +58,9 @@ class AppNavBar extends StatelessWidget {
     final unselected = isDark ? BrandColors.neutral400 : BrandColors.neutral400;
 
     final idx = _indexFromRoute(currentRoute);
-    final topDivider = (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.10 : 0.06);
+    final topDivider = (isDark ? Colors.white : Colors.black).withOpacity(
+      isDark ? 0.10 : 0.06,
+    );
 
     return SafeArea(
       top: false,
@@ -75,14 +77,19 @@ class AppNavBar extends StatelessWidget {
             indicatorColor: Colors.transparent, // sem pílula/realce
             iconTheme: MaterialStateProperty.resolveWith<IconThemeData?>(
               (states) => IconThemeData(
-                color: states.contains(MaterialState.selected) ? selected : unselected,
+                color: states.contains(MaterialState.selected)
+                    ? selected
+                    : unselected,
               ),
             ),
             labelTextStyle: MaterialStateProperty.resolveWith<TextStyle?>(
               (states) => TextStyle(
-                color: states.contains(MaterialState.selected) ? selected : unselected,
-                fontWeight:
-                    states.contains(MaterialState.selected) ? FontWeight.w700 : FontWeight.w500,
+                color: states.contains(MaterialState.selected)
+                    ? selected
+                    : unselected,
+                fontWeight: states.contains(MaterialState.selected)
+                    ? FontWeight.w700
+                    : FontWeight.w500,
               ),
             ),
           ),
@@ -113,8 +120,8 @@ class AppNavBar extends StatelessWidget {
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
-                label: 'Perfil',
+                selectedIcon: Icon(Icons.groups),
+                label: 'Usuários',
               ),
             ],
           ),

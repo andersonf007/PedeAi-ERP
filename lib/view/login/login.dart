@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
-import 'package:pedeai/controller/authService.dart';
 import 'package:pedeai/controller/empresaController.dart';
 import 'package:pedeai/controller/usuarioController.dart';
 import 'package:pedeai/view/login/selecionarEmpresa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pedeai/theme/color_tokens.dart'; // BrandColors.warning700
+import 'package:pedeai/theme/app_theme.dart'; // usamos os adapters aqui
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
-  LoginPageState createState() => LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class LoginPageState extends State<LoginPage> {
-  final AuthService _authService = AuthService();
-  final Usuariocontroller usuariocontroller = Usuariocontroller();
-  final EmpresaController empresaController = EmpresaController();
-
+class _LoginPageState extends State<LoginPage> {
+  final Usuariocontroller _userController = Usuariocontroller();
+  final EmpresaController _empresaController = EmpresaController();
   SharedPreferences? _prefs;
-  final List<Map<String, dynamic>> listFantasias = [];
+  final List<Map<String, dynamic>> _empresas = [];
 
   @override
   void initState() {
@@ -27,77 +24,71 @@ class LoginPageState extends State<LoginPage> {
     SharedPreferences.getInstance().then((sp) => _prefs = sp);
   }
 
-  Future<String?> _onRecoverPassword(String email) async {
-    // implemente seu fluxo real aqui quando tiver o endpoint
-    return null;
-  }
+  Future<String?> _onRecoverPassword(String email) async => null;
 
-  Future<String?> _loginUser(LoginData data) async {
-    listFantasias.clear();
-
+  Future<String?> _onLogin(LoginData data) async {
+    _empresas.clear();
     _prefs ??= await SharedPreferences.getInstance();
-    final resultado = await usuariocontroller.buscarLogin(data);
 
-    if (resultado == null) {
+    final erro = await _userController.buscarLogin(data);
+    if (erro == null) {
       final uid = _prefs!.getString('uid') ?? '';
-      final listIds = await empresaController.buscarIdDasEmpresasDoUsuario(uid);
-      final fantasias = await empresaController
-          .buscarNomeFantasiaDasEmpresasDoUsuario(listIds);
-      listFantasias.addAll(fantasias);
+      final ids = await _empresaController.buscarIdDasEmpresasDoUsuario(uid);
+      final fantasias =
+          await _empresaController.buscarNomeFantasiaDasEmpresasDoUsuario(ids);
+      _empresas.addAll(fantasias);
 
-      if (listFantasias.length == 1) {
-        final empresa = listFantasias.first;
-        await empresaController.buscarDadosDaEmpresa(empresa['id']);
-        return null;
+      if (_empresas.length == 1) {
+        await _empresaController.buscarDadosDaEmpresa(_empresas.first['id']);
       }
     }
-    return resultado;
+    return erro; // null == ok
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
 
-    // Assets
-    const _base = 'images';
-    final bgPath = isDark
-        ? '$_base/background_login_dark.png'
-        : '$_base/background_login_white.png';
-    final logoPath = isDark ? '$_base/logo.png' : '$_base/logo.png';
+    // fundos
+    const base = 'images';
+    final bg = isDark
+        ? '$base/background_login_dark.png'
+        : '$base/background_login_white.png';
+    const logo = '$base/logo.png';
+
+    // no claro, sem scrim; no escuro, contraste leve
+    final scrim = Color.fromRGBO(0, 0, 0, isDark ? 0.32 : 0.00);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF2D2419),
+      backgroundColor: cs.surface,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Fundo com pattern
-          Image.asset(bgPath, fit: BoxFit.cover),
-          // Scrim para contraste
-          Container(color: Colors.black.withOpacity(0.35)),
+          Image.asset(bg, fit: BoxFit.cover),
+          Container(color: scrim),
 
-          // Formulário
           FlutterLogin(
-            // LOGO FORA DO CARD, no topo
-            logo: AssetImage(logoPath),
+            // só a LOGO anima
+            logo: const AssetImage(logo),
+            // título estático dentro do card
+            headerWidget: const _CardHeaderTitle(),
 
-            // NÃO use "title". O título vai dentro do card:
-            headerWidget: const _CardTitle(),
-
-            onLogin: _loginUser,
+            onLogin: _onLogin,
             onRecoverPassword: _onRecoverPassword,
+            hideForgotPasswordButton: false,
 
-            onSubmitAnimationCompleted: () async {
-              if (listFantasias.length > 1) {
+            onSubmitAnimationCompleted: () {
+              if (_empresas.length > 1) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (_) =>
-                        SelecionarEmpresaPage(empresas: listFantasias),
+                        SelecionarEmpresaPage(empresas: _empresas),
                   ),
                 );
               } else {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/home', (p0) => false);
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('/home', (route) => false);
               }
             },
 
@@ -113,77 +104,30 @@ class LoginPageState extends State<LoginPage> {
               recoverPasswordSuccess: 'E-mail de recuperação enviado',
             ),
 
-            // Tema alinhado ao design
+            // 🔧 use os ADAPTERS do seu tema (tipos corretos)
             theme: LoginTheme(
               pageColorDark: Colors.transparent,
               pageColorLight: Colors.transparent,
               primaryColor: Colors.transparent,
+              errorColor: cs.error,
+              accentColor: cs.onSurface.withValues(alpha: 0.7),
 
-              textFieldStyle: const TextStyle(color: Colors.white),
-              bodyStyle: const TextStyle(color: Colors.white),
-              footerTextStyle: const TextStyle(color: Colors.white70),
+              // usa os adapters
+              cardTheme: LoginThemeAdapters.card(context),
+              inputTheme: LoginThemeAdapters.input(context),
 
-              // cor de link ("Crie sua conta")
-              switchAuthTextColor: BrandColors.warning700,
-
-              // Card translúcido
-              cardTheme: CardTheme(
-                color: Colors.black.withOpacity(0.55),
-                elevation: 0,
-                // margem superior maior para não brigar com a logo
-                margin: const EdgeInsets.fromLTRB(24, 56, 24, 24),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-
-              // Campos
-              inputTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: const Color(0xFF4A3B31),
-                hintStyle: const TextStyle(color: Colors.white70),
-                labelStyle: const TextStyle(color: Colors.white70),
-                prefixIconColor: Colors.white70,
-                suffixIconColor: Colors.white70,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.white10),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: BrandColors.primary700,
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.redAccent),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.redAccent),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-
-              // Botão laranja
+              textFieldStyle: TextStyle(color: cs.onSurface),
+              bodyStyle: TextStyle(color: cs.onSurface),
+              footerTextStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.70)),
+              switchAuthTextColor: cs.primary,
               buttonTheme: LoginButtonTheme(
-                backgroundColor: BrandColors.primary500,
-                highlightColor: BrandColors.primary700,
-                splashColor: BrandColors.primary900,
+                backgroundColor: cs.primary,
+                highlightColor: cs.primaryContainer,
+                splashColor: cs.primary,
                 elevation: 0,
                 highlightElevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-
-              accentColor: Colors.white70,
-              errorColor: Colors.red.shade400,
             ),
           ),
         ],
@@ -192,23 +136,22 @@ class LoginPageState extends State<LoginPage> {
   }
 }
 
-/// Título dentro do card
-class _CardTitle extends StatelessWidget {
-  const _CardTitle();
+class _CardHeaderTitle extends StatelessWidget {
+  const _CardHeaderTitle();
 
   @override
   Widget build(BuildContext context) {
-    return const Align(
+    final cs = Theme.of(context).colorScheme;
+    return Align(
       alignment: Alignment.centerLeft,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(8, 4, 8, 6),
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
         child: Text(
           'Login',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: cs.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
