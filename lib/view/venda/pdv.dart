@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedeai/controller/categoriaController.dart';
 import 'package:pedeai/controller/produtoController.dart';
 import 'package:pedeai/model/categoria.dart';
+import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/model/produto.dart';
 
 class PDVPage extends StatefulWidget {
@@ -16,11 +17,20 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
   List<Categoria> _categorias = [];
   List<Produto> _produtos = [];
   List<Produto> _produtosFiltrados = [];
-  Map<int, int> _carrinho = {};
+
+  // Nova estrutura para o carrinho - mais limpa e completa
+  List<ItemCarrinho> _carrinho = [];
+
   int _selectedTab = 0; // 0 = Produtos, 1 = Resumo
   int? _selectedCategoriaId;
   bool _isLoading = true;
   TextEditingController _searchController = TextEditingController();
+
+  // Variáveis de cálculo - agora calculadas dinamicamente
+  double get subtotal => _carrinho.fold(0.0, (sum, item) => sum + item.valorTotal);
+  double desconto = 0.0;
+  double get total => subtotal - (subtotal * (desconto / 100));
+  int get totalItensCarrinho => _carrinho.fold(0, (sum, item) => sum + item.quantidade);
 
   @override
   void initState() {
@@ -62,14 +72,46 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
 
   void _adicionarAoCarrinho(Produto produto) {
     setState(() {
-      _carrinho[produto.produtoIdPublic!] = (_carrinho[produto.produtoIdPublic!] ?? 0) + 1;
+      // Procura se o produto já existe no carrinho
+      final index = _carrinho.indexWhere((item) => item.produto.produtoIdPublic == produto.produtoIdPublic);
+
+      if (index >= 0) {
+        _carrinho[index].quantidade++;
+      } else {
+        // Se não existe, adiciona novo item
+        _carrinho.add(ItemCarrinho(produto: produto));
+      }
     });
   }
 
   void _removerDoCarrinho(int produtoId) {
     setState(() {
-      _carrinho.remove(produtoId);
+      _carrinho.removeWhere((item) => item.produto.produtoIdPublic == produtoId);
     });
+  }
+
+  void _alterarQuantidade(int produtoId, int novaQuantidade) {
+    if (novaQuantidade <= 0) {
+      _removerDoCarrinho(produtoId);
+      return;
+    }
+
+    setState(() {
+      final index = _carrinho.indexWhere((item) => item.produto.produtoIdPublic == produtoId);
+      if (index >= 0) {
+        _carrinho[index].quantidade = novaQuantidade;
+      }
+    });
+  }
+
+  int _getQuantidadeCarrinho(int produtoId) {
+    try {
+      final item = _carrinho.firstWhere((item) => item.produto.produtoIdPublic == produtoId);
+      return item.quantidade;
+    } catch (e) {
+      // Se não encontrar o produto no carrinho, retorna 0
+      return 0;
+    }
   }
 
   @override
@@ -84,7 +126,12 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
           'Pedidos',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        leading: BackButton(color: Colors.white),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+          },
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)))
@@ -97,13 +144,13 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildTabButton('Produtos', 0),
-                      _buildTabButton('Resumo', 1, showBadge: _carrinho.isNotEmpty, badgeCount: _carrinho.values.fold(0, (a, b) => a + b)),
+                      _buildTabButton('Resumo', 1, showBadge: _carrinho.isNotEmpty, badgeCount: totalItensCarrinho),
                     ],
                   ),
                 ),
                 Divider(height: 1, color: Colors.white24),
                 Expanded(child: _selectedTab == 0 ? _buildProdutosTab() : _buildResumoTab()),
-                _buildPagamentoButton(),
+                if (_selectedTab == 1) _buildPagamentoButton(), // Só mostra na aba Resumo
               ],
             ),
     );
@@ -217,7 +264,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 0.60, crossAxisSpacing: 12, mainAxisSpacing: 12),
               itemBuilder: (context, index) {
                 final produto = _produtosFiltrados[index];
-                final quantidade = _carrinho[produto.produtoIdPublic] ?? 0;
+                final quantidade = _getQuantidadeCarrinho(produto.produtoIdPublic!);
                 return GestureDetector(
                   onTap: () => _adicionarAoCarrinho(produto),
                   child: Stack(
@@ -252,7 +299,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                               height: 48,
                               child: Center(
                                 child: Text(
-                                  produto.descricao.toUpperCase() ?? '',
+                                  produto.descricao?.toUpperCase() ?? '',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
                                   maxLines: 3,
@@ -265,7 +312,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                               height: 18,
                               child: Center(
                                 child: Text(
-                                  'R\$ ${produto.preco.toStringAsFixed(2) ?? '0.00'} UN',
+                                  'R\$ ${produto.preco?.toStringAsFixed(2) ?? '0.00'} UN',
                                   style: TextStyle(color: Colors.white70, fontSize: 12),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -300,15 +347,6 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildResumoTab() {
-    final itensCarrinho = _produtos.where((p) => _carrinho[p.produtoIdPublic!] != null).toList();
-    double subtotal = 0.0;
-    for (var produto in itensCarrinho) {
-      final qtd = _carrinho[produto.produtoIdPublic!] ?? 0;
-      subtotal += (produto.preco ?? 0.0) * qtd;
-    }
-    double desconto = 0.0; // estático
-    double total = subtotal - desconto;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
@@ -320,16 +358,16 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
               elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: itensCarrinho.isEmpty
+                child: _carrinho.isEmpty
                     ? Center(
                         child: Text('Nenhum produto selecionado', style: TextStyle(color: Colors.white70)),
                       )
                     : ListView.builder(
-                        itemCount: itensCarrinho.length,
+                        itemCount: _carrinho.length,
                         itemBuilder: (context, index) {
-                          final produto = itensCarrinho[index];
-                          final qtd = _carrinho[produto.produtoIdPublic!] ?? 0;
-                          final valorTotal = (produto.preco ?? 0.0) * qtd;
+                          final itemCarrinho = _carrinho[index];
+                          final produto = itemCarrinho.produto;
+
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Row(
@@ -343,16 +381,37 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                                         produto.descricao ?? '',
                                         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                                       ),
-                                      Text('$qtd UN x R\$ ${produto.preco?.toStringAsFixed(2) ?? '0,00'}', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                                      Text('${itemCarrinho.quantidade} UN x R\$ ${produto.preco?.toStringAsFixed(2) ?? '0,00'}', style: TextStyle(color: Colors.white70, fontSize: 13)),
                                     ],
                                   ),
                                 ),
+                                // Controles de quantidade
+                                /*Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.remove_circle_outline, color: Colors.orange, size: 20),
+                                      onPressed: () => _alterarQuantidade(produto.produtoIdPublic!, itemCarrinho.quantidade - 1),
+                                    ),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 8),
+                                      child: Text(
+                                        itemCarrinho.quantidade.toString(),
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.add_circle_outline, color: Colors.orange, size: 20),
+                                      onPressed: () => _alterarQuantidade(produto.produtoIdPublic!, itemCarrinho.quantidade + 1),
+                                    ),
+                                  ],
+                                ),*/
                                 Text(
-                                  'R\$ ${valorTotal.toStringAsFixed(2)}',
-                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                  'R\$ ${itemCarrinho.valorTotal.toStringAsFixed(2)}',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
                                 ),
                                 IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.orange, size: 20),
+                                  icon: Icon(Icons.delete, color: Colors.red, size: 20),
                                   onPressed: () => _removerDoCarrinho(produto.produtoIdPublic!),
                                 ),
                               ],
@@ -364,43 +423,51 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
             ),
           ),
           SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Subtotal',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              Text(
-                'R\$ ${subtotal.toStringAsFixed(2)}',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ],
-          ),
-          SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Desconto na venda', style: TextStyle(color: Colors.white70)),
-              Text('- R\$ ${desconto.toStringAsFixed(2)}', style: TextStyle(color: Colors.white70)),
-            ],
-          ),
-          SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              Text(
-                'R\$ ${total.toStringAsFixed(2)}',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ],
-          ),
+          _buildTotalSection(),
         ],
       ),
+    );
+  }
+
+  Widget _buildTotalSection() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Subtotal',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            Text(
+              'R\$ ${subtotal.toStringAsFixed(2)}',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ],
+        ),
+        SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Desconto na venda', style: TextStyle(color: Colors.white70)),
+            Text('- R\$ ${(subtotal * (desconto / 100)).toStringAsFixed(2)}', style: TextStyle(color: Colors.white70)),
+          ],
+        ),
+        SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Total',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+            ),
+            Text(
+              'R\$ ${total.toStringAsFixed(2)}',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -414,14 +481,29 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
           padding: EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         ),
-        onPressed: () {
-          // Implementar funcionalidade de pagamento futuramente
-        },
+        onPressed: _carrinho.isEmpty
+            ? null
+            : () {
+                // Agora você tem acesso completo aos produtos no carrinho
+                final dadosPagamento = {
+                  'subtotal': subtotal,
+                  'desconto': desconto,
+                  'total': total,
+                  'carrinho': _carrinho, // Lista completa com produtos e quantidades
+                };
+                Navigator.of(context).pushNamed('/pagamentoPdv', arguments: dadosPagamento);
+              },
         child: Text(
           'Pagamento',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }

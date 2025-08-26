@@ -21,10 +21,11 @@ class FormaPagamentocontroller {
 
     // default: true quando null; respeita false se vier explicitamente
     final payload = {
-      'nome': (dados['nome'] ?? '').toString().trim(),
-      'sigla': (dados['sigla'] ?? '').toString().trim(),
-      'ativo': (dados['ativo'] is bool) ? dados['ativo'] as bool : true,
-    };
+    'nome': (dados['nome'] ?? '').toString().trim(),
+    'descricao': (dados['descricao'] ?? '').toString().trim(),
+    'tipo_forma_pagamento_id': dados['tipo_forma_pagamento_id'] ?? 1,
+    'ativo': (dados['ativo'] is bool) ? dados['ativo'] as bool : true,
+  };
 
     final sql = script.inserirFormaPagamento(empresa.schema, payload);
     try {
@@ -109,6 +110,37 @@ class FormaPagamentocontroller {
       await _databaseService.executeSql(sql, schema: empresa.schema);
     } catch (e) {
       throw Exception('Erro ao deletar FormaPagamento: ${e.toString()}');
+    }
+  }
+
+ Future<List<FormaPagamento>> listaFormaPagamentosAtivas() async {
+    try {
+      // Buscar dados da empresa
+      Empresa? empresa = await empresaController
+          .getEmpresaFromSharedPreferences();
+
+      if (empresa == null) {
+        throw Exception('Dados da FormaPagamento não encontrados');
+      }
+
+      String query = script.buscarListaFormaPagamentosAtivas(empresa.schema);
+      // Executar query
+      final response = await _databaseService.executeSqlListar(sql: query);
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      List<FormaPagamento> FormaPagamentos = response.map<FormaPagamento>((
+        item,
+      ) {
+        return FormaPagamento.fromJson(item);
+      }).toList();
+
+      return FormaPagamentos;
+    } catch (e) {
+      print('Erro ao listar FormaPagamentos: $e');
+      return [];
     }
   }
 }
