@@ -8,7 +8,6 @@ import 'semantic_colors.dart';
 /// TEMA CLARO
 /// -----------------------------
 ThemeData buildLightTheme() {
-  // ColorScheme moderno: sem usar background/onBackground (deprecados).
   const light = ColorScheme(
     brightness: Brightness.light,
     primary: BrandColors.primary500,
@@ -21,13 +20,13 @@ ThemeData buildLightTheme() {
     secondaryContainer: BrandColors.neutral100,
     onSecondaryContainer: BrandColors.neutral900,
 
-    // sua paleta: "warning" é vermelho ⇒ usamos como error
+    // sua paleta: "warning" vira error
     error: BrandColors.warning500,
     onError: Colors.white,
     errorContainer: BrandColors.warning50,
     onErrorContainer: BrandColors.warning900,
 
-    // use surface/onSurface no lugar de background/onBackground
+    // use surface/onSurface
     surface: Colors.white,
     onSurface: BrandColors.neutral900,
   );
@@ -44,7 +43,7 @@ ThemeData buildLightTheme() {
     outlinedButtonTheme: _outlined(light),
     textButtonTheme: _textButton(light),
     appBarTheme: _appBar(light),
-    cardTheme: _cardTheme(light), // CardThemeData
+    cardTheme: _cardTheme(light),
     iconTheme: IconThemeData(color: light.onSurface),
     listTileTheme: ListTileThemeData(
       iconColor: light.onSurface,
@@ -56,14 +55,12 @@ ThemeData buildLightTheme() {
     ),
     drawerTheme: const DrawerThemeData(
       surfaceTintColor: Colors.transparent,
-      // background herdará de scaffold/background da tela
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       contentTextStyle: const TextStyle(fontWeight: FontWeight.w600),
     ),
-    // ⬇️ registre também as extensões
     extensions: [
       const AppSpacing(),
       AppSemanticColors.light(),
@@ -75,7 +72,6 @@ ThemeData buildLightTheme() {
 /// TEMA ESCURO
 /// -----------------------------
 ThemeData buildDarkTheme() {
-  // Mais saturado no dark para não ficar "opaco".
   const dark = ColorScheme(
     brightness: Brightness.dark,
 
@@ -130,7 +126,7 @@ ThemeData buildDarkTheme() {
     ),
     extensions: [
       const AppSpacing(),
-      AppSemanticColors.dark(), // ⬅️ extensão semântica no dark
+      AppSemanticColors.dark(),
     ],
   );
 }
@@ -140,7 +136,7 @@ ThemeData buildDarkTheme() {
 /// -----------------------------
 
 InputDecorationTheme _inputTheme(ColorScheme cs, {required bool isDark}) {
-  // Fundo dos inputs (inclui o search) com leve "tint" do primary
+  // fundo dos inputs com leve “tint” do primary
   final tintedFill = Color.alphaBlend(
     cs.primary.withValues(alpha: isDark ? 0.10 : 0.06),
     cs.surface,
@@ -151,7 +147,6 @@ InputDecorationTheme _inputTheme(ColorScheme cs, {required bool isDark}) {
     fillColor: tintedFill,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
 
-    // cores de ícone/hint
     prefixIconColor: cs.onSurface.withValues(alpha: 0.65),
     suffixIconColor: cs.onSurface.withValues(alpha: 0.65),
     hintStyle: TextStyle(
@@ -159,7 +154,6 @@ InputDecorationTheme _inputTheme(ColorScheme cs, {required bool isDark}) {
       fontWeight: FontWeight.w400,
     ),
 
-    // bordas
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
       borderSide: BorderSide.none,
@@ -222,7 +216,6 @@ TextButtonThemeData _textButton(ColorScheme cs) {
 }
 
 AppBarTheme _appBar(ColorScheme cs) {
-  // surface/onSurface no lugar de background/onBackground.
   return AppBarTheme(
     backgroundColor: cs.surface,
     foregroundColor: cs.onSurface,
@@ -237,7 +230,6 @@ AppBarTheme _appBar(ColorScheme cs) {
   );
 }
 
-// CardThemeData (Material 3)
 CardThemeData _cardTheme(ColorScheme cs) {
   return CardThemeData(
     color: cs.surface,
@@ -255,4 +247,112 @@ PopupMenuThemeData _popup(ColorScheme cs) {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     textStyle: TextStyle(color: cs.onSurface),
   );
+}
+
+///
+/// Adapters para o pacote **flutter_login**
+///
+/// Adapters para o pacote flutter_login
+/// Adapters para o pacote flutter_login
+class LoginThemeAdapters {
+  /// Card do login (o pacote espera um CardTheme)
+  static CardTheme card(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
+
+    if (!isDark) {
+      // LIGHT: branco puro + micro-sombra e borda suave
+      return CardTheme(
+        color: Color.alphaBlend(Colors.white.withOpacity(0.10), cs.surface),
+        elevation: 0,
+        shadowColor: cs.onSurface.withValues(alpha: 1),
+        surfaceTintColor: Colors.transparent,
+        margin: const EdgeInsets.fromLTRB(24, 56, 24, 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: cs.onSurface.withValues(alpha: 0.4),
+            width: 1.3,
+          ),
+        ),
+      );
+    }
+
+    // DARK: leve vidro pra contraste
+    return CardTheme(
+      color: Color.alphaBlend(Colors.white.withOpacity(0.10), cs.surface),
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      margin: const EdgeInsets.fromLTRB(24, 56, 24, 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: cs.onSurface.withValues(alpha: 0.18),
+          width: 1,
+        ),
+      ),
+    );
+  }
+
+  /// Inputs do login
+  static InputDecorationTheme input(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
+
+    if (!isDark) {
+      // LIGHT: fill quase branco, foco bem definido
+      final fill = Color.alphaBlend(cs.primary.withValues(alpha: 0.02), cs.surface);
+      return InputDecorationTheme(
+        filled: true,
+        fillColor: fill,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        prefixIconColor: cs.onSurface.withValues(alpha: 0.60),
+        suffixIconColor: cs.onSurface.withValues(alpha: 0.60),
+        hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.55)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.10)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: cs.primary, width: 1.4),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: cs.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: cs.error),
+        ),
+      );
+    }
+
+    // DARK: um pouco mais de fill pra segurar contraste
+    final fill = Color.alphaBlend(cs.primary.withValues(alpha: 0.10), cs.surface);
+    return InputDecorationTheme(
+      filled: true,
+      fillColor: fill,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      prefixIconColor: cs.onSurface.withValues(alpha: 0.70),
+      suffixIconColor: cs.onSurface.withValues(alpha: 0.70),
+      hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.65)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.15)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: cs.primary, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: cs.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: cs.error),
+      ),
+    );
+  }
 }
