@@ -79,4 +79,31 @@ class ScriptProduto{
     return sql;
   }
 
+  String atualizarStatusProduto(String schema, Map<String, dynamic> dados) {
+    String sql =
+        """
+    UPDATE public.produtos 
+    SET descricao = :descricao, codigo = :codigo 
+    WHERE id = :produto_id_public;
+    
+    UPDATE ${schema}.produto_empresa 
+    SET ativo = :ativo, preco_custo = :preco_custo, preco_venda = :preco_venda, validade = :validade, image_url = :image_url, id_categoria = :id_categoria, id_unidade = :id_unidade 
+    WHERE produto_id_public = :produto_id_public;
+    """;
+
+    dados.forEach((key, value) {
+      if (value is String) {
+        // Escapa aspas simples para evitar erro no SQL
+        String safeValue = value.replaceAll("'", "''");
+        sql = sql.replaceAll(':$key', "'$safeValue'");
+      } else if (value == null) {
+        sql = sql.replaceAll(':$key', 'NULL');
+      } else {
+        sql = sql.replaceAll(':$key', value.toString());
+      }
+    });
+
+    return sql;
+  }
+
 }
