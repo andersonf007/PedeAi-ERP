@@ -8,40 +8,22 @@ class AppNavBar extends StatelessWidget {
 
   // Abas em ordem
   static const List<String> _routes = <String>[
-    '/home', // Dashboard
-    '/listProdutos', // Produtos
-    '/estoque', // Estoque
-    '/pdv', // Compras/PDV
-    '/listUsuarios', // Perfil/Configurações
+    '/home',          // Dashboard
+    '/listProdutos',  // Produtos
+    '/estoque',       // Estoque
+    '/pdv',           // Compras/PDV
+    '/listUsuarios',  // Perfil/Usuários
   ];
 
-  // Normaliza rotas filhas para a aba “mãe”
-  String _normalize(String? route) {
-    switch (route) {
-      case '/cadastro-produto':
-      case '/listProdutos':
-        return '/listProdutos';
-      case '/estoque':
-        return '/estoque';
-      case '/pdv':
-        return '/pdv';
-      case '/listUsuarios':
-      case '/cadastro-usuario':
-      case '/config':
-        return '/listUsuarios';
-      case '/listCategorias':
-      case '/home':
-      default:
-        return '/home';
-    }
+  int _indexFor(String? route) {
+    final i = _routes.indexOf(route ?? '');
+    return i >= 0 ? i : 0;
   }
-
-  int _indexFromRoute(String? route) => _routes.indexOf(_normalize(route));
 
   void _go(BuildContext context, int index) {
     final target = _routes[index];
-    final current = _normalize(ModalRoute.of(context)?.settings.name);
-    if (current == target) return;
+    // sempre navega (mesmo se já estiver na mesma rota),
+    // garantindo que a aba permaneça clicável
     Navigator.of(context).pushNamedAndRemoveUntil(target, (r) => false);
   }
 
@@ -49,18 +31,13 @@ class AppNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Paleta do designer (escuro):
-    // - fundo: marrom mais escuro
-    // - selecionado: branco total
-    // - não selecionado: bege apagado
     final background = isDark ? BrandColors.neutral800 : Colors.white;
-    final selected = isDark ? Colors.white : BrandColors.neutral900;
+    final selected   = isDark ? Colors.white : BrandColors.neutral900;
     final unselected = isDark ? BrandColors.neutral400 : BrandColors.neutral400;
 
-    final idx = _indexFromRoute(currentRoute);
-    final topDivider = (isDark ? Colors.white : Colors.black).withOpacity(
-      isDark ? 0.10 : 0.06,
-    );
+    final idx = _indexFor(currentRoute);
+    final topDivider = (isDark ? Colors.white : Colors.black)
+        .withOpacity(isDark ? 0.10 : 0.06);
 
     return SafeArea(
       top: false,
@@ -71,10 +48,9 @@ class AppNavBar extends StatelessWidget {
         ),
         child: NavigationBarTheme(
           data: NavigationBarThemeData(
-            backgroundColor: Colors
-                .transparent, // o Container acima cuida do fundo + divisor
+            backgroundColor: Colors.transparent, // fundo vem do Container
             elevation: 0,
-            indicatorColor: Colors.transparent, // sem pílula/realce
+            indicatorColor: Colors.transparent,   // sem pílula
             iconTheme: MaterialStateProperty.resolveWith<IconThemeData?>(
               (states) => IconThemeData(
                 color: states.contains(MaterialState.selected)
@@ -95,7 +71,7 @@ class AppNavBar extends StatelessWidget {
           ),
           child: NavigationBar(
             height: 64,
-            selectedIndex: idx < 0 ? 0 : idx,
+            selectedIndex: idx,
             onDestinationSelected: (i) => _go(context, i),
             destinations: const [
               NavigationDestination(

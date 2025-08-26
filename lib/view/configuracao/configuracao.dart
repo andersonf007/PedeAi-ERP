@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedeai/theme/app_theme.dart';
 import 'package:pedeai/theme/theme_controller.dart';
 import 'package:pedeai/view/home/drawer.dart';
+import 'package:pedeai/app_nav_bar.dart';
 
 class ThemeSettingsPage extends StatelessWidget {
   const ThemeSettingsPage({super.key, required this.controller});
@@ -9,7 +10,6 @@ class ThemeSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Reage às mudanças do ThemeController sem depender de rebuild global
     return AnimatedBuilder(
       animation: controller,
       builder: (_, __) {
@@ -24,7 +24,15 @@ class ThemeSettingsPage extends StatelessWidget {
             ),
             title: const Text('Configurações'),
           ),
-          drawer: DrawerPage(currentRoute: ModalRoute.of(context)?.settings.name),
+          drawer: DrawerPage(
+            currentRoute: ModalRoute.of(context)?.settings.name,
+          ),
+
+          // ⬇️ exatamente como você usa no Produto
+          bottomNavigationBar: AppNavBar(
+            currentRoute: ModalRoute.of(context)?.settings.name,
+          ),
+
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             children: [
@@ -57,14 +65,9 @@ class ThemeSettingsPage extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 16),
               _SectionTitle('Pré-visualização'),
               const _PreviewCard(),
-
-              // ==========================================================
-              // Espaço pra futuras configurações (organizado por seções):
-              // ==========================================================
               const SizedBox(height: 24),
               _SectionTitle('Notificações (em breve)'),
               _GroupCard(
@@ -84,7 +87,6 @@ class ThemeSettingsPage extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 16),
               _SectionTitle('PDV (em breve)'),
               _GroupCard(
@@ -112,8 +114,7 @@ class ThemeSettingsPage extends StatelessWidget {
   }
 }
 
-// ---------- UI helpers (reutilizáveis/limpos) ----------
-
+// ---- helpers iguais aos que já te passei ----
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
   final String text;
@@ -156,7 +157,6 @@ class _ThemeRadioTile extends StatelessWidget {
     required this.onChanged,
     this.trailing,
   });
-
   final String label;
   final ThemeMode value;
   final ThemeMode group;
@@ -182,7 +182,6 @@ class _ThemeRadioTile extends StatelessWidget {
   }
 }
 
-/// Bolinhas de cor para preview rápido ao lado das opções
 class _ThemePreview extends StatelessWidget {
   const _ThemePreview({required this.isDark});
   final bool isDark;
@@ -204,26 +203,21 @@ class _ThemePreview extends StatelessWidget {
   }
 
   Widget _dot(Color c) => Container(
-        width: 14,
-        height: 14,
-        decoration: BoxDecoration(
-          color: c,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.black12),
-        ),
-      );
+    width: 14,
+    height: 14,
+    decoration: BoxDecoration(
+      color: c,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.black12),
+    ),
+  );
 }
 
-/// Cartão de preview maior — acompanha o modo selecionado no controller
 class _PreviewCard extends StatelessWidget {
   const _PreviewCard();
-
   @override
   Widget build(BuildContext context) {
-    // Usa o tema atual da própria árvore do app,
-    // assim o preview reflete exatamente as cores ativas.
     final cs = Theme.of(context).colorScheme;
-
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 0,
@@ -232,7 +226,13 @@ class _PreviewCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Exemplo', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
+            Text(
+              'Exemplo',
+              style: TextStyle(
+                color: cs.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
               'Veja como ficam os componentes com o tema atual.',
@@ -263,13 +263,8 @@ class _PreviewCard extends StatelessWidget {
   }
 }
 
-/// Tiles desabilitadas (placeholders) para futuras seções
 class _DisabledTile extends StatelessWidget {
-  const _DisabledTile({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-  });
+  const _DisabledTile({required this.icon, required this.title, this.subtitle});
   final IconData icon;
   final String title;
   final String? subtitle;
@@ -281,8 +276,13 @@ class _DisabledTile extends StatelessWidget {
     return ListTile(
       enabled: false,
       leading: Icon(icon, color: on),
-      title: Text(title, style: TextStyle(color: on, fontWeight: FontWeight.w600)),
-      subtitle: subtitle == null ? null : Text(subtitle!, style: TextStyle(color: on)),
+      title: Text(
+        title,
+        style: TextStyle(color: on, fontWeight: FontWeight.w600),
+      ),
+      subtitle: subtitle == null
+          ? null
+          : Text(subtitle!, style: TextStyle(color: on)),
       trailing: Icon(Icons.chevron_right, color: on),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
     );

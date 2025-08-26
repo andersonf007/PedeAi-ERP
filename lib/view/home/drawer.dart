@@ -145,24 +145,8 @@ Future<void> _doLogout() async {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     children: [
-                      // VENDA
-                      _NavSection(
-                        keyValue: 'venda',
-                        title: 'Venda',
-                        icon: Icons.shopping_cart_outlined,
-                        isOpen: _openKey == 'venda',
-                        onToggle: () => _toggle('venda'),
-                        children: [
-                          _NavItem(
-                            icon: Icons.point_of_sale,
-                            label: 'PDV',
-                            selected: current == '/pdv',
-                            onTap: () => _go(context, '/pdv'),
-                          ),
-                        ],
-                      ),
 
-                      // CADASTRO
+                       // CADASTRO
                       _NavSection(
                         keyValue: 'cadastro',
                         title: 'Cadastro',
@@ -203,6 +187,24 @@ Future<void> _doLogout() async {
                         ],
                       ),
 
+                      // VENDA
+                      _NavSection(
+                        keyValue: 'venda',
+                        title: 'Venda',
+                        icon: Icons.shopping_cart_outlined,
+                        isOpen: _openKey == 'venda',
+                        onToggle: () => _toggle('venda'),
+                        children: [
+                          _NavItem(
+                            icon: Icons.point_of_sale,
+                            label: 'PDV',
+                            selected: current == '/pdv',
+                            onTap: () => _go(context, '/pdv'),
+                          ),
+                        ],
+                      ),
+
+                     
                       // ENTRADAS SOLTAS
                       _PlainEntry(
                         icon: Icons.warehouse,
