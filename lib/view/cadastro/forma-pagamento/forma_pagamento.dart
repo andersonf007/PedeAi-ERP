@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedeai/model/tipoFormaPagamento.dart';
 import 'package:pedeai/view/home/drawer.dart';
 import 'package:pedeai/theme/color_tokens.dart';
 
@@ -89,9 +90,7 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => _FormaPagamentoFormSheet(
         existente: existente,
         onSalvar: (payload) async {
@@ -159,10 +158,16 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: cs.surface,
-        title: Text('Excluir forma de pagamento', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Excluir forma de pagamento',
+          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
+        ),
         content: Text('Tem certeza que deseja excluir "${f.nome}"?', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancelar', style: TextStyle(color: cs.onSurface))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancelar', style: TextStyle(color: cs.onSurface)),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: cs.error),
             onPressed: () => Navigator.pop(ctx, true),
@@ -201,15 +206,21 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: Text('Formas de Pagamento', style: TextStyle(color: cs.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
-        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh, color: cs.onSurface))],
+        title: Text(
+          'Formas de Pagamento',
+          style: TextStyle(color: cs.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            onPressed: _load,
+            icon: Icon(Icons.refresh, color: cs.onSurface),
+          ),
+        ],
       ),
       drawer: DrawerPage(currentRoute: ModalRoute.of(context)?.settings.name),
 
       // ⬇️ Barra de navegação inferior
-      bottomNavigationBar: AppNavBar(
-        currentRoute: ModalRoute.of(context)?.settings.name,
-      ),
+      bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
 
       body: Column(
         children: [
@@ -247,7 +258,10 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
                   backgroundColor: cs.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text('Cadastrar Nova Forma', style: TextStyle(color: cs.onPrimary, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Cadastrar Nova Forma',
+                  style: TextStyle(color: cs.onPrimary, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ),
@@ -272,7 +286,11 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
             children: [
               Icon(Icons.error_outline, size: 56, color: cs.primary),
               const SizedBox(height: 12),
-              Text(_error, textAlign: TextAlign.center, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
+              Text(
+                _error,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+              ),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _load,
@@ -285,19 +303,16 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
       );
     }
     if (_filtrados.isEmpty) {
-      return Center(child: Text('Nenhuma forma de pagamento encontrada', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))));
+      return Center(
+        child: Text('Nenhuma forma de pagamento encontrada', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))),
+      );
     }
 
     return RefreshIndicator(
       color: cs.primary,
       backgroundColor: cs.surface,
       onRefresh: _load,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        itemBuilder: (ctx, i) => _buildItem(_filtrados[i], i),
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemCount: _filtrados.length,
-      ),
+      child: ListView.separated(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), itemBuilder: (ctx, i) => _buildItem(_filtrados[i], i), separatorBuilder: (_, __) => const SizedBox(height: 8), itemCount: _filtrados.length),
     );
   }
 
@@ -321,7 +336,11 @@ class _FormasPagamentoPageState extends State<FormasPagamentoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${index + 1}. ${f.nome ?? ''}', style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                  Text(
+                    '${index + 1}. ${f.nome ?? ''}',
+                    style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   if ((f.descricao ?? '').trim().isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
@@ -407,6 +426,7 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
   bool _dirty = false;
 
   bool get _isEdicao => widget.existente != null;
+  int _tipoSelecionado = 1;
 
   @override
   void initState() {
@@ -417,6 +437,9 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
     _descCtrl.text = _initialDesc;
     _nomeCtrl.addListener(_recalcDirty);
     _descCtrl.addListener(_recalcDirty);
+    if (widget.existente != null) {
+      _tipoSelecionado = widget.existente!.tipoFormaPagamentoId;
+    }
   }
 
   @override
@@ -437,10 +460,7 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
 
   Future<void> _handleSalvar() async {
     if (!_formKey.currentState!.validate()) return;
-    final payload = {
-      'nome': _nomeCtrl.text.trim(),
-      'descricao': _descCtrl.text.trim(),
-    };
+    final payload = {'nome': _nomeCtrl.text.trim(), 'descricao': _descCtrl.text.trim(), 'tipo_forma_pagamento_id': _tipoSelecionado};
     await widget.onSalvar(payload);
   }
 
@@ -449,12 +469,7 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
     final cs = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        top: 12,
-      ),
+      padding: EdgeInsets.only(left: 20, right: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 20, top: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -498,9 +513,7 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
                   ),
                   style: TextStyle(color: cs.onSurface),
                 ),
-
                 const SizedBox(height: 16),
-
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text('Descrição (opcional)', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.9), fontSize: 12)),
@@ -519,9 +532,32 @@ class _FormaPagamentoFormSheetState extends State<_FormaPagamentoFormSheet> {
                   ),
                   style: TextStyle(color: cs.onSurface),
                 ),
-
                 const SizedBox(height: 20),
-
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Tipo de Forma de Pagamento', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.9), fontSize: 12)),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  value: _tipoSelecionado,
+                  items: TipoFormaPagamento.tipos.map((tipo) {
+                    return DropdownMenuItem<int>(value: tipo.id, child: Text(tipo.nome));
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _tipoSelecionado = value ?? 1;
+                      _recalcDirty();
+                    });
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: cs.surface,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  ),
+                  style: TextStyle(color: cs.onSurface),
+                ),
+                const SizedBox(height: 16),
                 // Botão dinâmico
                 SizedBox(
                   width: double.infinity,

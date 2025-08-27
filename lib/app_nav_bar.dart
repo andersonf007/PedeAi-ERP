@@ -8,11 +8,13 @@ class AppNavBar extends StatelessWidget {
 
   // Abas em ordem
   static const List<String> _routes = <String>[
-    '/home',          // Dashboard
-    '/listProdutos',  // Produtos
-    '/estoque',       // Estoque
-    '/pdv',           // Compras/PDV
-    '/listUsuarios',  // Perfil/Usuários
+
+    '/home', // Dashboard
+    '', // vendas
+    '/listProdutos', // Estoque
+    '/estoque', // Compras/PDV
+    '/listUsuarios', // Perfil/Configurações
+
   ];
 
   int _indexFor(String? route) {
@@ -48,6 +50,7 @@ class AppNavBar extends StatelessWidget {
         ),
         child: NavigationBarTheme(
           data: NavigationBarThemeData(
+
             backgroundColor: Colors.transparent, // fundo vem do Container
             elevation: 0,
             indicatorColor: Colors.transparent,   // sem pílula
@@ -68,37 +71,20 @@ class AppNavBar extends StatelessWidget {
                     : FontWeight.w500,
               ),
             ),
+
           ),
           child: NavigationBar(
             height: 64,
             selectedIndex: idx,
             onDestinationSelected: (i) => _go(context, i),
             destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home_rounded),
-                label: 'Painel',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.inventory_2_outlined),
-                selectedIcon: Icon(Icons.inventory_2_rounded),
-                label: 'Produtos',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.warehouse_outlined),
-                selectedIcon: Icon(Icons.warehouse_rounded),
-                label: 'Estoque',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.shopping_cart_outlined),
-                selectedIcon: Icon(Icons.shopping_cart),
-                label: 'Compras',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.groups),
-                label: 'Usuários',
-              ),
+
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Painel'),
+              NavigationDestination(icon: Icon(Icons.shopping_cart), selectedIcon: Icon(Icons.shopping_cart), label: 'Vendas'),
+              NavigationDestination(icon: Icon(Icons.inventory), selectedIcon: Icon(Icons.inventory), label: 'Produtos'),
+              NavigationDestination(icon: Icon(Icons.warehouse_outlined), selectedIcon: Icon(Icons.warehouse_rounded), label: 'Estoque'),
+              NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Usuários'),
+
             ],
           ),
         ),

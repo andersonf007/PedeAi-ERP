@@ -8,6 +8,7 @@ import 'package:pedeai/view/cadastro/unidade/Unidade.dart';
 import 'package:pedeai/view/cadastro/forma-pagamento/forma_pagamento.dart';
 import 'package:pedeai/view/home/home.dart';
 import 'package:pedeai/view/login/login.dart';
+import 'package:pedeai/view/venda/pagamentoPdv.dart';
 import 'package:pedeai/view/venda/pdv.dart';
 import 'package:pedeai/view/cadastro/produto/cadastroProduto.dart';
 import 'package:pedeai/view/cadastro/produto/listProdutos.dart';
@@ -66,6 +67,14 @@ Widget build(BuildContext context) {
           '/estoque': (context) => EstoquePage(),
           '/pdv': (context) => PDVPage(),
           '/config': (context) => ThemeSettingsPage(controller: widget.themeController),
+          '/pagamentoPdv': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            return PagamentoPdvPage(
+              subtotal: args?['subtotal'] ?? 0.0,
+              desconto: args?['desconto'] ?? 0.0,
+              total: args?['total'] ?? 0.0,
+            );
+          },
         },
       );
     },
