@@ -4,8 +4,11 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
+  file_saver
   file_selector_windows
   flutter_localization
+  printing
+  share_plus
   url_launcher_windows
 )
 
