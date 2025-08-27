@@ -4,8 +4,8 @@ class ScriptProduto{
     SELECT 
       pe.id,
       pe.created_at,
-      pe.preco_custo,
-      pe.preco_venda,
+      pe.preco_custo AS preco_custo,
+      pe.preco_venda AS preco_venda,
       pe.validade,
       pe.image_url,
       pe.produto_id_public,
@@ -14,7 +14,7 @@ class ScriptProduto{
       pe.ativo,
       p.descricao,
       p.codigo,
-      e.quantidade
+      e.quantidade AS quantidade
     FROM ${schema}.produto_empresa pe
     INNER JOIN public.produtos p ON pe.produto_id_public = p.id
     LEFT JOIN ${schema}.quantidade_estoque e ON pe.id = e.id_produto_empresa
