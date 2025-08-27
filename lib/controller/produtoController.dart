@@ -135,6 +135,27 @@ class Produtocontroller {
     }
   }
 
+  Future<void> atualizarStatusProduto(Map<String, dynamic> dados) async {
+    try {
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+
+      if (empresa == null) {
+        throw Exception('Dados da empresa não encontrados');
+      }
+
+      if (!dados.containsKey('produto_id_public') || dados['produto_id_public'] == null) {
+        throw Exception('ID do produto é obrigatório para atualização');
+      }
+
+      String query = script.atualizarStatusProduto(empresa.schema, dados);
+
+      await _databaseService.executeSqlUpdate(sql: query, schema: empresa.schema);
+    } catch (e) {
+      print('Erro ao atualizar produto: $e');
+      throw Exception('Erro ao atualizar produto: $e');
+    }
+  }
+
   Future<String?> uploadImage(File file) async {
     try {
       return await _databaseService.uploadImage(file);
