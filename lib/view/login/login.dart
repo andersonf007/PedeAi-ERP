@@ -16,7 +16,7 @@ class LoginPageState extends State<LoginPage> {
   final AuthService _authService = AuthService();
   TextEditingController textSenha = TextEditingController();
   TextEditingController textUsuario = TextEditingController();
-  Usuariocontroller usuariocontroller = Usuariocontroller();
+  UsuarioController usuariocontroller = UsuarioController();
   EmpresaController empresaController = EmpresaController();
   List<Map<String, dynamic>> listFantasias = [];
 

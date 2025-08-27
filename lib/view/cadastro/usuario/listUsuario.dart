@@ -17,7 +17,7 @@ class ListUsuarioPage extends StatefulWidget {
 }
 
 class _ListUsuarioPageState extends State<ListUsuarioPage> {
-  final Usuariocontroller _usuarioController = Usuariocontroller();
+  final UsuarioController _usuarioController = UsuarioController();
   final TextEditingController _searchCtrl = TextEditingController();
 
   bool _loading = true;

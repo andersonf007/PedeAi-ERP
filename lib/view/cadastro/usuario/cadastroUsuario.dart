@@ -14,7 +14,7 @@ class CadastroUsuarioPage extends StatefulWidget {
 }
 
 class _CadastroUsuarioPageState extends State<CadastroUsuarioPage> {
-  final Usuariocontroller _usuarioController = Usuariocontroller();
+  final UsuarioController _usuarioController = UsuarioController();
 
   final _nomeCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();

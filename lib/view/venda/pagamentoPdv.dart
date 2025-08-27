@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:pedeai/controller/formaPagamentoController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
+import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/view/venda/pagamentoDialog.dart';
 
 class PagamentoPdvPage extends StatefulWidget {
   final double subtotal;
   final double desconto;
   final double total;
-
-  const PagamentoPdvPage({Key? key, required this.subtotal, required this.desconto, required this.total}) : super(key: key);
+  List<ItemCarrinho> carrinho;
+  PagamentoPdvPage({Key? key, required this.subtotal, required this.desconto, required this.total, required this.carrinho}) : super(key: key);
 
   @override
   State<PagamentoPdvPage> createState() => _PagamentoPdvPageState();
@@ -39,7 +40,7 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
     setState(() {
       _pagamentosInseridos.add({
         'forma': forma,
-        'valor': 0.0, // valor fictício, ajuste quando implementar
+        'valor': 0.0, 
       });
     });
   }
@@ -286,7 +287,47 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                   ),
                   onPressed: () {
-                    // Implementar funcionalidade de finalizar
+                    if (_faltaPagar != 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('O pagamento não está completo.'), backgroundColor: Colors.red));
+                      return;
+                    }
+Map<String, dynamic> dadosVenda = {
+                    'valor_total': widget.total,
+                    'numero_pessoas': 1,
+                    'situacao_venda': 1,
+                    'tipo_venda': 'P',
+                  };
+
+  List<Map<String, dynamic>> dadosVendaItens = [];
+
+  for (int i = 0; i < widget.carrinho.length; i++) {
+    final item = widget.carrinho[i];
+
+    dadosVendaItens.add({
+      'id_produto': widget.carrinho[i].produto.produtoIdPublic,
+      'id_produto_empresa': widget.carrinho[i].produto.id,
+      'quantidade': widget.carrinho[i].quantidade,
+      'preco_unitario': widget.carrinho[i].produto.preco,
+      'preco_total': widget.carrinho[i].produto.preco * widget.carrinho[i].quantidade,
+      'situacao': 10,
+      'posicao_item': i + 1,
+      'preco_custo': widget.carrinho[i].produto.precoCusto,
+    });
+  }
+
+  List<Map<String, dynamic>> dadosFormaPagamento = [];
+
+  for (int i = 0; i < _pagamentosInseridos.length; i++) {
+    final item = _pagamentosInseridos[i];
+
+    dadosFormaPagamento.add({
+      'tipo_movimento': 'Entrada',
+      'valor': item['valor'],
+      'id_forma_pagamento': item['forma'].id,
+      'troco': item['troco'],
+    });
+  }
+
                   },
                   child: Text(
                     'Finalizar',

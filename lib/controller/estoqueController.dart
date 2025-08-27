@@ -13,7 +13,7 @@ class Estoquecontroller {
   final ScriptEstoque script = ScriptEstoque();
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
-  final Usuariocontroller usuarioController = Usuariocontroller();
+  final UsuarioController usuarioController = UsuarioController();
 
   Future<void> inserirQuantidadeEstoque(Map<String, dynamic> dados) async {
     Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();

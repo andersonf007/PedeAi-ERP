@@ -10,7 +10,7 @@ import 'package:pedeai/script/scriptUsuario.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class Usuariocontroller {
+class UsuarioController {
   final AuthService _authService = AuthService();
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
