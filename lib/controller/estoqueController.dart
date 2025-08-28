@@ -15,7 +15,8 @@ class Estoquecontroller {
   final UsuarioController usuarioController = UsuarioController();
 
   Future<void> inserirQuantidadeEstoque(Map<String, dynamic> dados) async {
-    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+    Empresa? empresa = await empresaController
+        .getEmpresaFromSharedPreferences();
 
     if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
@@ -29,9 +30,27 @@ class Estoquecontroller {
     }
   }
 
+    /// Lista as movimentações de um produto (SELECT)
+  Future<List<Map<String, dynamic>>> listarMovimentosDoProduto(int idProdutoEmpresa) async {
+    final empresa = await empresaController.getEmpresaFromSharedPreferences();
+    if (empresa == null) {
+      throw Exception('Dados da empresa não encontrados');
+    }
+
+    final sql = script.listarMovimentosDoProduto(empresa.schema, idProdutoEmpresa);
+    final rows = await _databaseService.executeSql2(sql, schema: empresa.schema);
+    return rows;
+  }
+
+  /// Alias opcional p/ compatibilidade com telas antigas
+  Future<List<Map<String, dynamic>>> listarMovimentacoesDoProduto(int idProdutoEmpresa) {
+    return listarMovimentosDoProduto(idProdutoEmpresa);
+  }
   Future<void> inserirMovimentacaoEstoque(Map<String, dynamic> dados) async {
-    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
-    String? uid_usuario = await usuarioController.getUidUsuarioFromSharedPreferences();
+    Empresa? empresa = await empresaController
+        .getEmpresaFromSharedPreferences();
+    String? uid_usuario = await usuarioController
+        .getUidUsuarioFromSharedPreferences();
 
     if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
@@ -42,25 +61,32 @@ class Estoquecontroller {
     try {
       await _databaseService.executeSql(sql, schema: empresa.schema);
     } catch (e) {
-      throw Exception('Erro ao inserir movimentação de estoque: ${e.toString()}');
+      throw Exception(
+        'Erro ao inserir movimentação de estoque: ${e.toString()}',
+      );
     }
   }
 
   Future<void> atualizarQuantidadeEstoque(Map<String, dynamic> dados) async {
     try {
-      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+      Empresa? empresa = await empresaController
+          .getEmpresaFromSharedPreferences();
 
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
       }
 
-      if (!dados.containsKey('id_produto_empresa') || dados['id_produto_empresa'] == null) {
+      if (!dados.containsKey('id_produto_empresa') ||
+          dados['id_produto_empresa'] == null) {
         throw Exception('ID do produto é obrigatório para atualização');
       }
 
       String query = script.scriptAtualizarQuantidade(empresa.schema, dados);
 
-      await _databaseService.executeSqlUpdate(sql: query, schema: empresa.schema);
+      await _databaseService.executeSqlUpdate(
+        sql: query,
+        schema: empresa.schema,
+      );
     } catch (e) {
       print('Erro ao atualizar quantidade de estoque: $e');
       throw Exception('Erro ao atualizar quantidade de estoque: $e');
