@@ -7,7 +7,6 @@ import 'package:pedeai/script/scriptEstoque.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Estoquecontroller {
-
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
   final ScriptEstoque script = ScriptEstoque();
@@ -18,10 +17,9 @@ class Estoquecontroller {
   Future<void> inserirQuantidadeEstoque(Map<String, dynamic> dados) async {
     Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
-   if (empresa == null) {
+    if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
     }
-    dados['schema_empresa'] = empresa.schema;
     dados['id_empresa'] = empresa.id;
     String sql = script.inserirQuantidadeEstoque(empresa.schema, dados);
     try {

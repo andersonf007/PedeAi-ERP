@@ -927,7 +927,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
         );
         return;
       }
-      if (_codigoController.text.trim().isEmpty) {
+      /*if (_codigoController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Código do produto é obrigatório!',
@@ -936,7 +936,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           ),
         );
         return;
-      }
+      }*/
       if (_selectedCategory == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -977,7 +977,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       // monta payload
       final dadosProduto = {
         'descricao': _nomeController.text.trim(),
-        'codigo': _codigoController.text.trim(),
+        'codigo': _codigoController.text.trim().toString(),
         'preco_venda': precoVenda,
         'id_categoria': _selectedCategory?.id,
         'id_unidade': _selectedUnit?.id,
@@ -1002,9 +1002,9 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       } else {
         final idProduto = await produtocontroller.inserirProduto(dadosProduto);
         dadosQuantidadeEstoque['id_produto_empresa'] = idProduto.toDouble();
-        dadosMovimentacaoEstoque['id_produto_empresa'] = idProduto.toDouble();
         await estoqueController.inserirQuantidadeEstoque(dadosQuantidadeEstoque);
         if (estoque != 0.0) {
+        dadosMovimentacaoEstoque['id_produto_empresa'] = idProduto.toDouble();
           await estoqueController.inserirMovimentacaoEstoque(dadosMovimentacaoEstoque);
         }
       }
