@@ -14,26 +14,55 @@ class VendaController {
   final EmpresaController empresaController = EmpresaController();
   final UsuarioController usuarioController = UsuarioController();
 
-  Future<void> inserirVendaPdv(Map<String, dynamic> dadosVenda, Map<String, dynamic> dadosVendaItem, Map<String, dynamic> dadosFormaPagamento) async {
-    try {
-      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
-      String? uidUsuario = await usuarioController.getUidUsuarioFromSharedPreferences();
-      if (empresa == null) {
-        throw Exception('dadosVenda da empresa não encontrados');
-      }
-      dadosVenda['id_empresa'] = empresa.schema;
-      dadosVenda['uid_venda'] = Uuid().v4();
-      dadosVenda['uid_usuario_abriu_venda'] = uidUsuario;
-      dadosVenda['uid_usuario_fechou_venda'] = uidUsuario;
-      dadosVenda['id_caixa'] = null; // BUSCAR ID DO CAIXA
-      dadosVenda['terminal_abertura'] = await getDeviceName();
-      dadosVenda['terminal_fechamento'] = await getDeviceName();
-      dadosVendaItem['uid_usuario_lancou'] = uidUsuario;
-      dadosFormaPagamento['id_empresa'] = empresa.schema;
-      dadosFormaPagamento['id_caixa'] = null;
-    } catch (e) {
-      print('Erro ao inserir produto: $e');
-      throw Exception('Erro ao inserir produto: $e');
+Future<void> inserirVendaPdv({
+  required Map<String, dynamic> dadosVenda,
+  required List<Map<String, dynamic>> dadosVendaItens,
+  required List<Map<String, dynamic>> dadosFormaPagamento,
+  required List<Map<String, dynamic>> dadosMovimentacaoEstoque,
+}) async {
+  try {
+    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+    String? uidUsuario = await usuarioController.getUidUsuarioFromSharedPreferences();
+String nomeDispositivo = await getDeviceName();
+print(nomeDispositivo);
+    if (empresa == null) {
+      throw Exception('Dados da empresa não encontrados');
     }
+
+    // --- Ajustes na VENDA ---
+    dadosVenda['id_empresa'] = empresa.id;
+    dadosVenda['uid_venda'] = Uuid().v4();
+    dadosVenda['uid_usuario_abriu_venda'] = uidUsuario;
+    dadosVenda['uid_usuario_fechou_venda'] = uidUsuario;
+    dadosVenda['id_caixa'] = 1; // TODO: Buscar id_caixa real
+    dadosVenda['terminal_abertura'] = await getDeviceName();
+    dadosVenda['terminal_fechamento'] = await getDeviceName();
+
+    // --- Ajustes nos ITENS DA VENDA ---
+    for (var item in dadosVendaItens) {
+      item['uid_usuario_lancou'] = uidUsuario;
+    }
+
+    // --- Ajustes nos ITENS DO CAIXA ---
+    for (var item in dadosFormaPagamento) {
+      item['id_empresa'] = empresa.id;
+      item['id_caixa'] = 1; // TODO: Buscar id_caixa real
+    }
+
+    
+    final idVenda = await _databaseService.executeSqlInserirVendaPdv(
+      schema: empresa.schema,
+      venda: dadosVenda,
+      itensVenda: dadosVendaItens,
+      itensCaixa: dadosFormaPagamento,
+      itensEstoque: dadosMovimentacaoEstoque,
+    );
+
+    print('Venda inserida com sucesso. ID: $idVenda');
+  } catch (e) {
+    print('Erro ao inserir venda: $e');
+    throw Exception('Erro ao inserir venda: $e');
   }
+}
+
 }

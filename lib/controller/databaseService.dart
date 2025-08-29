@@ -165,6 +165,41 @@ class DatabaseService {
     }
   }
 
+Future<int?> executeSqlInserirVendaPdv({
+  required String schema,
+  required Map<String, dynamic> venda,
+  required List<Map<String, dynamic>> itensVenda,
+  required List<Map<String, dynamic>> itensCaixa,
+  required List<Map<String, dynamic>> itensEstoque,
+}) async {
+  try {
+    final params = {
+      'schema_empresa': schema,
+      'p_venda': venda,
+      'p_itens_venda': itensVenda,
+      'p_itens_caixa': itensCaixa,
+      'p_itens_estoque': itensEstoque,
+    };
+
+    print('SQL Inserir Venda PDV: $params');
+
+    final response = await _client.rpc('inserir_venda_pdv', params: params);
+
+    // A função retorna sempre o id_venda (BIGINT)
+    if (response is int) {
+      return response;
+    } else if (response is Map && response.containsKey('id')) {
+      return response['id'] as int;
+    } else if (response is List && response.isNotEmpty) {
+      return response.first['id'] as int?;
+    }
+
+    return null;
+  } catch (e) {
+print(e.toString());
+    throw Exception('Erro ao executar SQL inserir_venda_completa: ${e.toString()}');
+  }
+}
 
 
 
