@@ -73,6 +73,7 @@ Widget build(BuildContext context) {
               subtotal: args?['subtotal'] ?? 0.0,
               desconto: args?['desconto'] ?? 0.0,
               total: args?['total'] ?? 0.0,
+              carrinho: args?['carrinho'] ?? [],
             );
           },
         },

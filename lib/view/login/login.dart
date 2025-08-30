@@ -13,7 +13,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final Usuariocontroller _userController = Usuariocontroller();
+  final UsuarioController _userController = UsuarioController();
   final EmpresaController _empresaController = EmpresaController();
   SharedPreferences? _prefs;
   final List<Map<String, dynamic>> _empresas = [];

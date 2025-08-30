@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:pedeai/controller/formaPagamentoController.dart';
+import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
+import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/view/venda/pagamentoDialog.dart';
 
 class PagamentoPdvPage extends StatefulWidget {
   final double subtotal;
   final double desconto;
   final double total;
-
-  const PagamentoPdvPage({Key? key, required this.subtotal, required this.desconto, required this.total}) : super(key: key);
+  List<ItemCarrinho> carrinho;
+  PagamentoPdvPage({Key? key, required this.subtotal, required this.desconto, required this.total, required this.carrinho}) : super(key: key);
 
   @override
   State<PagamentoPdvPage> createState() => _PagamentoPdvPageState();
@@ -19,6 +21,7 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
   List<FormaPagamento> _formasPagamento = [];
   List<Map<String, dynamic>> _pagamentosInseridos = [];
   bool _isLoading = true;
+  VendaController vendaController = VendaController();
 
   @override
   void initState() {
@@ -37,10 +40,7 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
 
   void _adicionarPagamento(FormaPagamento forma) {
     setState(() {
-      _pagamentosInseridos.add({
-        'forma': forma,
-        'valor': 0.0, // valor fictício, ajuste quando implementar
-      });
+      _pagamentosInseridos.add({'forma': forma, 'valor': 0.0});
     });
   }
 
@@ -285,8 +285,63 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                     padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                   ),
-                  onPressed: () {
-                    // Implementar funcionalidade de finalizar
+                  onPressed: () async {
+                    if (_faltaPagar != 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('O pagamento não está completo.'), backgroundColor: Colors.red));
+                      return;
+                    }
+                    Map<String, dynamic> dadosVenda = {'valor_total': widget.total, 'numero_pessoas': 1, 'situacao_venda': 1, 'tipo_venda': 'P'};
+                    print('Dados venda: $dadosVenda');
+                    List<Map<String, dynamic>> dadosVendaItens = [];
+
+                    for (int i = 0; i < widget.carrinho.length; i++) {
+                      final item = widget.carrinho[i];
+
+                      dadosVendaItens.add({
+                        'id_produto': widget.carrinho[i].produto.produtoIdPublic,
+                        'id_produto_empresa': widget.carrinho[i].produto.id,
+                        'quantidade': widget.carrinho[i].quantidade,
+                        'preco_unitario': widget.carrinho[i].produto.preco,
+                        'preco_total': widget.carrinho[i].produto.preco * widget.carrinho[i].quantidade,
+                        'situacao': 10,
+                        'posicao_item': i + 1,
+                        'preco_custo': widget.carrinho[i].produto.precoCusto,
+                      });
+                    }
+                    print('Dados itens venda: $dadosVendaItens');
+                    List<Map<String, dynamic>> dadosFormaPagamento = [];
+
+                    for (int i = 0; i < _pagamentosInseridos.length; i++) {
+                      final item = _pagamentosInseridos[i];
+
+                      dadosFormaPagamento.add({
+                        'tipo_movimento': 'Entrada', //ENTRADA POIS É A ENTRADA NO CAIXA
+                        'valor': item['valor'],
+                        'id_forma_pagamento': item['forma'].id,
+                        'troco': item['troco'],
+                      });
+                    }
+                    print('Dados forma de pagamento: $dadosFormaPagamento');
+                    List<Map<String, dynamic>> dadosMovimentacaoEstoque = [];
+
+                    for (int i = 0; i < widget.carrinho.length; i++) {
+                      final item = widget.carrinho[i];
+
+                      dadosMovimentacaoEstoque.add({'id_produto_empresa': widget.carrinho[i].produto.id, 'quantidade': widget.carrinho[i].quantidade, 'tipo_movimento': 'Saida', 'motivo': 'Venda'});
+                    }
+                    print('Dados movimentação estoque: $dadosMovimentacaoEstoque');
+                    try {
+                      await vendaController.inserirVendaPdv(dadosVenda: dadosVenda, dadosVendaItens: dadosVendaItens, dadosFormaPagamento: dadosFormaPagamento, dadosMovimentacaoEstoque: dadosMovimentacaoEstoque);
+                      setState(() {
+                        _pagamentosInseridos.clear();
+                      });
+                      widget.carrinho.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Venda finalizada com sucesso!'), backgroundColor: Colors.green));
+                      Navigator.of(context).pushNamedAndRemoveUntil('/pdv', (route) => false);
+                    } catch (e) {
+                      print('Erro ao inserir venda: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao finalizar venda. $e'), backgroundColor: Colors.red));
+                    }
                   },
                   child: Text(
                     'Finalizar',

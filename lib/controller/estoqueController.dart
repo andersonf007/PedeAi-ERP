@@ -12,7 +12,7 @@ class Estoquecontroller {
   final ScriptEstoque script = ScriptEstoque();
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
-  final Usuariocontroller usuarioController = Usuariocontroller();
+  final UsuarioController usuarioController = UsuarioController();
 
   Future<void> inserirQuantidadeEstoque(Map<String, dynamic> dados) async {
     Empresa? empresa = await empresaController
@@ -21,7 +21,6 @@ class Estoquecontroller {
     if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
     }
-    dados['schema_empresa'] = empresa.schema;
     dados['id_empresa'] = empresa.id;
     String sql = script.inserirQuantidadeEstoque(empresa.schema, dados);
     try {

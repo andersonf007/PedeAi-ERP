@@ -489,7 +489,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                   'subtotal': subtotal,
                   'desconto': desconto,
                   'total': total,
-                  'carrinho': _carrinho, // Lista completa com produtos e quantidades
+                  'carrinho': _carrinho,
                 };
                 Navigator.of(context).pushNamed('/pagamentoPdv', arguments: dadosPagamento);
               },
