@@ -291,7 +291,7 @@ class _EstoquePageState extends State<EstoquePage> {
         await FileSaver.instance.saveFile(
           name: fileName,
           bytes: bytes,
-          ext: 'pdf',
+          fileExtension: 'pdf',
           mimeType: MimeType.pdf,
         );
       } else {
