@@ -4,6 +4,7 @@ import 'package:pedeai/controller/produtoController.dart';
 import 'package:pedeai/model/categoria.dart';
 import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/model/produto.dart';
+import 'package:pedeai/view/venda/alterarQuantidadeDialog.dart';
 
 class PDVPage extends StatefulWidget {
   @override
@@ -91,15 +92,24 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
   }
 
   void _alterarQuantidade(int produtoId, int novaQuantidade) {
-    if (novaQuantidade <= 0) {
-      _removerDoCarrinho(produtoId);
-      return;
-    }
-
     setState(() {
       final index = _carrinho.indexWhere((item) => item.produto.produtoIdPublic == produtoId);
-      if (index >= 0) {
-        _carrinho[index].quantidade = novaQuantidade;
+      if (novaQuantidade <= 0) {
+        if (index >= 0) {
+          _removerDoCarrinho(produtoId);
+        }
+      } else {
+        if (index >= 0) {
+          _carrinho[index].quantidade = novaQuantidade;
+        } else {
+          // Adiciona o produto ao carrinho com a quantidade informada
+          try {
+            final produto = _produtos.firstWhere((p) => p.produtoIdPublic == produtoId);
+            _carrinho.add(ItemCarrinho(produto: produto, quantidade: novaQuantidade));
+          } catch (e) {
+            // Produto não encontrado, não faz nada
+          }
+        }
       }
     });
   }
@@ -265,77 +275,115 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
               itemBuilder: (context, index) {
                 final produto = _produtosFiltrados[index];
                 final quantidade = _getQuantidadeCarrinho(produto.produtoIdPublic!);
-                return GestureDetector(
-                  onTap: () => _adicionarAoCarrinho(produto),
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFF4A3429),
-                          border: Border.all(color: Colors.orange, width: 1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.all(8),
-                        child: Column(
-                          children: [
-                            AspectRatio(
-                              aspectRatio: 1,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: produto.image_url != '' && produto.image_url.isNotEmpty
-                                    ? Image.network(
-                                        produto.image_url,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Icon(Icons.fastfood, color: Colors.orange, size: 32),
-                                      )
-                                    : Container(
-                                        color: Colors.grey[200],
-                                        child: Icon(Icons.fastfood, color: Colors.orange, size: 32),
-                                      ),
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            SizedBox(
-                              height: 48,
-                              child: Center(
-                                child: Text(
-                                  produto.descricao?.toUpperCase() ?? '',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
+                return Builder(
+                  builder: (itemContext) => GestureDetector(
+                    onTap: () => _adicionarAoCarrinho(produto),
+                    onLongPress: () async {
+                      final box = itemContext.findRenderObject() as RenderBox;
+                      final offset = box.localToGlobal(Offset.zero);
+
+                      // Tamanho estimado do menu
+                      final menuWidth = 180.0;
+                      final menuHeight = 140.0;
+                      final screenSize = MediaQuery.of(context).size;
+
+                      // Posiciona para que a ponta superior esquerda do menu fique no centro do item
+                      double left = offset.dx + (box.size.width / 2);
+                      double top = offset.dy + (box.size.height / 2);
+
+                      // Garante que o menu não ultrapasse os limites da tela
+                      if (left < 8) left = 8;
+                      if (left + menuWidth > screenSize.width) left = screenSize.width - menuWidth - 8;
+                      if (top + menuHeight > screenSize.height) top = screenSize.height - menuHeight - 8;
+
+                      final selected = await showMenu<String>(
+                        context: context,
+                        position: RelativeRect.fromLTRB(left, top, left + menuWidth, top + menuHeight),
+                        items: [PopupMenuItem(value: 'quantidade', child: Text('Quantidade'))],
+                      );
+
+                      if (selected == 'quantidade') {
+                        final quantidadeAtual = _getQuantidadeCarrinho(produto.produtoIdPublic!);
+                        final novaQuantidade = await showDialog<int>(
+                          context: context,
+                          builder: (context) => QuantidadeDialog(quantidadeAtual: quantidadeAtual, nomeProduto: produto.descricao ?? '', precoUnitario: produto.preco ?? 0.0),
+                        );
+                        if (novaQuantidade != null) {
+                          _alterarQuantidade(produto.produtoIdPublic!, novaQuantidade);
+                        }
+                      }
+                      // Implemente as outras opções se desejar
+                    },
+                    child: Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Color(0xFF4A3429),
+                            border: Border.all(color: Colors.orange, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.all(8),
+                          child: Column(
+                            children: [
+                              AspectRatio(
+                                aspectRatio: 1,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: produto.image_url != '' && produto.image_url.isNotEmpty
+                                      ? Image.network(
+                                          produto.image_url,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => Icon(Icons.fastfood, color: Colors.orange, size: 32),
+                                        )
+                                      : Container(
+                                          color: Colors.grey[200],
+                                          child: Icon(Icons.fastfood, color: Colors.orange, size: 32),
+                                        ),
                                 ),
                               ),
-                            ),
-                            SizedBox(height: 4),
-                            SizedBox(
-                              height: 18,
-                              child: Center(
-                                child: Text(
-                                  'R\$ ${produto.preco?.toStringAsFixed(2) ?? '0.00'} UN',
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              SizedBox(height: 8),
+                              SizedBox(
+                                height: 48,
+                                child: Center(
+                                  child: Text(
+                                    produto.descricao?.toUpperCase() ?? '',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (quantidade > 0)
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: Container(
-                            padding: EdgeInsets.all(6),
-                            decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-                            child: Text(
-                              quantidade.toString(),
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                            ),
+                              SizedBox(height: 4),
+                              SizedBox(
+                                height: 18,
+                                child: Center(
+                                  child: Text(
+                                    'R\$ ${produto.preco?.toStringAsFixed(2) ?? '0.00'} UN',
+                                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                    ],
+                        if (quantidade > 0)
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Container(
+                              padding: EdgeInsets.all(6),
+                              decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                              child: Text(
+                                quantidade.toString(),
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -485,12 +533,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
             ? null
             : () {
                 // Agora você tem acesso completo aos produtos no carrinho
-                final dadosPagamento = {
-                  'subtotal': subtotal,
-                  'desconto': desconto,
-                  'total': total,
-                  'carrinho': _carrinho,
-                };
+                final dadosPagamento = {'subtotal': subtotal, 'desconto': desconto, 'total': total, 'carrinho': _carrinho};
                 Navigator.of(context).pushNamed('/pagamentoPdv', arguments: dadosPagamento);
               },
         child: Text(
