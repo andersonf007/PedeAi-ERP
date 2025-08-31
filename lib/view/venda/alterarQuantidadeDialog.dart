@@ -6,7 +6,12 @@ class QuantidadeDialog extends StatefulWidget {
   final String nomeProduto;
   final double precoUnitario;
 
-  const QuantidadeDialog({Key? key, required this.quantidadeAtual, required this.nomeProduto, required this.precoUnitario}) : super(key: key);
+  const QuantidadeDialog({
+    super.key,
+    required this.quantidadeAtual,
+    required this.nomeProduto,
+    required this.precoUnitario,
+  });
 
   @override
   State<QuantidadeDialog> createState() => _QuantidadeDialogState();
@@ -15,17 +20,16 @@ class QuantidadeDialog extends StatefulWidget {
 class _QuantidadeDialogState extends State<QuantidadeDialog> {
   String quantidadeDigitada = "";
 
-  int get quantidade {
-    if (quantidadeDigitada.isEmpty) return 0;
-    return int.tryParse(quantidadeDigitada) ?? 0;
-  }
+  int get quantidade =>
+      quantidadeDigitada.isEmpty ? 0 : int.tryParse(quantidadeDigitada) ?? 0;
 
   double get valorTotal => quantidade * widget.precoUnitario;
 
   @override
   void initState() {
     super.initState();
-    quantidadeDigitada = widget.quantidadeAtual > 0 ? widget.quantidadeAtual.toString() : "";
+    quantidadeDigitada =
+        widget.quantidadeAtual > 0 ? widget.quantidadeAtual.toString() : "";
   }
 
   void _onKeyboardTap(String text) {
@@ -41,51 +45,65 @@ class _QuantidadeDialogState extends State<QuantidadeDialog> {
   void _onBackspace() {
     setState(() {
       if (quantidadeDigitada.isNotEmpty) {
-        quantidadeDigitada = quantidadeDigitada.substring(0, quantidadeDigitada.length - 1);
+        quantidadeDigitada =
+            quantidadeDigitada.substring(0, quantidadeDigitada.length - 1);
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return AlertDialog(
+      backgroundColor: cs.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                widget.nomeProduto,
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 4),
-              Text(
-                'R\$ ${widget.precoUnitario.toStringAsFixed(2)}',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
-              ),
-              Text('$quantidade x R\$ ${widget.precoUnitario.toStringAsFixed(2)}', style: TextStyle(color: Colors.black54, fontSize: 13)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(widget.nomeProduto,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: cs.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15)),
+                const SizedBox(height: 4),
+                Text('R\$ ${widget.precoUnitario.toStringAsFixed(2)}',
+                    style: TextStyle(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13)),
+                Text('$quantidade x R\$ ${widget.precoUnitario.toStringAsFixed(2)}',
+                    style:
+                        TextStyle(color: cs.onSurface.withOpacity(0.7), fontSize: 13)),
+              ],
+            ),
           ),
-          Text(
-            'Total: R\$ ${valorTotal.toStringAsFixed(2)}',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
-          ),
+          const SizedBox(width: 8),
+          Text('Total: R\$ ${valorTotal.toStringAsFixed(2)}',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: cs.onSurface)),
         ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 8),
-          Text('Quantidade', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
+          Text('Quantidade',
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: cs.onSurface)),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.remove, color: Colors.red),
+                icon: Icon(Icons.remove, color: cs.primary),
                 onPressed: () {
                   if (quantidade > 0) {
                     setState(() {
@@ -95,35 +113,40 @@ class _QuantidadeDialogState extends State<QuantidadeDialog> {
                   }
                 },
               ),
-              Text(quantidadeDigitada.isEmpty ? "0" : quantidadeDigitada, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(quantidadeDigitada.isEmpty ? "0" : quantidadeDigitada,
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold)),
               IconButton(
-                icon: Icon(Icons.add, color: Colors.green),
-                onPressed: () {
-                  setState(() {
-                    quantidadeDigitada = (quantidade + 1).toString();
-                  });
-                },
+                icon: Icon(Icons.add, color: cs.primary),
+                onPressed: () =>
+                    setState(() => quantidadeDigitada = (quantidade + 1).toString()),
               ),
             ],
           ),
-
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           NumericKeyboard(
             onKeyboardTap: _onKeyboardTap,
-            textColor: Colors.black,
+            textColor: cs.onSurface,
             rightButtonFn: _onBackspace,
-            rightIcon: Icon(Icons.backspace, color: Colors.red),
+            rightIcon: Icon(Icons.backspace, color: cs.error),
           ),
         ],
       ),
       actions: [
         TextButton(
-          child: Text("Cancelar", style: TextStyle(color: Colors.red)),
+          child: Text("Cancelar", style: TextStyle(color: cs.primary)),
           onPressed: () => Navigator.pop(context, null),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-          onPressed: quantidade == 0 ? null : () => Navigator.pop(context, quantidade),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: cs.primary,
+            foregroundColor: cs.onPrimary,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: quantidade == 0
+              ? null
+              : () => Navigator.pop(context, quantidade),
           child: const Text("Confirmar"),
         ),
       ],

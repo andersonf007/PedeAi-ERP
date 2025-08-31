@@ -10,7 +10,7 @@ class AppNavBar extends StatelessWidget {
   static const List<String> _routes = <String>[
 
     '/home', // Dashboard
-    '', // vendas
+    '/listVendas', // vendas
     '/listProdutos', // Estoque
     '/estoque', // Compras/PDV
     '/listUsuarios', // Perfil/Configurações

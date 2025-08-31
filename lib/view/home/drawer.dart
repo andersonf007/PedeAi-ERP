@@ -24,72 +24,76 @@ class _DrawerPageState extends State<DrawerPage> {
         r.startsWith('/listUsuarios'))
       _openKey = 'cadastro';
   }
-Future<void> _confirmAndLogout() async {
-  final cs = Theme.of(context).colorScheme;
 
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: cs.surface,
-      title: Text(
-        'Sair da conta?',
-        style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
-      ),
-      content: Text(
-        'Você será desconectado do PedeAi.',
-        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.75)),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text('Cancelar', style: TextStyle(color: cs.onSurface)),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: cs.error,
-            foregroundColor: cs.onError,
-          ),
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: const Text('Sair'),
-        ),
-      ],
-    ),
-  );
-
-  if (ok != true) return;
-
-  await _doLogout();
-}
-
-Future<void> _doLogout() async {
-  try {
-    // 1) limpa sessão local (ajuste as chaves conforme seu app)
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    await prefs.remove('usuario');
-    await prefs.remove('empresa_id');
-    // Se você guardar mais coisas, remova aqui ou use prefs.clear();
-
-    if (!mounted) return;
-
-    // 2) fecha o Drawer, se ainda estiver aberto
-    if (Scaffold.of(context).isDrawerOpen) {
-      Navigator.of(context).pop(); // fecha o Drawer
-    }
-
-    // 3) navega para login limpando a pilha de rotas
-    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-  } catch (e) {
-    if (!mounted) return;
+  Future<void> _confirmAndLogout() async {
     final cs = Theme.of(context).colorScheme;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Falha ao sair: $e', style: TextStyle(color: cs.onError)),
-        backgroundColor: cs.error,
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: cs.surface,
+        title: Text(
+          'Sair da conta?',
+          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Você será desconectado do PedeAi.',
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.75)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('Cancelar', style: TextStyle(color: cs.onSurface)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: cs.error,
+              foregroundColor: cs.onError,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Sair'),
+          ),
+        ],
       ),
     );
+
+    if (ok != true) return;
+
+    await _doLogout();
   }
-}
+
+  Future<void> _doLogout() async {
+    try {
+      // 1) limpa sessão local (ajuste as chaves conforme seu app)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('token');
+      await prefs.remove('usuario');
+      await prefs.remove('empresa_id');
+      // Se você guardar mais coisas, remova aqui ou use prefs.clear();
+
+      if (!mounted) return;
+
+      // 2) fecha o Drawer, se ainda estiver aberto
+      if (Scaffold.of(context).isDrawerOpen) {
+        Navigator.of(context).pop(); // fecha o Drawer
+      }
+
+      // 3) navega para login limpando a pilha de rotas
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+      final cs = Theme.of(context).colorScheme;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Falha ao sair: $e',
+            style: TextStyle(color: cs.onError),
+          ),
+          backgroundColor: cs.error,
+        ),
+      );
+    }
+  }
 
   void _toggle(String k) => setState(() => _openKey = _openKey == k ? null : k);
 
@@ -145,8 +149,7 @@ Future<void> _doLogout() async {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     children: [
-
-                       // CADASTRO
+                      // CADASTRO
                       _NavSection(
                         keyValue: 'cadastro',
                         title: 'Cadastro',
@@ -197,6 +200,13 @@ Future<void> _doLogout() async {
                         children: [
                           _NavItem(
                             icon: Icons.point_of_sale,
+                            label: 'Vendas',
+                            selected: current == '/listVendas',
+                            onTap: () => _go(context, '/listVendas'),
+                          ),
+
+                          _NavItem(
+                            icon: Icons.point_of_sale,
                             label: 'PDV',
                             selected: current == '/pdv',
                             onTap: () => _go(context, '/pdv'),
@@ -204,7 +214,6 @@ Future<void> _doLogout() async {
                         ],
                       ),
 
-                     
                       // ENTRADAS SOLTAS
                       _PlainEntry(
                         icon: Icons.warehouse,
