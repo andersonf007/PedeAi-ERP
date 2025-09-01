@@ -4,24 +4,36 @@ import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
 import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/view/venda/pagamentoDialog.dart';
+import 'package:pedeai/utils/app_notify.dart';
 
 class PagamentoPdvPage extends StatefulWidget {
   final double subtotal;
   final double desconto;
   final double total;
-  List<ItemCarrinho> carrinho;
-  PagamentoPdvPage({Key? key, required this.subtotal, required this.desconto, required this.total, required this.carrinho}) : super(key: key);
+  final List<ItemCarrinho> carrinho;
+
+  const PagamentoPdvPage({
+    super.key,
+    required this.subtotal,
+    required this.desconto,
+    required this.total,
+    required this.carrinho,
+  });
 
   @override
   State<PagamentoPdvPage> createState() => _PagamentoPdvPageState();
 }
 
 class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
-  final FormaPagamentocontroller _formaPagamentoController = FormaPagamentocontroller();
+  final FormaPagamentocontroller _formaPagamentoController =
+      FormaPagamentocontroller();
+  final VendaController _vendaController = VendaController();
+
   List<FormaPagamento> _formasPagamento = [];
-  List<Map<String, dynamic>> _pagamentosInseridos = [];
+  final List<Map<String, dynamic>> _pagamentosInseridos = [];
+
   bool _isLoading = true;
-  VendaController vendaController = VendaController();
+  bool _finalizando = false;
 
   @override
   void initState() {
@@ -31,328 +43,331 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
 
   Future<void> _carregarFormasPagamento() async {
     setState(() => _isLoading = true);
-    final formas = await _formaPagamentoController.listaFormaPagamentosAtivas();
-    setState(() {
-      _formasPagamento = formas;
-      _isLoading = false;
-    });
-  }
-
-  void _adicionarPagamento(FormaPagamento forma) {
-    setState(() {
-      _pagamentosInseridos.add({'forma': forma, 'valor': 0.0});
-    });
-  }
-
-  double _calcularValorRestante() {
-    return _faltaPagar;
+    try {
+      final formas = await _formaPagamentoController.listaFormaPagamentosAtivas();
+      setState(() {
+        _formasPagamento = formas;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      AppNotify.error(context, 'Erro ao carregar formas de pagamento: $e');
+    }
   }
 
   Future<void> _showPagamentoDialog(FormaPagamento forma) async {
-    final valorRestante = _calcularValorRestante();
+    final valorRestante = _faltaPagar;
     final resultado = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => PagamentoDialog(forma: forma, valorRestante: valorRestante),
+      builder: (context) =>
+          PagamentoDialog(forma: forma, valorRestante: valorRestante),
     );
 
     if (resultado != null && resultado['valor'] != null) {
       setState(() {
-        _pagamentosInseridos.add({'forma': forma, 'valor': resultado['valor'], 'troco': resultado['troco'] ?? 0.0});
+        _pagamentosInseridos.add({
+          'forma': forma,
+          'valor': resultado['valor'] as double,
+          'troco': (resultado['troco'] as double?) ?? 0.0,
+        });
       });
     }
   }
 
-  double get _totalPago => _pagamentosInseridos.fold(0.0, (a, b) => a + (b['valor'] as double));
-  double get _faltaPagar => (widget.total - _totalPago) < 0 ? 0.0 : (widget.total - _totalPago);
-  double get _trocoTotal => _pagamentosInseridos.fold(0.0, (a, b) => a + (b['troco'] as double? ?? 0.0));
+  double get _totalPago =>
+      _pagamentosInseridos.fold(0.0, (a, b) => a + (b['valor'] as double));
+  double get _faltaPagar =>
+      (widget.total - _totalPago) < 0 ? 0.0 : (widget.total - _totalPago);
+  double get _trocoTotal =>
+      _pagamentosInseridos.fold(0.0, (a, b) => a + (b['troco'] as double? ?? 0));
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Color(0xFF2D2419),
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Color(0xFF2D2419),
+        backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
-        title: Text(
-          'Pagamentos',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: Text('Pagamentos',
+            style:
+                TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: cs.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Campo de CPF/CNPJ
-              Container(
-                decoration: BoxDecoration(
-                  color: Color(0xFF4A3429),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        style: TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Informar Cnpj/Cpf do cliente',
-                          hintStyle: TextStyle(color: Colors.white54),
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    Icon(Icons.search, color: Colors.orange),
-                  ],
+              // CPF/CNPJ
+              TextField(
+                style: TextStyle(color: cs.onSurface),
+                decoration: InputDecoration(
+                  hintText: 'Informar CNPJ/CPF do cliente',
+                  hintStyle: TextStyle(color: cs.onSurface.withOpacity(0.6)),
+                  prefixIcon:
+                      Icon(Icons.search, color: cs.onSurface.withOpacity(0.6)),
+                  filled: true,
+                  fillColor: cs.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: cs.outlineVariant),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: cs.outlineVariant),
+                  ),
                 ),
               ),
-              SizedBox(height: 16),
-              // Card de resumo
+              const SizedBox(height: 16),
+
+              // Card resumo
               Card(
-                color: Color(0xFF4A3429),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 2,
+                color: cs.surface,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                elevation: 1,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Subtotal', style: TextStyle(color: Colors.white)),
-                          Text('R\$ ${widget.subtotal.toStringAsFixed(2)}', style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Desconto na venda', style: TextStyle(color: Colors.white)),
-                          Text('- R\$ ${widget.desconto.toStringAsFixed(2)}', style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'R\$ ${widget.total.toStringAsFixed(2)}',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      Divider(color: Colors.white24, height: 24),
-                      // Lista de formas de pagamento inseridas
+                      _rowKV(cs, 'Subtotal',
+                          'R\$ ${widget.subtotal.toStringAsFixed(2)}'),
+                      _rowKV(cs, 'Desconto na venda',
+                          '- R\$ ${widget.desconto.toStringAsFixed(2)}',
+                          subtle: true),
+                      _rowKV(cs, 'Total',
+                          'R\$ ${widget.total.toStringAsFixed(2)}',
+                          bold: true),
+                      Divider(color: cs.outlineVariant, height: 24),
+
+                      // Pagamentos inseridos
                       _pagamentosInseridos.isEmpty
                           ? Center(
                               child: Text(
                                 'Nenhuma forma de pagamento inserida',
-                                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: cs.onSurface.withOpacity(0.7),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             )
                           : Column(
-                              children: _pagamentosInseridos.asMap().entries.map((entry) {
-                                final idx = entry.key;
-                                final pag = entry.value;
-                                final forma = pag['forma'] as FormaPagamento;
+                              children: _pagamentosInseridos
+                                  .asMap()
+                                  .entries
+                                  .map((e) {
+                                final idx = e.key;
+                                final pag = e.value;
+                                final FormaPagamento forma = pag['forma'];
                                 final valor = pag['valor'] as double;
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
-                                        child: Text(forma.nome ?? '', style: TextStyle(color: Colors.white)),
+                                        child: Text(forma.nome ?? '',
+                                            style: TextStyle(
+                                                color: cs.onSurface)),
                                       ),
-                                      Text('R\$ ${valor.toStringAsFixed(2)}', style: TextStyle(color: Colors.white)),
+                                      Text('R\$ ${valor.toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                              color: cs.onSurface)),
                                       IconButton(
-                                        icon: Icon(Icons.delete, color: Colors.orange, size: 20),
-                                        onPressed: () {
-                                          setState(() {
-                                            _pagamentosInseridos.removeAt(idx);
-                                            // Os getters _totalPago e _faltaPagar já recalculam automaticamente
-                                          });
-                                        },
+                                        icon: Icon(Icons.delete,
+                                            color: cs.error, size: 20),
+                                        onPressed: () => setState(
+                                            () => _pagamentosInseridos
+                                                .removeAt(idx)),
                                       ),
                                     ],
                                   ),
                                 );
                               }).toList(),
                             ),
-                      Divider(color: Colors.white24, height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total pago',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                          Text(
-                            'R\$ ${_totalPago.toStringAsFixed(2)}',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Falta pagar',
-                            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'R\$ ${_faltaPagar.toStringAsFixed(2)}',
-                            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Troco',
-                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'R\$ ${_trocoTotal.toStringAsFixed(2)}',
-                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+
+                      Divider(color: cs.outlineVariant, height: 24),
+                      _rowKV(cs, 'Total pago',
+                          'R\$ ${_totalPago.toStringAsFixed(2)}',
+                          bold: true),
+                      _rowKV(cs, 'Falta pagar',
+                          'R\$ ${_faltaPagar.toStringAsFixed(2)}',
+                          bold: true,
+                          colorOverride:
+                              _faltaPagar == 0 ? cs.onSurface : cs.error),
+                      _rowKV(cs, 'Troco', 'R\$ ${_trocoTotal.toStringAsFixed(2)}',
+                          bold: true, colorOverride: Colors.green),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 16),
-              // Botões das formas de pagamento
+
+              const SizedBox(height: 16),
+
+              // Formas de pagamento
               _isLoading
-                  ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)))
+                  ? Center(
+                      child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation(cs.primary)),
+                    )
                   : Wrap(
-                      spacing: 16,
+                      spacing: 12,
                       runSpacing: 12,
                       children: _formasPagamento.map((forma) {
                         IconData icon;
                         switch ((forma.tipoFormaPagamentoId ?? 1)) {
                           case 1:
-                            icon = Icons.attach_money;
+                            icon = Icons.attach_money; // Dinheiro
                             break;
                           case 3:
-                            icon = Icons.credit_card;
-                            break;
                           case 4:
-                            icon = Icons.credit_card;
+                            icon = Icons.credit_card; // Crédito/Débito
                             break;
                           case 11:
-                            icon = Icons.qr_code;
+                            icon = Icons.qr_code; // PIX
                             break;
                           default:
                             icon = Icons.payment;
                         }
-                        return ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.orange,
-                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                            elevation: 2,
+                        return OutlinedButton.icon(
+                          icon: Icon(icon, color: cs.primary),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: cs.primary),
+                            foregroundColor: cs.primary,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24)),
                           ),
-                          icon: Icon(icon, color: Colors.orange),
                           label: Text(
                             forma.nome ?? '',
-                            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: cs.primary, fontWeight: FontWeight.bold),
                           ),
-                          onPressed: () {
-                            _showPagamentoDialog(forma);
-                          },
+                          onPressed: () => _showPagamentoDialog(forma),
                         );
                       }).toList(),
                     ),
-              SizedBox(height: 32),
-              // Botão Finalizar
+
+              const SizedBox(height: 24),
+
+              // Finalizar
               SizedBox(
                 width: double.infinity,
+                height: 48,
                 child: ElevatedButton(
+                  onPressed: (_faltaPagar != 0 || _finalizando)
+                      ? null
+                      : () async {
+                          setState(() => _finalizando = true);
+                          try {
+                            final dadosVenda = {
+                              'valor_total': widget.total,
+                              'numero_pessoas': 1,
+                              'situacao_venda': 1,
+                              'tipo_venda': 'P',
+                            };
+
+                            final dadosVendaItens = <Map<String, dynamic>>[];
+                            for (var i = 0; i < widget.carrinho.length; i++) {
+                              final it = widget.carrinho[i];
+                              dadosVendaItens.add({
+                                'id_produto': it.produto.produtoIdPublic,
+                                'id_produto_empresa': it.produto.id,
+                                'quantidade': it.quantidade,
+                                'preco_unitario': it.produto.preco,
+                                'preco_total':
+                                    (it.produto.preco ?? 0) * it.quantidade,
+                                'situacao': 10,
+                                'posicao_item': i + 1,
+                                'preco_custo': it.produto.precoCusto,
+                              });
+                            }
+
+                            final dadosFormaPagamento = _pagamentosInseridos
+                                .map((e) => {
+                                      'tipo_movimento': 'Entrada',
+                                      'valor': e['valor'],
+                                      'id_forma_pagamento': (e['forma'] as FormaPagamento).id,
+                                      'troco': e['troco'],
+                                    })
+                                .toList();
+
+                            final dadosMovEstoque =
+                                widget.carrinho.map((it) => {
+                                      'id_produto_empresa': it.produto.id,
+                                      'quantidade': it.quantidade,
+                                      'tipo_movimento': 'Saida',
+                                      'motivo': 'Venda'
+                                    }).toList();
+
+                            await _vendaController.inserirVendaPdv(
+                              dadosVenda: dadosVenda,
+                              dadosVendaItens: dadosVendaItens,
+                              dadosFormaPagamento: dadosFormaPagamento,
+                              dadosMovimentacaoEstoque: dadosMovEstoque,
+                            );
+
+                            if (!mounted) return;
+                            _pagamentosInseridos.clear();
+                            widget.carrinho.clear();
+                            AppNotify.success(
+                                context, 'Venda finalizada com sucesso!');
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/pdv', (route) => false);
+                          } catch (e) {
+                            if (!mounted) return;
+                            AppNotify.error(
+                                context, 'Erro ao finalizar venda: $e');
+                          } finally {
+                            if (mounted) setState(() => _finalizando = false);
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.withOpacity(0.5),
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onPrimary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
+                    textStyle:
+                        const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  onPressed: () async {
-                    if (_faltaPagar != 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('O pagamento não está completo.'), backgroundColor: Colors.red));
-                      return;
-                    }
-                    Map<String, dynamic> dadosVenda = {'valor_total': widget.total, 'numero_pessoas': 1, 'situacao_venda': 1, 'tipo_venda': 'P'};
-                    print('Dados venda: $dadosVenda');
-                    List<Map<String, dynamic>> dadosVendaItens = [];
-
-                    for (int i = 0; i < widget.carrinho.length; i++) {
-                      final item = widget.carrinho[i];
-
-                      dadosVendaItens.add({
-                        'id_produto': widget.carrinho[i].produto.produtoIdPublic,
-                        'id_produto_empresa': widget.carrinho[i].produto.id,
-                        'quantidade': widget.carrinho[i].quantidade,
-                        'preco_unitario': widget.carrinho[i].produto.preco,
-                        'preco_total': widget.carrinho[i].produto.preco * widget.carrinho[i].quantidade,
-                        'situacao': 10,
-                        'posicao_item': i + 1,
-                        'preco_custo': widget.carrinho[i].produto.precoCusto,
-                      });
-                    }
-                    print('Dados itens venda: $dadosVendaItens');
-                    List<Map<String, dynamic>> dadosFormaPagamento = [];
-
-                    for (int i = 0; i < _pagamentosInseridos.length; i++) {
-                      final item = _pagamentosInseridos[i];
-
-                      dadosFormaPagamento.add({
-                        'tipo_movimento': 'Entrada', //ENTRADA POIS É A ENTRADA NO CAIXA
-                        'valor': item['valor'],
-                        'id_forma_pagamento': item['forma'].id,
-                        'troco': item['troco'],
-                      });
-                    }
-                    print('Dados forma de pagamento: $dadosFormaPagamento');
-                    List<Map<String, dynamic>> dadosMovimentacaoEstoque = [];
-
-                    for (int i = 0; i < widget.carrinho.length; i++) {
-                      final item = widget.carrinho[i];
-
-                      dadosMovimentacaoEstoque.add({'id_produto_empresa': widget.carrinho[i].produto.id, 'quantidade': widget.carrinho[i].quantidade, 'tipo_movimento': 'Saida', 'motivo': 'Venda'});
-                    }
-                    print('Dados movimentação estoque: $dadosMovimentacaoEstoque');
-                    try {
-                      await vendaController.inserirVendaPdv(dadosVenda: dadosVenda, dadosVendaItens: dadosVendaItens, dadosFormaPagamento: dadosFormaPagamento, dadosMovimentacaoEstoque: dadosMovimentacaoEstoque);
-                      setState(() {
-                        _pagamentosInseridos.clear();
-                      });
-                      widget.carrinho.clear();
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Venda finalizada com sucesso!'), backgroundColor: Colors.green));
-                      Navigator.of(context).pushNamedAndRemoveUntil('/pdv', (route) => false);
-                    } catch (e) {
-                      print('Erro ao inserir venda: $e');
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao finalizar venda. $e'), backgroundColor: Colors.red));
-                    }
-                  },
-                  child: Text(
-                    'Finalizar',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
+                  child: _finalizando
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(cs.onPrimary),
+                          ),
+                        )
+                      : const Text('Finalizar'),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _rowKV(ColorScheme cs, String k, String v,
+      {bool bold = false, bool subtle = false, Color? colorOverride}) {
+    final style = TextStyle(
+      color: colorOverride ??
+          (subtle ? cs.onSurface.withOpacity(0.7) : cs.onSurface),
+      fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [Text(k, style: style), Text(v, style: style)],
     );
   }
 }

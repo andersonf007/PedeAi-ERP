@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
     final isDark = cs.brightness == Brightness.dark;
 
     // fundos
-    const base = 'images';
+    const base = 'assets/images';
     final bg = isDark
         ? '$base/background_login_dark.png'
         : '$base/background_login_white.png';

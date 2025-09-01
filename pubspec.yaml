@@ -1,7 +1,7 @@
 name: pedeai
-description: "A new Flutter project."
+description: "Sistema ERP de gestão de restaurantes."
 # The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
+# pub.dev using `flutter pub publish`. This is preferred for private packages. 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
@@ -67,6 +67,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.3
+  flutter_launcher_icons: ^0.14.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -108,3 +110,29 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  # Cores alinhadas ao tema (neutros)
+  color: "#F7F4F2"         # BrandColors.neutral50 (claro)
+  color_dark: "#29221E"    # BrandColors.neutral800 (escuro)
+
+  # Usar o ícone do app como splash0,
+  image: assets/images/icon.png
+  image_dark: assets/images/icon.png
+
+  # Android 12 requer configuração específica
+  android_12:
+    # No Android 12, a imagem é mascarada em círculo.
+    # Usamos a logo com margem (melhor composição visual).
+    image: assets/images/icon_splash_android12.png
+    image_dark: assets/images/icon_splash_android12.png
+    icon_background_color: "#F7F4F2"
+    icon_background_color_dark: "#29221E"
+
+  # Desative web por ora (opcional)
+  web: false
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/images/icon.png
