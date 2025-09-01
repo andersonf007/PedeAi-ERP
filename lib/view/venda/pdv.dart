@@ -150,13 +150,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                 // Tabs
                 Container(
                   color: Color(0xFF2D2419),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildTabButton('Produtos', 0),
-                      _buildTabButton('Resumo', 1, showBadge: _carrinho.isNotEmpty, badgeCount: totalItensCarrinho),
-                    ],
-                  ),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildTabButton('Produtos', 0), _buildTabButton('Resumo', 1)]),
                 ),
                 Divider(height: 1, color: Colors.white24),
                 Expanded(child: _selectedTab == 0 ? _buildProdutosTab() : _buildResumoTab()),
@@ -166,8 +160,9 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildTabButton(String label, int index, {bool showBadge = false, double badgeCount = 0}) {
+  Widget _buildTabButton(String label, int index) {
     final selected = _selectedTab == index;
+    bool showBadge = label == 'Resumo' && totalItensCarrinho > 0;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
       child: Container(
@@ -178,18 +173,17 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
               label,
               style: TextStyle(color: selected ? Colors.orange : Colors.white70, fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            if (showBadge) SizedBox(width: 4),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4), // ajuste para formato retangular
-              decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.circular(8), // bordas arredondadas
+            if (showBadge) ...[
+              SizedBox(width: 4),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(8)),
+                child: Text(
+                  totalItensCarrinho.toString(),
+                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
               ),
-              child: Text(
-                badgeCount.toString(),
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ),
+            ],
           ],
         ),
       ),
