@@ -202,6 +202,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
 
   Widget _buildTabButton(String label, int index) {
 
+    final cs = Theme.of(context).colorScheme;
     final selected = _selectedTab == index;
     bool showBadge = label == 'Resumo' && totalItensCarrinho > 0;
     return GestureDetector(
@@ -350,13 +351,13 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                         final novaQuantidade = await showDialog<double>(
                           context: context,
                           builder: (_) => QuantidadeDialog(
-                            quantidadeAtual: qAtual,
+                            quantidadeAtual: quantidadeAtual,
                             nomeProduto: produto.descricao ?? '',
                             precoUnitario: produto.preco ?? 0.0,
                           ),
                         );
-                        if (nova != null) {
-                          _alterarQuantidade(produto.produtoIdPublic!, nova);
+                        if (novaQuantidade != null) {
+                          _alterarQuantidade(produto.produtoIdPublic!, novaQuantidade);
                         }
                       }
                     },
