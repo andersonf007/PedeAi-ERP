@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedeai/theme/app_theme.dart';
 
 import 'package:pedeai/model/usuario.dart';
+import 'package:pedeai/view/caixa/abertura.dart';
 import 'package:pedeai/view/estoque/estoque.dart';
 import 'package:pedeai/view/cadastro/categoria/Categoria.dart';
 import 'package:pedeai/view/cadastro/unidade/Unidade.dart';
@@ -76,6 +77,8 @@ Widget build(BuildContext context) {
               carrinho: args?['carrinho'] ?? [],
             );
           },
+
+          '/aberturaCaixa': (context) => AberturaCaixaPage(),
         },
       );
     },

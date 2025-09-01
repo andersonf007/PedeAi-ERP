@@ -1,5 +1,6 @@
 import 'package:pedeai/Commom/nomeAparelho.dart';
 import 'package:pedeai/controller/authService.dart';
+import 'package:pedeai/controller/caixaController.dart';
 import 'package:pedeai/controller/databaseService.dart';
 import 'package:pedeai/controller/empresaController.dart';
 import 'package:pedeai/controller/usuarioController.dart';
@@ -13,6 +14,7 @@ class VendaController {
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
   final UsuarioController usuarioController = UsuarioController();
+  final CaixaCotroller caixaController = CaixaCotroller();
 
 Future<void> inserirVendaPdv({
   required Map<String, dynamic> dadosVenda,
@@ -23,8 +25,6 @@ Future<void> inserirVendaPdv({
   try {
     Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
     String? uidUsuario = await usuarioController.getUidUsuarioFromSharedPreferences();
-String nomeDispositivo = await getDeviceName();
-print(nomeDispositivo);
     if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
     }
@@ -34,7 +34,7 @@ print(nomeDispositivo);
     dadosVenda['uid_venda'] = Uuid().v4();
     dadosVenda['uid_usuario_abriu_venda'] = uidUsuario;
     dadosVenda['uid_usuario_fechou_venda'] = uidUsuario;
-    dadosVenda['id_caixa'] = 1; // TODO: Buscar id_caixa real
+    dadosVenda['id_caixa'] = await caixaController.getIdCaixaFromSharedPreferences();
     dadosVenda['terminal_abertura'] = await getDeviceName();
     dadosVenda['terminal_fechamento'] = await getDeviceName();
 
@@ -46,7 +46,7 @@ print(nomeDispositivo);
     // --- Ajustes nos ITENS DO CAIXA ---
     for (var item in dadosFormaPagamento) {
       item['id_empresa'] = empresa.id;
-      item['id_caixa'] = 1; // TODO: Buscar id_caixa real
+      item['id_caixa'] = await caixaController.getIdCaixaFromSharedPreferences();
     }
 
     
