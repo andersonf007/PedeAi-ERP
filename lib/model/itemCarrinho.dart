@@ -2,7 +2,7 @@ import 'package:pedeai/model/produto.dart';
 
 class ItemCarrinho {
   final Produto produto;
-  int quantidade;
+  double quantidade;
   
   ItemCarrinho({required this.produto, this.quantidade = 1});
   

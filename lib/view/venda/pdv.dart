@@ -31,7 +31,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
   double get subtotal => _carrinho.fold(0.0, (sum, item) => sum + item.valorTotal);
   double desconto = 0.0;
   double get total => subtotal - (subtotal * (desconto / 100));
-  int get totalItensCarrinho => _carrinho.fold(0, (sum, item) => sum + item.quantidade);
+  double get totalItensCarrinho => _carrinho.fold(0, (sum, item) => sum + item.quantidade);
 
   @override
   void initState() {
@@ -91,7 +91,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _alterarQuantidade(int produtoId, int novaQuantidade) {
+  void _alterarQuantidade(int produtoId, double novaQuantidade) {
     setState(() {
       final index = _carrinho.indexWhere((item) => item.produto.produtoIdPublic == produtoId);
       if (novaQuantidade <= 0) {
@@ -114,7 +114,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  int _getQuantidadeCarrinho(int produtoId) {
+  double _getQuantidadeCarrinho(int produtoId) {
     try {
       final item = _carrinho.firstWhere((item) => item.produto.produtoIdPublic == produtoId);
       return item.quantidade;
@@ -166,7 +166,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildTabButton(String label, int index, {bool showBadge = false, int badgeCount = 0}) {
+  Widget _buildTabButton(String label, int index, {bool showBadge = false, double badgeCount = 0}) {
     final selected = _selectedTab == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
@@ -178,16 +178,18 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
               label,
               style: TextStyle(color: selected ? Colors.orange : Colors.white70, fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            if (showBadge)
-              Container(
-                margin: EdgeInsets.only(left: 6),
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-                child: Text(
-                  badgeCount.toString(),
-                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                ),
+            if (showBadge) SizedBox(width: 4),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4), // ajuste para formato retangular
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(8), // bordas arredondadas
               ),
+              child: Text(
+                badgeCount.toString(),
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
       ),
@@ -304,7 +306,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
 
                       if (selected == 'quantidade') {
                         final quantidadeAtual = _getQuantidadeCarrinho(produto.produtoIdPublic!);
-                        final novaQuantidade = await showDialog<int>(
+                        final novaQuantidade = await showDialog<double>(
                           context: context,
                           builder: (context) => QuantidadeDialog(quantidadeAtual: quantidadeAtual, nomeProduto: produto.descricao ?? '', precoUnitario: produto.preco ?? 0.0),
                         );
@@ -374,8 +376,11 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                             top: 4,
                             right: 4,
                             child: Container(
-                              padding: EdgeInsets.all(6),
-                              decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4), // ajuste para formato retangular
+                              decoration: BoxDecoration(
+                                color: Colors.orange,
+                                borderRadius: BorderRadius.circular(8), // bordas arredondadas
+                              ),
                               child: Text(
                                 quantidade.toString(),
                                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),

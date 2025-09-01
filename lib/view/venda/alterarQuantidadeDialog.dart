@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:numeric_keyboard/numeric_keyboard.dart';
 
 class QuantidadeDialog extends StatefulWidget {
-  final int quantidadeAtual;
+  final double quantidadeAtual;
   final String nomeProduto;
   final double precoUnitario;
 
@@ -15,9 +15,10 @@ class QuantidadeDialog extends StatefulWidget {
 class _QuantidadeDialogState extends State<QuantidadeDialog> {
   String quantidadeDigitada = "";
 
-  int get quantidade {
+  double get quantidade {
     if (quantidadeDigitada.isEmpty) return 0;
-    return int.tryParse(quantidadeDigitada) ?? 0;
+    // Substitui vírgula por ponto para aceitar decimal
+    return double.tryParse(quantidadeDigitada.replaceAll(',', '.')) ?? 0;
   }
 
   double get valorTotal => quantidade * widget.precoUnitario;
@@ -30,10 +31,17 @@ class _QuantidadeDialogState extends State<QuantidadeDialog> {
 
   void _onKeyboardTap(String text) {
     setState(() {
-      if (quantidadeDigitada == "0") {
-        quantidadeDigitada = text;
+      if (text == ',' || text == '.') {
+        // Permite apenas um separador decimal
+        if (!quantidadeDigitada.contains('.') && !quantidadeDigitada.contains(',')) {
+          quantidadeDigitada += '.';
+        }
       } else {
-        quantidadeDigitada += text;
+        if (quantidadeDigitada == "0") {
+          quantidadeDigitada = text;
+        } else {
+          quantidadeDigitada += text;
+        }
       }
     });
   }
@@ -106,13 +114,29 @@ class _QuantidadeDialogState extends State<QuantidadeDialog> {
               ),
             ],
           ),
-
           SizedBox(height: 10),
           NumericKeyboard(
             onKeyboardTap: _onKeyboardTap,
             textColor: Colors.black,
             rightButtonFn: _onBackspace,
             rightIcon: Icon(Icons.backspace, color: Colors.red),
+          ),
+          // Botão extra para vírgula
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, minimumSize: Size(48, 48)),
+                onPressed: () {
+                  setState(() {
+                    if (!quantidadeDigitada.contains('.') && !quantidadeDigitada.contains(',')) {
+                      quantidadeDigitada += '.';
+                    }
+                  });
+                },
+                child: Text(',', style: TextStyle(fontSize: 20)),
+              ),
+            ],
           ),
         ],
       ),
