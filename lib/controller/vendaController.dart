@@ -48,7 +48,9 @@ Future<void> inserirVendaPdv({
       item['id_empresa'] = empresa.id;
       item['id_caixa'] = await caixaController.getIdCaixaFromSharedPreferences();
     }
-
+    for (var item in dadosMovimentacaoEstoque) {
+      item['uid_usuario'] = uidUsuario;
+    }
     
     final idVenda = await _databaseService.executeSqlInserirVendaPdv(
       schema: empresa.schema,
