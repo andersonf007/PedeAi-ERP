@@ -18,11 +18,7 @@ class _DrawerPageState extends State<DrawerPage> {
     final r = widget.currentRoute ?? '';
     // abre a seção correta com base na rota atual
     if (r.startsWith('/pdv')) _openKey = 'venda';
-    if (r.startsWith('/listProdutos') ||
-        r.startsWith('/listCategorias') ||
-        r.startsWith('/cadastro-unidade') ||
-        r.startsWith('/listUsuarios'))
-      _openKey = 'cadastro';
+    if (r.startsWith('/listProdutos') || r.startsWith('/listCategorias') || r.startsWith('/cadastro-unidade') || r.startsWith('/listUsuarios')) _openKey = 'cadastro';
   }
 
   Future<void> _confirmAndLogout() async {
@@ -36,20 +32,14 @@ class _DrawerPageState extends State<DrawerPage> {
           'Sair da conta?',
           style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
         ),
-        content: Text(
-          'Você será desconectado do PedeAi.',
-          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.75)),
-        ),
+        content: Text('Você será desconectado do PedeAi.', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.75))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: Text('Cancelar', style: TextStyle(color: cs.onSurface)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: cs.error,
-              foregroundColor: cs.onError,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: cs.error, foregroundColor: cs.onError),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Sair'),
           ),
@@ -85,10 +75,7 @@ class _DrawerPageState extends State<DrawerPage> {
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Falha ao sair: $e',
-            style: TextStyle(color: cs.onError),
-          ),
+          content: Text('Falha ao sair: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -100,8 +87,7 @@ class _DrawerPageState extends State<DrawerPage> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final current =
-        widget.currentRoute ?? (ModalRoute.of(context)?.settings.name ?? '');
+    final current = widget.currentRoute ?? (ModalRoute.of(context)?.settings.name ?? '');
 
     return Drawer(
       child: SafeArea(
@@ -121,20 +107,12 @@ class _DrawerPageState extends State<DrawerPage> {
                     const SizedBox(width: 10),
                     Text(
                       'PedeAi',
-                      style: TextStyle(
-                        color: cs.primary,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: TextStyle(color: cs.primary, fontSize: 22, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'ERP',
-                      style: TextStyle(
-                        color: cs.onSurface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -157,36 +135,11 @@ class _DrawerPageState extends State<DrawerPage> {
                         isOpen: _openKey == 'cadastro',
                         onToggle: () => _toggle('cadastro'),
                         children: [
-                          _NavItem(
-                            icon: Icons.category,
-                            label: 'Categoria',
-                            selected: current == '/listCategorias',
-                            onTap: () => _go(context, '/listCategorias'),
-                          ),
-                          _NavItem(
-                            icon: Icons.payment,
-                            label: 'Formas de Pagamento',
-                            selected: current == '/listFormasPagamento',
-                            onTap: () => _go(context, '/listFormasPagamento'),
-                          ),
-                          _NavItem(
-                            icon: Icons.inventory,
-                            label: 'Produto',
-                            selected: current == '/listProdutos',
-                            onTap: () => _go(context, '/listProdutos'),
-                          ),
-                          _NavItem(
-                            icon: Icons.straighten,
-                            label: 'Unidade',
-                            selected: current == '/listUnidades',
-                            onTap: () => _go(context, '/listUnidades'),
-                          ),
-                          _NavItem(
-                            icon: Icons.person,
-                            label: 'Usuário',
-                            selected: current == '/listUsuarios',
-                            onTap: () => _go(context, '/listUsuarios'),
-                          ),
+                          _NavItem(icon: Icons.category, label: 'Categoria', selected: current == '/listCategorias', onTap: () => _go(context, '/listCategorias')),
+                          _NavItem(icon: Icons.payment, label: 'Formas de Pagamento', selected: current == '/listFormasPagamento', onTap: () => _go(context, '/listFormasPagamento')),
+                          _NavItem(icon: Icons.inventory, label: 'Produto', selected: current == '/listProdutos', onTap: () => _go(context, '/listProdutos')),
+                          _NavItem(icon: Icons.straighten, label: 'Unidade', selected: current == '/listUnidades', onTap: () => _go(context, '/listUnidades')),
+                          _NavItem(icon: Icons.person, label: 'Usuário', selected: current == '/listUsuarios', onTap: () => _go(context, '/listUsuarios')),
                         ],
                       ),
 
@@ -198,29 +151,14 @@ class _DrawerPageState extends State<DrawerPage> {
                         isOpen: _openKey == 'venda',
                         onToggle: () => _toggle('venda'),
                         children: [
-                          _NavItem(
-                            icon: Icons.point_of_sale,
-                            label: 'Vendas',
-                            selected: current == '/listVendas',
-                            onTap: () => _go(context, '/listVendas'),
-                          ),
+                          _NavItem(icon: Icons.point_of_sale, label: 'Listagem de vendas', selected: current == '/listVendas', onTap: () => _go(context, '/listVendas')),
 
-                          _NavItem(
-                            icon: Icons.point_of_sale,
-                            label: 'PDV',
-                            selected: current == '/pdv',
-                            onTap: () => _go(context, '/pdv'),
-                          ),
+                          _NavItem(icon: Icons.point_of_sale, label: 'PDV', selected: current == '/pdv', onTap: () => _go(context, '/pdv')),
                         ],
                       ),
 
                       // ENTRADAS SOLTAS
-                      _PlainEntry(
-                        icon: Icons.warehouse,
-                        label: 'Estoque',
-                        selected: current == '/estoque',
-                        onTap: () => _go(context, '/estoque'),
-                      ),
+                      _PlainEntry(icon: Icons.warehouse, label: 'Estoque', selected: current == '/estoque', onTap: () => _go(context, '/estoque')),
                       _NavSection(
                         keyValue: 'caixa',
                         title: 'Caixa',
@@ -228,26 +166,12 @@ class _DrawerPageState extends State<DrawerPage> {
                         isOpen: _openKey == 'caixa',
                         onToggle: () => _toggle('caixa'),
                         children: [
-                          _NavItem(
-                            icon: Icons.point_of_sale,
-                            label: 'Abertura de caixa',
-                            selected: current == '/aberturaCaixa',
-                            onTap: () => _go(context, '/aberturaCaixa'),
-                          ),
+                          _NavItem(icon: Icons.point_of_sale, label: 'Abertura de caixa', selected: current == '/aberturaCaixa', onTap: () => _go(context, '/aberturaCaixa')),
+                          _NavItem(icon: Icons.point_of_sale, label: 'Fechamento de caixa', selected: current == '/fechamentoCaixa', onTap: () => _go(context, '/fechamentoCaixa')),
                         ],
                       ),
-                      _PlainEntry(
-                        icon: Icons.attach_money,
-                        label: 'Financeiro',
-                        selected: current == '/financeiro',
-                        onTap: () => _go(context, '/financeiro'),
-                      ),
-                      _PlainEntry(
-                        icon: Icons.settings,
-                        label: 'Configurações',
-                        selected: current == '/config',
-                        onTap: () => _go(context, '/config'),
-                      ),
+                      _PlainEntry(icon: Icons.attach_money, label: 'Financeiro', selected: current == '/financeiro', onTap: () => _go(context, '/financeiro')),
+                      _PlainEntry(icon: Icons.settings, label: 'Configurações', selected: current == '/config', onTap: () => _go(context, '/config')),
                       const SizedBox(height: 12),
                     ],
                   ),
@@ -256,12 +180,7 @@ class _DrawerPageState extends State<DrawerPage> {
 
               // Rodapé fixo
               Divider(height: 1, color: cs.onSurface.withValues(alpha: 0.2)),
-              _PlainEntry(
-                icon: Icons.exit_to_app,
-                label: 'Sair',
-                danger: true,
-                onTap: _confirmAndLogout,
-              ),
+              _PlainEntry(icon: Icons.exit_to_app, label: 'Sair', danger: true, onTap: _confirmAndLogout),
             ],
           ),
         ),
@@ -280,14 +199,7 @@ class _DrawerPageState extends State<DrawerPage> {
 // ---------- componentes visuais ----------
 
 class _NavSection extends StatelessWidget {
-  const _NavSection({
-    required this.keyValue,
-    required this.title,
-    required this.icon,
-    required this.isOpen,
-    required this.onToggle,
-    required this.children,
-  });
+  const _NavSection({required this.keyValue, required this.title, required this.icon, required this.isOpen, required this.onToggle, required this.children});
 
   final String keyValue;
   final String title;
@@ -305,9 +217,7 @@ class _NavSection extends StatelessWidget {
 
     final header = InkWell(
       onTap: onToggle,
-      overlayColor: MaterialStatePropertyAll(
-        cs.onSurface.withValues(alpha: 0.06),
-      ),
+      overlayColor: MaterialStatePropertyAll(cs.onSurface.withValues(alpha: 0.06)),
       borderRadius: BorderRadius.circular(10),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -325,11 +235,7 @@ class _NavSection extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(
-                  color: iconTitleColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(color: iconTitleColor, fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ),
             AnimatedRotation(
@@ -349,19 +255,9 @@ class _NavSection extends StatelessWidget {
         header,
         Container(
           margin: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-          decoration: BoxDecoration(
-            color: cs.surface,
-            borderRadius: BorderRadius.circular(10),
-          ),
+          decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(10)),
           child: Column(
-            children: children
-                .map(
-                  (w) => Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: w,
-                  ),
-                )
-                .toList(),
+            children: children.map((w) => Padding(padding: const EdgeInsets.only(left: 8), child: w)).toList(),
           ),
         ),
       ],
@@ -370,12 +266,7 @@ class _NavSection extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.selected = false,
-  });
+  const _NavItem({required this.icon, required this.label, required this.onTap, this.selected = false});
 
   final IconData icon;
   final String label;
@@ -391,18 +282,12 @@ class _NavItem extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 120),
       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: selected ? cs.primary : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: selected ? cs.primary : Colors.transparent, borderRadius: BorderRadius.circular(8)),
       child: ListTile(
         leading: Icon(icon, color: iconColor),
         title: Text(
           label,
-          style: TextStyle(
-            color: textColor,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          ),
+          style: TextStyle(color: textColor, fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
         ),
         onTap: onTap,
         titleAlignment: ListTileTitleAlignment.center,
@@ -412,13 +297,7 @@ class _NavItem extends StatelessWidget {
 }
 
 class _PlainEntry extends StatelessWidget {
-  const _PlainEntry({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.selected = false,
-    this.danger = false,
-  });
+  const _PlainEntry({required this.icon, required this.label, required this.onTap, this.selected = false, this.danger = false});
 
   final IconData icon;
   final String label;
@@ -431,9 +310,7 @@ class _PlainEntry extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     final tileColor = selected ? cs.primary : Colors.transparent;
-    final iconColor = danger
-        ? Colors.redAccent
-        : (selected ? cs.onPrimary : cs.onSurface);
+    final iconColor = danger ? Colors.redAccent : (selected ? cs.onPrimary : cs.onSurface);
     final textColor = iconColor;
 
     return Container(
@@ -444,10 +321,7 @@ class _PlainEntry extends StatelessWidget {
         leading: Icon(icon, color: iconColor),
         title: Text(
           label,
-          style: TextStyle(
-            color: textColor,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          ),
+          style: TextStyle(color: textColor, fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
         ),
         onTap: onTap,
       ),
