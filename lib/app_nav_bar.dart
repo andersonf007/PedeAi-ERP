@@ -8,13 +8,11 @@ class AppNavBar extends StatelessWidget {
 
   // Abas em ordem
   static const List<String> _routes = <String>[
-
     '/home', // Dashboard
     '/listVendas', // vendas
     '/listProdutos', // Estoque
     '/estoque', // Compras/PDV
     '/listUsuarios', // Perfil/Configurações
-
   ];
 
   int _indexFor(String? route) {
@@ -34,12 +32,11 @@ class AppNavBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final background = isDark ? BrandColors.neutral800 : Colors.white;
-    final selected   = isDark ? Colors.white : BrandColors.neutral900;
+    final selected = isDark ? Colors.white : BrandColors.neutral900;
     final unselected = isDark ? BrandColors.neutral400 : BrandColors.neutral400;
 
     final idx = _indexFor(currentRoute);
-    final topDivider = (isDark ? Colors.white : Colors.black)
-        .withOpacity(isDark ? 0.10 : 0.06);
+    final topDivider = (isDark ? Colors.white : Colors.black).withOpacity(isDark ? 0.10 : 0.06);
 
     return SafeArea(
       top: false,
@@ -50,41 +47,22 @@ class AppNavBar extends StatelessWidget {
         ),
         child: NavigationBarTheme(
           data: NavigationBarThemeData(
-
             backgroundColor: Colors.transparent, // fundo vem do Container
             elevation: 0,
-            indicatorColor: Colors.transparent,   // sem pílula
-            iconTheme: MaterialStateProperty.resolveWith<IconThemeData?>(
-              (states) => IconThemeData(
-                color: states.contains(MaterialState.selected)
-                    ? selected
-                    : unselected,
-              ),
-            ),
-            labelTextStyle: MaterialStateProperty.resolveWith<TextStyle?>(
-              (states) => TextStyle(
-                color: states.contains(MaterialState.selected)
-                    ? selected
-                    : unselected,
-                fontWeight: states.contains(MaterialState.selected)
-                    ? FontWeight.w700
-                    : FontWeight.w500,
-              ),
-            ),
-
+            indicatorColor: Colors.transparent, // sem pílula
+            iconTheme: MaterialStateProperty.resolveWith<IconThemeData?>((states) => IconThemeData(color: states.contains(MaterialState.selected) ? selected : unselected)),
+            labelTextStyle: MaterialStateProperty.resolveWith<TextStyle?>((states) => TextStyle(color: states.contains(MaterialState.selected) ? selected : unselected, fontWeight: states.contains(MaterialState.selected) ? FontWeight.w700 : FontWeight.w500)),
           ),
           child: NavigationBar(
             height: 64,
             selectedIndex: idx,
             onDestinationSelected: (i) => _go(context, i),
             destinations: const [
-
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Painel'),
               NavigationDestination(icon: Icon(Icons.shopping_cart), selectedIcon: Icon(Icons.shopping_cart), label: 'Vendas'),
               NavigationDestination(icon: Icon(Icons.inventory), selectedIcon: Icon(Icons.inventory), label: 'Produtos'),
               NavigationDestination(icon: Icon(Icons.warehouse_outlined), selectedIcon: Icon(Icons.warehouse_rounded), label: 'Estoque'),
               NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Usuários'),
-
             ],
           ),
         ),
