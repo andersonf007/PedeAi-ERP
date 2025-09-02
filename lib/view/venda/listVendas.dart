@@ -3,6 +3,7 @@ import 'package:pedeai/app_nav_bar.dart';
 import 'package:pedeai/view/home/drawer.dart';
 import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/theme/color_tokens.dart';
+import 'package:pedeai/utils/caixa_helper.dart';
 
 class ListVendasPage extends StatefulWidget {
   const ListVendasPage({Key? key}) : super(key: key);
@@ -74,9 +75,7 @@ class _ListVendasPageState extends State<ListVendasPage> {
 
     bool matchRange(Map<String, dynamic> v) {
       if (_range == null) return true;
-      final d = _parseDate(
-        v['data'] ?? v['data_venda'] ?? v['created_at'] ?? v['data_fechamento'] ?? v['data_abertura'],
-      );
+      final d = _parseDate(v['data'] ?? v['data_venda'] ?? v['created_at'] ?? v['data_fechamento'] ?? v['data_abertura']);
       if (d == null) return true;
       final start = DateTime(_range!.start.year, _range!.start.month, _range!.start.day);
       final end = DateTime(_range!.end.year, _range!.end.month, _range!.end.day, 23, 59, 59);
@@ -88,9 +87,9 @@ class _ListVendasPageState extends State<ListVendasPage> {
 
   int get _qtdVendas => _filtradas.length;
   double get _faturado => _filtradas.fold<double>(0, (s, v) {
-        final val = (v['total'] ?? v['valor_total'] ?? 0).toString();
-        return s + (double.tryParse(val) ?? 0.0);
-      });
+    final val = (v['total'] ?? v['valor_total'] ?? 0).toString();
+    return s + (double.tryParse(val) ?? 0.0);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +101,10 @@ class _ListVendasPageState extends State<ListVendasPage> {
         backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
-        title: Text('Vendas', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Vendas',
+          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
+        ),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: Icon(Icons.menu, color: cs.onSurface),
@@ -119,11 +121,7 @@ class _ListVendasPageState extends State<ListVendasPage> {
                 context: context,
                 firstDate: DateTime(now.year - 1),
                 lastDate: DateTime(now.year + 1),
-                initialDateRange: _range ??
-                    DateTimeRange(
-                      start: DateTime(now.year, now.month, now.day),
-                      end: DateTime(now.year, now.month, now.day),
-                    ),
+                initialDateRange: _range ?? DateTimeRange(start: DateTime(now.year, now.month, now.day), end: DateTime(now.year, now.month, now.day)),
                 saveText: 'Aplicar',
               );
               if (picked != null) {
@@ -148,51 +146,58 @@ class _ListVendasPageState extends State<ListVendasPage> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(_error!, textAlign: TextAlign.center, style: TextStyle(color: cs.error)),
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _load,
-                        child: ListView(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: cs.error),
+                      ),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Expanded(child: _SummaryTile(label: 'Vendas', value: '$_qtdVendas')),
-                                const SizedBox(width: 12),
-                                Expanded(child: _SummaryTile(label: 'Faturado', value: _brCurrency(_faturado))),
-                              ],
+                            Expanded(
+                              child: _SummaryTile(label: 'Vendas', value: '$_qtdVendas'),
                             ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: _search,
-                              decoration: const InputDecoration(
-                                hintText: 'Buscar por nº, cliente ou status',
-                                prefixIcon: Icon(Icons.search),
-                              ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _SummaryTile(label: 'Faturado', value: _brCurrency(_faturado)),
                             ),
-                            const SizedBox(height: 12),
-
-                            if (_filtradas.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 32),
-                                child: Center(
-                                  child: Text('Nenhuma venda encontrada', style: TextStyle(color: cs.onSurface.withOpacity(.7))),
-                                ),
-                              )
-                            else
-                              ..._filtradas.map((v) => _VendaTile(
-                                    venda: v,
-                                    onTap: () {
-                                      Navigator.pushNamed(context, '/venda-detalhe', arguments: v);
-                                    },
-                                  )),
                           ],
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _search,
+                          decoration: const InputDecoration(hintText: 'Buscar por nº, cliente ou status', prefixIcon: Icon(Icons.search)),
+                        ),
+                        const SizedBox(height: 12),
+
+                        if (_filtradas.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 32),
+                            child: Center(
+                              child: Text('Nenhuma venda encontrada', style: TextStyle(color: cs.onSurface.withOpacity(.7))),
+                            ),
+                          )
+                        else
+                          ..._filtradas.map(
+                            (v) => _VendaTile(
+                              venda: v,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/venda-detalhe', arguments: v);
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
           ),
 
           SafeArea(
@@ -208,7 +213,9 @@ class _ListVendasPageState extends State<ListVendasPage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
                   textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                onPressed: () => Navigator.pushNamed(context, '/pdv'),
+                onPressed: () async {
+                  await CaixaHelper.verificarCaixaAbertoENavegar(context, '/pdv');
+                },
                 child: const Text('Nova venda'),
               ),
             ),
@@ -255,7 +262,10 @@ class _SummaryTile extends StatelessWidget {
         children: [
           Text(label, style: tt.labelSmall?.copyWith(color: cs.onSurface.withOpacity(.75))),
           const SizedBox(height: 8),
-          Text(value, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: cs.onSurface)),
+          Text(
+            value,
+            style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: cs.onSurface),
+          ),
         ],
       ),
     );
@@ -308,7 +318,10 @@ class _VendaTile extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text('#$id', style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface)),
+                      Text(
+                        '#$id',
+                        style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface),
+                      ),
                       const SizedBox(width: 8),
                       Text('• $dt', style: tt.bodySmall?.copyWith(color: cs.onSurface.withOpacity(.70))),
                     ],
@@ -328,7 +341,10 @@ class _VendaTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Text('R\$ ${total.toStringAsFixed(2)}', style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w800, color: cs.onSurface)),
+            Text(
+              'R\$ ${total.toStringAsFixed(2)}',
+              style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w800, color: cs.onSurface),
+            ),
           ],
         ),
       ),
@@ -377,4 +393,3 @@ class _StatusChip extends StatelessWidget {
     );
   }
 }
-

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pedeai/controller/caixaController.dart';
+import 'package:pedeai/utils/caixa_helper.dart';
 
 class DrawerPage extends StatefulWidget {
   const DrawerPage({super.key, this.currentRoute});
@@ -153,7 +155,7 @@ class _DrawerPageState extends State<DrawerPage> {
                         children: [
                           _NavItem(icon: Icons.point_of_sale, label: 'Listagem de vendas', selected: current == '/listVendas', onTap: () => _go(context, '/listVendas')),
 
-                          _NavItem(icon: Icons.point_of_sale, label: 'PDV', selected: current == '/pdv', onTap: () => _go(context, '/pdv')),
+                          _NavItem(icon: Icons.point_of_sale, label: 'PDV', selected: current == '/pdv', onTap: () => CaixaHelper.verificarCaixaAbertoENavegar(context, '/pdv')),
                         ],
                       ),
 
@@ -188,10 +190,28 @@ class _DrawerPageState extends State<DrawerPage> {
     );
   }
 
-  void _go(BuildContext context, String route) {
+  void _go(BuildContext context, String route) async {
     Navigator.pop(context);
     final here = ModalRoute.of(context)?.settings.name;
     if (here == route) return;
+
+    if (route == '/pdv') {
+      final caixaController = CaixaCotroller();
+      try {
+        int idCaixa = await caixaController.buscarCaixaAberto();
+        if (idCaixa != null && idCaixa > 0) {
+          Navigator.of(context).pushNamed(route, arguments: null);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('O caixa está fechado!'), backgroundColor: Colors.red));
+        }
+      } on CaixaCotrollerException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: Colors.red));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao verificar caixa: $e'), backgroundColor: Colors.red));
+      }
+      return;
+    }
+
     Navigator.of(context).pushNamed(route, arguments: null);
   }
 }

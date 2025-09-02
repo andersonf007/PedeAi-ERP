@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pedeai/controller/caixaController.dart';
+import 'package:pedeai/utils/caixa_helper.dart';
 
 // seu drawer
 import 'package:pedeai/view/home/drawer.dart';
-import 'package:pedeai/app_nav_bar.dart'; 
+import 'package:pedeai/app_nav_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,6 +34,8 @@ class _HomePageState extends State<HomePage> {
   bool qaReceive = true; // Receber Pagamento
   bool qaPDV = true; // PDV
   static const double _qaHeight = 56.0; // altura fixa p/ todos os quick actions
+
+  final CaixaCotroller _caixaController = CaixaCotroller();
 
   @override
   void initState() {
@@ -88,10 +92,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text(
-          'Painel',
-          style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        title: Text('Painel', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.menu, color: cs.onSurface),
@@ -108,9 +109,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       drawer: const DrawerPage(),
-      bottomNavigationBar: AppNavBar(
-        currentRoute: ModalRoute.of(context)?.settings.name,
-      ),
+      bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -122,32 +121,16 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Expanded(
-                    child: _financeCard(
-                      context,
-                      label: 'Receita',
-                      value: 'R\$ 12.500,00',
-                      base: Colors.green,
-                    ),
+                    child: _financeCard(context, label: 'Receita', value: 'R\$ 12.500,00', base: Colors.green),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _financeCard(
-                      context,
-                      label: 'Despesas',
-                      value: 'R\$ 8.200,00',
-                      base: Colors.red,
-                    ),
+                    child: _financeCard(context, label: 'Despesas', value: 'R\$ 8.200,00', base: Colors.red),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              _financeCard(
-                context,
-                label: 'Saldo',
-                value: 'R\$ 4.300,00',
-                base: Theme.of(context).colorScheme.primary,
-                fullWidth: true,
-              ),
+              _financeCard(context, label: 'Saldo', value: 'R\$ 4.300,00', base: Theme.of(context).colorScheme.primary, fullWidth: true),
               const SizedBox(height: 24),
             ],
 
@@ -157,34 +140,18 @@ class _HomePageState extends State<HomePage> {
 
               Row(
                 children: [
-                  if (sumCounter)
-                    Expanded(
-                      child: _summaryCard(
-                        context,
-                        'Vendas no Balcão',
-                        'R\$ 2.300,00',
-                      ),
-                    ),
+                  if (sumCounter) Expanded(child: _summaryCard(context, 'Vendas no Balcão', 'R\$ 2.300,00')),
                   if (sumCounter && sumDelivery) const SizedBox(width: 12),
-                  if (sumDelivery)
-                    Expanded(
-                      child: _summaryCard(
-                        context,
-                        'Vendas por Entrega',
-                        'R\$ 1.500,00',
-                      ),
-                    ),
+                  if (sumDelivery) Expanded(child: _summaryCard(context, 'Vendas por Entrega', 'R\$ 1.500,00')),
                 ],
               ),
               if (sumCounter || sumDelivery) const SizedBox(height: 12),
 
               Row(
                 children: [
-                  if (sumExpense)
-                    Expanded(child: _summaryCard(context, 'Despesas', 'R\$ 800,00')),
+                  if (sumExpense) Expanded(child: _summaryCard(context, 'Despesas', 'R\$ 800,00')),
                   if (sumExpense && sumReceipt) const SizedBox(width: 12),
-                  if (sumReceipt)
-                    Expanded(child: _summaryCard(context, 'Recibos', 'R\$ 1.200,00')),
+                  if (sumReceipt) Expanded(child: _summaryCard(context, 'Recibos', 'R\$ 1.200,00')),
                 ],
               ),
               const SizedBox(height: 24),
@@ -196,60 +163,21 @@ class _HomePageState extends State<HomePage> {
 
               Row(
                 children: [
-                  if (qaCreateProduct)
-                    Expanded(
-                      child: _quickAction(
-                        context,
-                        Icons.add,
-                        'Criar Produto',
-                        () => Navigator.of(context).pushNamed('/cadastro-produto'),
-                      ),
-                    ),
+                  if (qaCreateProduct) Expanded(child: _quickAction(context, Icons.add, 'Criar Produto', () => Navigator.of(context).pushNamed('/cadastro-produto'))),
                   if (qaCreateProduct && qaReports) const SizedBox(width: 12),
-                  if (qaReports)
-                    Expanded(
-                      child: _quickAction(
-                        context,
-                        Icons.bar_chart_rounded,
-                        'Relatórios',
-                        () {},
-                      ),
-                    ),
+                  if (qaReports) Expanded(child: _quickAction(context, Icons.bar_chart_rounded, 'Relatórios', () {})),
                 ],
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  if (qaCashSummary)
-                    Expanded(
-                      child: _quickAction(
-                        context,
-                        Icons.receipt_long_sharp,
-                        'Resumo de caixa',
-                        () {},
-                      ),
-                    ),
+                  if (qaCashSummary) Expanded(child: _quickAction(context, Icons.receipt_long_sharp, 'Resumo de caixa', () {})),
                   if (qaCashSummary && qaReceive) const SizedBox(width: 12),
-                  if (qaReceive)
-                    Expanded(
-                      child: _quickAction(
-                        context,
-                        Icons.payments_rounded,
-                        'Receber Pagamento',
-                        () {},
-                      ),
-                    ),
+                  if (qaReceive) Expanded(child: _quickAction(context, Icons.payments_rounded, 'Receber Pagamento', () {})),
                 ],
               ),
               const SizedBox(height: 12),
-              if (qaPDV)
-                _quickAction(
-                  context,
-                  Icons.point_of_sale_rounded,
-                  'PDV',
-                  () => Navigator.of(context).pushNamed('/pdv'),
-                  fullWidth: true,
-                ),
+              if (qaPDV) _quickAction(context, Icons.point_of_sale_rounded, 'PDV', () => CaixaHelper.verificarCaixaAbertoENavegar(context, '/pdv'), fullWidth: true),
             ],
           ],
         ),
@@ -258,13 +186,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ---------- widgets de seção ----------
-  Widget _financeCard(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required Color base,
-    bool fullWidth = false,
-  }) {
+  Widget _financeCard(BuildContext context, {required String label, required String value, required Color base, bool fullWidth = false}) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -282,17 +204,11 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: tt.labelMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.80)),
-          ),
+          Text(label, style: tt.labelMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.80))),
           const SizedBox(height: 6),
           Text(
             value,
-            style: tt.titleMedium?.copyWith(
-              color: cs.onSurface,
-              fontWeight: FontWeight.w800,
-            ),
+            style: tt.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -318,23 +234,14 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: tt.titleSmall?.copyWith(
-              color: cs.onSurface,
-              fontWeight: FontWeight.w800,
-            ),
+            style: tt.titleSmall?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w800),
           ),
         ],
       ),
     );
   }
 
-  Widget _quickAction(
-    BuildContext context,
-    IconData icon,
-    String label,
-    VoidCallback onTap, {
-    bool fullWidth = false,
-  }) {
+  Widget _quickAction(BuildContext context, IconData icon, String label, VoidCallback onTap, {bool fullWidth = false}) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -344,10 +251,7 @@ class _HomePageState extends State<HomePage> {
       width: fullWidth ? double.infinity : null,
       // garante MESMA ALTURA para todos
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minHeight: _qaHeight,
-          maxHeight: _qaHeight,
-        ),
+        constraints: const BoxConstraints(minHeight: _qaHeight, maxHeight: _qaHeight),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: bg,
@@ -389,9 +293,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       backgroundColor: cs.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (ctx) {
         return DraggableScrollableSheet(
           expand: false,
@@ -414,12 +316,7 @@ class _HomePageState extends State<HomePage> {
                   }
 
                   return Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      16,
-                      8,
-                      16,
-                      MediaQuery.of(ctx).padding.bottom + 16,
-                    ),
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, MediaQuery.of(ctx).padding.bottom + 16),
                     child: ListView(
                       controller: scrollController,
                       children: [
@@ -429,19 +326,13 @@ class _HomePageState extends State<HomePage> {
                             width: 44,
                             height: 4,
                             margin: const EdgeInsets.only(bottom: 10),
-                            decoration: BoxDecoration(
-                              color: cs.onSurface.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(100),
-                            ),
+                            decoration: BoxDecoration(color: cs.onSurface.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(100)),
                           ),
                         ),
                         Text(
                           'Configurações do Painel',
                           textAlign: TextAlign.center,
-                          style: Theme.of(ctx)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w800),
+                          style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 12),
 
@@ -452,14 +343,7 @@ class _HomePageState extends State<HomePage> {
                         if (showDailySummary) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
-                            child: Column(
-                              children: [
-                                sw('• Vendas no Balcão', sumCounter, (v) => sumCounter = v),
-                                sw('• Vendas por Entrega', sumDelivery, (v) => sumDelivery = v),
-                                sw('• Despesas', sumExpense, (v) => sumExpense = v),
-                                sw('• Recibos', sumReceipt, (v) => sumReceipt = v),
-                              ],
-                            ),
+                            child: Column(children: [sw('• Vendas no Balcão', sumCounter, (v) => sumCounter = v), sw('• Vendas por Entrega', sumDelivery, (v) => sumDelivery = v), sw('• Despesas', sumExpense, (v) => sumExpense = v), sw('• Recibos', sumReceipt, (v) => sumReceipt = v)]),
                           ),
                         ],
                         Divider(color: cs.onSurface.withValues(alpha: 0.12)),
@@ -468,15 +352,7 @@ class _HomePageState extends State<HomePage> {
                         if (showQuickActions) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
-                            child: Column(
-                              children: [
-                                sw('• Criar Produto', qaCreateProduct, (v) => qaCreateProduct = v),
-                                sw('• Relatórios', qaReports, (v) => qaReports = v),
-                                sw('• Resumo de caixa', qaCashSummary, (v) => qaCashSummary = v),
-                                sw('• Receber Pagamento', qaReceive, (v) => qaReceive = v),
-                                sw('• PDV', qaPDV, (v) => qaPDV = v),
-                              ],
-                            ),
+                            child: Column(children: [sw('• Criar Produto', qaCreateProduct, (v) => qaCreateProduct = v), sw('• Relatórios', qaReports, (v) => qaReports = v), sw('• Resumo de caixa', qaCashSummary, (v) => qaCashSummary = v), sw('• Receber Pagamento', qaReceive, (v) => qaReceive = v), sw('• PDV', qaPDV, (v) => qaPDV = v)]),
                           ),
                         ],
                         const SizedBox(height: 12),
@@ -484,10 +360,7 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           children: [
                             Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text('Fechar'),
-                              ),
+                              child: OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fechar')),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -527,15 +400,9 @@ class _SectionHeader extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Text(
-          title,
-          style:
-              Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-        ),
+        Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
         const SizedBox(width: 8),
-        Expanded(
-          child: Divider(color: cs.onSurface.withValues(alpha: 0.12), thickness: 1),
-        ),
+        Expanded(child: Divider(color: cs.onSurface.withValues(alpha: 0.12), thickness: 1)),
       ],
     );
   }
@@ -543,11 +410,7 @@ class _SectionHeader extends StatelessWidget {
 
 /// Bottom nav do projeto, estilizado pelo tema (reutilizável).
 class PedeAiBottomNav extends StatelessWidget {
-  const PedeAiBottomNav({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const PedeAiBottomNav({super.key, required this.currentIndex, required this.onTap});
 
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -562,31 +425,11 @@ class PedeAiBottomNav extends StatelessWidget {
       backgroundColor: cs.surface,
       indicatorColor: cs.primary.withValues(alpha: 0.12),
       destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home),
-          label: 'Painel',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.shopping_cart_outlined),
-          selectedIcon: Icon(Icons.shopping_cart),
-          label: 'Vendas',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.inventory_2_outlined),
-          selectedIcon: Icon(Icons.inventory_2),
-          label: 'Produtos',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.bar_chart_outlined),
-          selectedIcon: Icon(Icons.bar_chart),
-          label: 'Estoque',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: 'Usuários',
-        ),
+        NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Painel'),
+        NavigationDestination(icon: Icon(Icons.shopping_cart_outlined), selectedIcon: Icon(Icons.shopping_cart), label: 'Vendas'),
+        NavigationDestination(icon: Icon(Icons.inventory_2_outlined), selectedIcon: Icon(Icons.inventory_2), label: 'Produtos'),
+        NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Estoque'),
+        NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Usuários'),
       ],
     );
   }

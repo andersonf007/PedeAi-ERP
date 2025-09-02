@@ -97,10 +97,7 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> executeSqlListar({String? sql}) async {
     try {
       print('SQL Listar: $sql');
-      final response = await _adminClient.rpc(
-        'execute_sql_permissao_todal',
-        params: {'sql_query': sql},
-      );
+      final response = await _adminClient.rpc('execute_sql_permissao_todal', params: {'sql_query': sql});
       print("Resposta bruta do Supabase: ${response.runtimeType} => $response");
 
       if (response == null) return [];
@@ -150,10 +147,7 @@ class DatabaseService {
     try {
       print('Chamando listagemSimplesDeProdutos para schema: $schema');
 
-      final response = await _client.rpc(
-        'listagem_simples_de_produtos',
-        params: {'schema_empresa': schema},
-      );
+      final response = await _client.rpc('listagem_simples_de_produtos', params: {'schema_empresa': schema});
 
       print("Resposta bruta do Supabase: ${response.runtimeType} => $response");
 
@@ -165,41 +159,78 @@ class DatabaseService {
     }
   }
 
-Future<int?> executeSqlInserirVendaPdv({
-  required String schema,
-  required Map<String, dynamic> venda,
-  required List<Map<String, dynamic>> itensVenda,
-  required List<Map<String, dynamic>> itensCaixa,
-  required List<Map<String, dynamic>> itensEstoque,
-}) async {
-  try {
-    final params = {
-      'schema_empresa': schema,
-      'p_venda': venda,
-      'p_itens_venda': itensVenda,
-      'p_itens_caixa': itensCaixa,
-      'p_itens_estoque': itensEstoque,
-    };
+  Future<int?> executeSqlInserirVendaPdv({required String schema, required Map<String, dynamic> venda, required List<Map<String, dynamic>> itensVenda, required List<Map<String, dynamic>> itensCaixa, required List<Map<String, dynamic>> itensEstoque}) async {
+    try {
+      final params = {'schema_empresa': schema, 'p_venda': venda, 'p_itens_venda': itensVenda, 'p_itens_caixa': itensCaixa, 'p_itens_estoque': itensEstoque};
 
-    print('SQL Inserir Venda PDV: $params');
+      print('SQL Inserir Venda PDV: $params');
 
-    final response = await _client.rpc('inserir_venda_pdv', params: params);
+      final response = await _client.rpc('inserir_venda_pdv', params: params);
 
-    // A função retorna sempre o id_venda (BIGINT)
-    if (response is int) {
-      return response;
-    } else if (response is Map && response.containsKey('id')) {
-      return response['id'] as int;
-    } else if (response is List && response.isNotEmpty) {
-      return response.first['id'] as int?;
+      // A função retorna sempre o id_venda (BIGINT)
+      if (response is int) {
+        return response;
+      } else if (response is Map && response.containsKey('id')) {
+        return response['id'] as int;
+      } else if (response is List && response.isNotEmpty) {
+        return response.first['id'] as int?;
+      }
+
+      return null;
+    } catch (e) {
+      print(e.toString());
+      throw Exception('Erro ao executar SQL inserir_venda_completa: ${e.toString()}');
     }
-
-    return null;
-  } catch (e) {
-print(e.toString());
-    throw Exception('Erro ao executar SQL inserir_venda_completa: ${e.toString()}');
   }
-}
+
+  Future<void> fecharCaixa({required String schema, required List<Map<String, dynamic>> pagamentos, required Map<String, dynamic> caixa}) async {
+    try {
+      final params = {'schema_empresa': schema, 'p_formas_pagamento': pagamentos, 'p_caixa': caixa};
+
+      print('Fechar caixa params: $params');
+
+      await _client.rpc('fechar_caixa', params: params);
+    } catch (e) {
+      throw Exception('Erro ao fechar caixa: ${e.toString()}');
+    }
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
