@@ -20,7 +20,18 @@ class _PagamentoDialogState extends State<PagamentoDialog> {
   String valorDigitado = "";
 
   void _onKeyboardTap(String text) {
-    setState(() => valorDigitado += text);
+
+    setState(() {
+      if (text == ',' || text == '.') {
+        // Permite apenas um separador decimal
+        if (!valorDigitado.contains('.') && !valorDigitado.contains(',')) {
+          valorDigitado += '.';
+        }
+      } else {
+        valorDigitado += text;
+      }
+    });
+
   }
 
   double get valorDesejadoPagar {
@@ -85,6 +96,23 @@ class _PagamentoDialogState extends State<PagamentoDialog> {
               });
             },
             rightIcon: Icon(Icons.backspace, color: cs.error),
+          ),
+          // Botão extra para vírgula
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, minimumSize: Size(48, 48)),
+                onPressed: () {
+                  setState(() {
+                    if (!valorDigitado.contains('.') && !valorDigitado.contains(',')) {
+                      valorDigitado += '.';
+                    }
+                  });
+                },
+                child: Text(',', style: TextStyle(fontSize: 20)),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:pedeai/Commom/nomeAparelho.dart';
 import 'package:pedeai/controller/authService.dart';
+import 'package:pedeai/controller/caixaController.dart';
 import 'package:pedeai/controller/databaseService.dart';
 import 'package:pedeai/controller/empresaController.dart';
 import 'package:pedeai/controller/usuarioController.dart';
@@ -15,6 +16,8 @@ class VendaController {
   late SharedPreferences prefs;
   final EmpresaController empresaController = EmpresaController();
   final UsuarioController usuarioController = UsuarioController();
+  final CaixaCotroller caixaController = CaixaCotroller();
+
 
   // Lista vendas com filtro opcional por período (usa função ADMIN para evitar bloqueio de schema)
   Future<List<Map<String, dynamic>>> listarVendasResumo({

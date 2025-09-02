@@ -33,8 +33,8 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
       _carrinho.fold(0.0, (sum, item) => sum + item.valorTotal);
   double desconto = 0.0;
   double get total => subtotal - (subtotal * (desconto / 100));
-  int get totalItensCarrinho =>
-      _carrinho.fold(0, (sum, item) => sum + item.quantidade);
+
+  double get totalItensCarrinho => _carrinho.fold(0, (sum, item) => sum + item.quantidade);
 
   @override
   void initState() {
@@ -109,7 +109,7 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _alterarQuantidade(int produtoId, int novaQuantidade) {
+  void _alterarQuantidade(int produtoId, double novaQuantidade) {
     setState(() {
       final i = _carrinho.indexWhere(
         (item) => item.produto.produtoIdPublic == produtoId,
@@ -133,11 +133,16 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  int _getQuantidadeCarrinho(int produtoId) {
-    final idx = _carrinho.indexWhere(
-      (item) => item.produto.produtoIdPublic == produtoId,
-    );
-    return idx == -1 ? 0 : _carrinho[idx].quantidade;
+
+  double _getQuantidadeCarrinho(int produtoId) {
+    try {
+      final item = _carrinho.firstWhere((item) => item.produto.produtoIdPublic == produtoId);
+      return item.quantidade;
+    } catch (e) {
+      // Se não encontrar o produto no carrinho, retorna 0
+      return 0;
+    }
+
   }
 
   @override
@@ -178,24 +183,9 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
               children: [
                 // Tabs
                 Container(
-                  color: cs.surface,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildTabButton(context, 'Produtos', 0),
-                      _buildTabButton(
-                        context,
-                        'Resumo',
-                        1,
-                        showBadge: _carrinho.isNotEmpty,
-                        badgeCount: totalItensCarrinho,
-                      ),
-                    ],
-                  ),
+
+                  color: Color(0xFF2D2419),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [_buildTabButton('Produtos', 0), _buildTabButton('Resumo', 1)]),
                 ),
                 Divider(height: 1, color: cs.outlineVariant),
                 Expanded(
@@ -209,15 +199,12 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildTabButton(
-    BuildContext context,
-    String label,
-    int index, {
-    bool showBadge = false,
-    int badgeCount = 0,
-  }) {
+
+  Widget _buildTabButton(String label, int index) {
+
     final cs = Theme.of(context).colorScheme;
     final selected = _selectedTab == index;
+    bool showBadge = label == 'Resumo' && totalItensCarrinho > 0;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
       child: Container(
@@ -232,23 +219,18 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                 fontSize: 16,
               ),
             ),
-            if (showBadge)
+            if (showBadge) ...[
+              SizedBox(width: 4),
               Container(
-                margin: const EdgeInsets.only(left: 6),
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: cs.primary,
-                  shape: BoxShape.circle,
-                ),
+
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(8)),
                 child: Text(
-                  badgeCount.toString(),
-                  style: TextStyle(
-                    color: cs.onPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  totalItensCarrinho.toString(),
+                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
+            ],
           ],
         ),
       ),
@@ -365,19 +347,17 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                       );
 
                       if (selected == 'quantidade') {
-                        final qAtual = _getQuantidadeCarrinho(
-                          produto.produtoIdPublic!,
-                        );
-                        final nova = await showDialog<int>(
+                        final quantidadeAtual = _getQuantidadeCarrinho(produto.produtoIdPublic!);
+                        final novaQuantidade = await showDialog<double>(
                           context: context,
                           builder: (_) => QuantidadeDialog(
-                            quantidadeAtual: qAtual,
+                            quantidadeAtual: quantidadeAtual,
                             nomeProduto: produto.descricao ?? '',
                             precoUnitario: produto.preco ?? 0.0,
                           ),
                         );
-                        if (nova != null) {
-                          _alterarQuantidade(produto.produtoIdPublic!, nova);
+                        if (novaQuantidade != null) {
+                          _alterarQuantidade(produto.produtoIdPublic!, novaQuantidade);
                         }
                       }
                     },
@@ -458,10 +438,10 @@ class _PDVPageState extends State<PDVPage> with SingleTickerProviderStateMixin {
                             top: 4,
                             right: 4,
                             child: Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4), 
                               decoration: BoxDecoration(
-                                color: cs.primary,
-                                shape: BoxShape.circle,
+                                color: Colors.orange,
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 quantidade.toString(),

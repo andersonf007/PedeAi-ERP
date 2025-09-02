@@ -221,12 +221,20 @@ class _DrawerPageState extends State<DrawerPage> {
                         selected: current == '/estoque',
                         onTap: () => _go(context, '/estoque'),
                       ),
-                      _PlainEntry(
-                        icon: Icons.point_of_sale,
-                        label: 'Caixa',
-                        // se não tiver rota própria, usa o PDV
-                        selected: current == '/caixa',
-                        onTap: () => _go(context, '/pdv'),
+                      _NavSection(
+                        keyValue: 'caixa',
+                        title: 'Caixa',
+                        icon: Icons.shopping_cart_outlined,
+                        isOpen: _openKey == 'caixa',
+                        onToggle: () => _toggle('caixa'),
+                        children: [
+                          _NavItem(
+                            icon: Icons.point_of_sale,
+                            label: 'Abertura de caixa',
+                            selected: current == '/aberturaCaixa',
+                            onTap: () => _go(context, '/aberturaCaixa'),
+                          ),
+                        ],
                       ),
                       _PlainEntry(
                         icon: Icons.attach_money,
