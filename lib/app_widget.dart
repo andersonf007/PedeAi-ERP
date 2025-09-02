@@ -10,7 +10,7 @@ import 'package:pedeai/view/cadastro/unidade/Unidade.dart';
 import 'package:pedeai/view/cadastro/forma-pagamento/forma_pagamento.dart';
 import 'package:pedeai/view/home/home.dart';
 import 'package:pedeai/view/login/login.dart';
-import 'package:pedeai/view/venda/listVendas.backup.dart';
+import 'package:pedeai/view/venda/listVendas.dart';
 import 'package:pedeai/view/venda/pagamentoPdv.dart';
 import 'package:pedeai/view/venda/pdv.dart';
 import 'package:pedeai/view/cadastro/produto/cadastroProduto.dart';
@@ -79,7 +79,7 @@ class _AppWidgetState extends State<AppWidget> {
             '/aberturaCaixa': (context) => AberturaCaixaPage(),
             '/fechamentoCaixa': (context) => FechamentoCaixaPage(),
             '/listVendas': (context) => ListVendasPage(),
-'/venda-detalhe': (context) => const VendaDetalhePage(),
+            '/venda-detalhe': (context) => const VendaDetalhePage(),
           },
         );
       },
