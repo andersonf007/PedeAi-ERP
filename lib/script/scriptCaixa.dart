@@ -10,4 +10,34 @@ class ScriptCaixa {
   String buscarCaixaAberto(String schema) {
     return '''select id from ${schema}.caixa where aberto = true ''';
   }
+
+  String buscarPagamentosRealizadosNoCaixa(String schema, int idCaixa) {
+    return '''select 
+      f.nome,
+      sum(ci.valor) as valor,
+      f.id,
+      f.tipo_forma_pagamento_id
+      from ${schema}.caixa_item ci 
+      join ${schema}.venda v on v.id = ci.id_venda
+      join ${schema}.caixa c on c.id = v.id_caixa
+      join ${schema}.forma_pagamento f on f.id = ci.id_forma_pagamento
+      where v.id_caixa = $idCaixa
+      group by 
+      1,3,4''';
+  }
+
+  String buscarDadosDoCaixa(String schema, int idCaixa) {
+    return '''select 
+      c.id,
+      c.aberto,
+      c.data_abertura,
+      c.data_fechamento,
+      c.id_usuario_abertura,
+      c.id_usuario_fechamento,
+      c.valor_abertura,
+      c.periodo_abertura,
+      c.periodo_fechamento
+      from ${schema}.caixa c
+      where c.id = $idCaixa''';
+  }
 }
