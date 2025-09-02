@@ -17,6 +17,7 @@ import 'package:pedeai/view/cadastro/produto/cadastroProduto.dart';
 import 'package:pedeai/view/cadastro/produto/listProdutos.dart';
 import 'package:pedeai/view/cadastro/usuario/cadastroUsuario.dart';
 import 'package:pedeai/view/cadastro/usuario/listUsuario.dart';
+import 'package:pedeai/view/venda/vendaDetalhe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pedeai/theme/theme_controller.dart';
 import 'package:pedeai/view/configuracao/configuracao.dart';
@@ -78,6 +79,7 @@ class _AppWidgetState extends State<AppWidget> {
             '/aberturaCaixa': (context) => AberturaCaixaPage(),
             '/fechamentoCaixa': (context) => FechamentoCaixaPage(),
             '/listVendas': (context) => ListVendasPage(),
+'/venda-detalhe': (context) => const VendaDetalhePage(),
           },
         );
       },
