@@ -140,6 +140,8 @@ class _DrawerPageState extends State<DrawerPage> {
                           _NavItem(icon: Icons.category, label: 'Categoria', selected: current == '/listCategorias', onTap: () => _go(context, '/listCategorias')),
                           _NavItem(icon: Icons.payment, label: 'Formas de Pagamento', selected: current == '/listFormasPagamento', onTap: () => _go(context, '/listFormasPagamento')),
                           _NavItem(icon: Icons.inventory, label: 'Produto', selected: current == '/listProdutos', onTap: () => _go(context, '/listProdutos')),
+                          _NavItem(icon: Icons.business, label: 'Fornecedor', selected: current == '/listFornecedores', onTap: () => _go(context, '/listFornecedores')),
+
                           _NavItem(icon: Icons.straighten, label: 'Unidade', selected: current == '/listUnidades', onTap: () => _go(context, '/listUnidades')),
                           _NavItem(icon: Icons.person, label: 'Usuário', selected: current == '/listUsuarios', onTap: () => _go(context, '/listUsuarios')),
                         ],
