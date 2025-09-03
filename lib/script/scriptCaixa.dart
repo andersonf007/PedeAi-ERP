@@ -24,6 +24,7 @@ class ScriptCaixa {
       where 
         v.id_caixa = $idCaixa
         and v.situacao_venda = 1
+        and ci.situacao = 11
       group by 
       1,3,4''';
   }
