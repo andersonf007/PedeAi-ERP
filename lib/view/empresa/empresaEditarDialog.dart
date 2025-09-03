@@ -101,7 +101,7 @@ class _EmpresaEditarDialogState extends State<EmpresaEditarDialog> {
                       'uf': uf.text,
                       'telefone': telefone.text,
                       'email': email.text,
-                      // Não envie o schema!
+                      'schema': widget.empresa.schema,
                     };
                     final controlador = EmpresaController();
                     await controlador.atualizarDadosEmpresa(empresaAtualizada);
