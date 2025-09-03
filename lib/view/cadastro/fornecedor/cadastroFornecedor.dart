@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:pedeai/controller/fornecedorController.dart';
 import 'package:pedeai/model/fornecedor.dart';
 import 'package:pedeai/app_nav_bar.dart';
@@ -28,6 +30,19 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
   final _bairroCtrl = TextEditingController();
   final _cidadeCtrl = TextEditingController();
   final _ufCtrl = TextEditingController();
+
+  final _cnpjMask = MaskTextInputFormatter(
+    mask: '##.###.###/####-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final _telefoneMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final _cepMask = MaskTextInputFormatter(
+    mask: '#####-###',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
   bool get _isEdicao => widget.fornecedorId != null;
   bool _isLoading = true;
@@ -90,11 +105,11 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
 
       _razaoSocialCtrl.text = fornecedor.razaoSocial;
       _nomeFantasiaCtrl.text = fornecedor.nomeFantasia ?? '';
-      _cnpjCtrl.text = fornecedor.cnpj ?? '';
+      _cnpjCtrl.text = _cnpjMask.maskText(fornecedor.cnpj ?? '');
       _ieCtrl.text = fornecedor.ie ?? '';
-      _telefoneCtrl.text = fornecedor.telefone ?? '';
+      _telefoneCtrl.text = _telefoneMask.maskText(fornecedor.telefone ?? '');
       _emailCtrl.text = fornecedor.email ?? '';
-      _cepCtrl.text = fornecedor.cep ?? '';
+      _cepCtrl.text = _cepMask.maskText(fornecedor.cep ?? '');
       _logradouroCtrl.text = fornecedor.logradouro ?? '';
       _numeroCtrl.text = fornecedor.numero ?? '';
       _bairroCtrl.text = fornecedor.bairro ?? '';
@@ -126,18 +141,19 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
     try {
       final fornecedor = Fornecedor(
         id: widget.fornecedorId,
-        razaoSocial: _razaoSocialCtrl.text.trim(),
-        nomeFantasia: _nomeFantasiaCtrl.text.trim(),
-        cnpj: _cnpjCtrl.text.trim(),
-        ie: _ieCtrl.text.trim(),
-        telefone: _telefoneCtrl.text.trim(),
-        email: _emailCtrl.text.trim(),
-        cep: _cepCtrl.text.trim(),
-        logradouro: _logradouroCtrl.text.trim(),
-        numero: _numeroCtrl.text.trim(),
-        bairro: _bairroCtrl.text.trim(),
-        cidade: _cidadeCtrl.text.trim(),
-        uf: _ufCtrl.text.trim(),
+        razaoSocial: _razaoSocialCtrl.text,
+        nomeFantasia: _nomeFantasiaCtrl.text,
+        // Usamos .getUnmaskedText() para salvar apenas os números no banco
+        cnpj: _cnpjMask.getUnmaskedText(),
+        ie: _ieCtrl.text,
+        telefone: _telefoneMask.getUnmaskedText(),
+        email: _emailCtrl.text,
+        cep: _cepMask.getUnmaskedText(),
+        logradouro: _logradouroCtrl.text,
+        numero: _numeroCtrl.text,
+        bairro: _bairroCtrl.text,
+        cidade: _cidadeCtrl.text,
+        uf: _ufCtrl.text,
       );
 
       if (_isEdicao) {
@@ -240,16 +256,48 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
             _buildTextField(_nomeFantasiaCtrl, 'Digite o nome fantasia'),
             const SizedBox(height: _gapMd),
 
-            _buildLabel('CNPJ'),
-            _buildTextField(_cnpjCtrl, 'Digite o CNPJ'),
-            const SizedBox(height: _gapMd),
-
-            _buildLabel('Inscrição Estadual'),
-            _buildTextField(_ieCtrl, 'Digite a inscrição estadual'),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('CNPJ'),
+                      _buildTextField(
+                        _cnpjCtrl,
+                        'Digite o CNPJ',
+                        keyboardType: TextInputType.number,
+                        formatters: [_cnpjMask],
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? 'Obrigatório'
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: _gapSm),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('Inscrição Estadual'),
+                      _buildTextField(_ieCtrl, 'Digite a inscrição estadual'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
 
             _buildLabel('Telefone'),
-            _buildTextField(_telefoneCtrl, 'Digite o telefone'),
+            _buildTextField(
+              _telefoneCtrl,
+              'Digite o telefone',
+              keyboardType: TextInputType.number,
+              formatters: [_telefoneMask],
+            ),
             const SizedBox(height: _gapMd),
 
             _buildLabel('E-mail'),
@@ -257,7 +305,12 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
             const SizedBox(height: 24),
 
             _buildLabel('CEP'),
-            _buildTextField(_cepCtrl, 'Digite o CEP'),
+            _buildTextField(
+              _cepCtrl,
+              'Digite o CEP',
+              keyboardType: TextInputType.number,
+              formatters: [_cepMask],
+            ),
             const SizedBox(height: _gapMd),
 
             _buildLabel('Logradouro'),
@@ -362,11 +415,15 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
     TextEditingController controller,
     String hintText, {
     String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? formatters,
   }) {
     final cs = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       validator: validator,
+      keyboardType: keyboardType,
+      inputFormatters: formatters,
       style: TextStyle(color: cs.onSurface),
       decoration: InputDecoration(
         hintText: hintText,
