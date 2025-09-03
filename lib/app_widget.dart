@@ -22,6 +22,9 @@ import 'package:pedeai/view/venda/vendaDetalhe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pedeai/theme/theme_controller.dart';
 import 'package:pedeai/view/configuracao/configuracao.dart';
+import 'package:pedeai/view/cadastro/fornecedor/listFornecedores.dart';
+import 'package:pedeai/view/cadastro/fornecedor/cadastroFornecedor.dart';
+
 
 class AppWidget extends StatefulWidget {
   const AppWidget({super.key, required this.themeController});
@@ -63,6 +66,11 @@ class _AppWidgetState extends State<AppWidget> {
             '/cadastro-produto': (context) {
               final args = ModalRoute.of(context)?.settings.arguments as int?;
               return CadastroProdutoPage(produtoId: args);
+            },
+            '/listFornecedores': (context) => const ListFornecedoresPage(),
+            '/cadastroFornecedor': (context) {
+                final fornecedorId = ModalRoute.of(context)!.settings.arguments as int?;
+                return CadastroFornecedorPage(fornecedorId: fornecedorId);
             },
             '/listUsuarios': (context) => ListUsuarioPage(),
             '/cadastro-usuario': (context) {
