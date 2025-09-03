@@ -88,7 +88,6 @@ class Estoquecontroller {
         schema: empresa.schema,
       );
     } catch (e) {
-      print('Erro ao atualizar quantidade de estoque: $e');
       throw Exception('Erro ao atualizar quantidade de estoque: $e');
     }
   }

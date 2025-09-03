@@ -5,282 +5,325 @@ import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/theme/color_tokens.dart';
 
 class VendaDetalhePage extends StatefulWidget {
-  const VendaDetalhePage({Key? key}) : super(key: key);
+  final int idVenda;
+  const VendaDetalhePage({Key? key, required this.idVenda}) : super(key: key);
 
   @override
   State<VendaDetalhePage> createState() => _VendaDetalhePageState();
 }
 
 class _VendaDetalhePageState extends State<VendaDetalhePage> {
-  final _ctrl = VendaController();
+  final VendaController controladorVenda = VendaController();
 
-  bool _loading = true;
-  String? _error;
+  bool carregando = true;
+  String? erro;
 
-  Map<String, dynamic>? _venda; // campos: id/numero, cliente, subtotal, desconto, total, status, data_venda...
-  List<Map<String, dynamic>> _itens = [];
-  List<Map<String, dynamic>> _pagamentos = [];
+  Map<String, dynamic>? venda;
+  List<Map<String, dynamic>> itens = [];
+  List<Map<String, dynamic>> pagamentos = [];
+  bool caixaAberto = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // recebe: Map (resumo) OU id/numero
-    final args = ModalRoute.of(context)?.settings.arguments;
-    _load(args);
+  void initState() {
+    super.initState();
+    _carregarDados();
   }
 
-  Future<void> _load(dynamic args) async {
-    if (_loading == false && _venda != null) return;
+  Future<void> _carregarDados() async {
+    setState(() {
+      carregando = true;
+      erro = null;
+    });
     try {
+      // Busca dados da venda
+      final dadosVendaList = await controladorVenda.buscarDadosDaVenda(widget.idVenda);
+      venda = dadosVendaList.isNotEmpty ? dadosVendaList.first : {};
+
+      // Busca itens
+      itens = await controladorVenda.buscarItensDaVenda(widget.idVenda);
+
+      // Busca formas de pagamento
+      pagamentos = await controladorVenda.buscarFormasDePagamentoDaVenda(widget.idVenda);
+
+      // Verifica se o caixa está aberto
+      caixaAberto = venda?['aberto'] == true;
+
       setState(() {
-        _loading = true;
-        _error = null;
+        carregando = false;
       });
-
-      Map<String, dynamic>? vendaResumo;
-      dynamic id;
-
-      if (args is Map<String, dynamic>) {
-        vendaResumo = args;
-        id = vendaResumo['id'] ?? vendaResumo['numero'];
-      } else {
-        id = args; // pode ser int/string
-      }
-
-      // Se o resumo já veio com itens/pagamentos, usa; senão busca no controller.
-      if (vendaResumo != null &&
-          (vendaResumo['itens'] is List || vendaResumo['pagamentos'] is List)) {
-        _venda = vendaResumo;
-        _itens = List<Map<String, dynamic>>.from(vendaResumo['itens'] ?? const []);
-        _pagamentos = List<Map<String, dynamic>>.from(vendaResumo['pagamentos'] ?? const []);
-      } else {
-        final detalhe = await _ctrl.listarVendaDetalhe(id: id);
-        _venda = Map<String, dynamic>.from(detalhe['venda'] ?? {});
-        _itens = List<Map<String, dynamic>>.from(detalhe['itens'] ?? const []);
-        _pagamentos = List<Map<String, dynamic>>.from(detalhe['pagamentos'] ?? const []);
-      }
-
-      if (!mounted) return;
-      setState(() => _loading = false);
     } catch (e) {
-      if (!mounted) return;
       setState(() {
-        _error = 'Falha ao carregar venda: $e';
-        _loading = false;
+        erro = 'Falha ao carregar venda: $e';
+        carregando = false;
       });
     }
+  }
+
+  double get subtotal {
+    double total = 0.0;
+    for (final item in itens) {
+      final preco = item['preco_total'] ?? 0.0;
+      total += (preco is num) ? preco.toDouble() : double.tryParse(preco.toString()) ?? 0.0;
+    }
+    return total;
+  }
+
+  double get desconto {
+    final valor = venda?['desconto'];
+    if (valor == null) return 0.0;
+    return (valor is num) ? valor.toDouble() : double.tryParse(valor.toString()) ?? 0.0;
+  }
+
+  double get acrescimo {
+    final valor = venda?['acrescimo'];
+    if (valor == null) return 0.0;
+    return (valor is num) ? valor.toDouble() : double.tryParse(valor.toString()) ?? 0.0;
+  }
+
+  double get total {
+    final valor = venda?['valor_total'];
+    if (valor == null) return 0.0;
+    return (valor is num) ? valor.toDouble() : double.tryParse(valor.toString()) ?? 0.0;
+  }
+
+  String formatarMoeda(double valor) => 'R\$ ${valor.toStringAsFixed(2)}';
+
+  String formatarData(dynamic raw) {
+    if (raw == null) return '—';
+    DateTime? d;
+    if (raw is DateTime)
+      d = raw;
+    else
+      d = DateTime.tryParse(raw.toString());
+    if (d == null) return raw.toString();
+    String dois(int n) => n.toString().padLeft(2, '0');
+    return '${dois(d.day)}/${dois(d.month)}/${d.year} ${dois(d.hour)}:${dois(d.minute)}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final esquemaCores = Theme.of(context).colorScheme;
+    print(venda);
+    final id = venda?['id'] ?? '—';
+    final dataAbertura = formatarData(venda?['data_abertura']);
+    final cliente = venda?['nome_cliente'] ?? venda?['cliente'] ?? '—';
+    final cpfCliente = venda?['cpf_cliente'] ?? '';
+    final statusRaw = venda?['situacao'] ?? venda?['descricao'] ?? venda?['status'] ?? venda?['situacao'] ?? '';
+    final status = statusRaw.toString().isEmpty ? 'Situação não identificada' : statusRaw.toString();
 
-    final id = _venda?['numero'] ?? _venda?['id'] ?? '—';
-    final dt = _fmtDateTime(_venda?['data'] ?? _venda?['data_venda']);
-    final cliente = _venda?['cliente'] ?? _venda?['nome_cliente'] ?? '—';
-    final statusRaw = (_venda?['status'] ?? _venda?['situacao'] ?? '').toString();
-    final status = statusRaw.isEmpty ? 'Pendente' : statusRaw;
-
-    final subtotal = _toDouble(_venda?['subtotal'] ?? _venda?['valor_subtotal']);
-    final desconto = _toDouble(_venda?['desconto'] ?? _venda?['valor_desconto']);
-    final total = _toDouble(_venda?['total'] ?? _venda?['valor_total']);
+    Color corStatus;
+    if (status == 'Fechada') {
+      corStatus = Colors.green;
+    } else if (status == 'Cancelada') {
+      corStatus = Colors.red;
+    } else {
+      corStatus = Colors.blue;
+    }
 
     return Scaffold(
-      backgroundColor: cs.surface,
+      backgroundColor: esquemaCores.surface,
       appBar: AppBar(
-        backgroundColor: cs.surface,
+        backgroundColor: esquemaCores.surface,
         elevation: 0,
         centerTitle: true,
-        leading: BackButton(color: cs.onSurface),
-        title: Text('Venda #$id', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: cs.onSurface),
-            onPressed: () => _load(ModalRoute.of(context)?.settings.arguments),
-            tooltip: 'Atualizar',
-          ),
-        ],
+        leading: BackButton(color: esquemaCores.onSurface),
+        title: Text(
+          '#$id',
+          style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.bold),
+        ),
       ),
       drawer: const DrawerPage(),
       bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
 
-      body: _loading
+      body: carregando
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(_error!, textAlign: TextAlign.center, style: TextStyle(color: cs.error)),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: () async => _load(ModalRoute.of(context)?.settings.arguments),
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    children: [
-                      // Header resumo
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Color.alphaBlend(cs.primary.withOpacity(.08), cs.surface),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: cs.onSurface.withOpacity(.10)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          : erro != null
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  erro!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: esquemaCores.error),
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () async => _carregarDados(),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                children: [
+                  // Header resumo
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Color.alphaBlend(esquemaCores.primary.withOpacity(.08), esquemaCores.surface),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: esquemaCores.onSurface.withOpacity(.10)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                _StatusDot(text: status),
-                                const SizedBox(width: 8),
-                                Text('• $dt', style: TextStyle(color: cs.onSurface.withOpacity(.75))),
-                              ],
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(color: corStatus, shape: BoxShape.circle),
                             ),
-                            const SizedBox(height: 8),
-                            Text('Cliente: $cliente',
-                                style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            Text('Total: ${_brCurrency(total)}',
-                                style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w800)),
+                            const SizedBox(width: 8),
+                            Text(
+                              status,
+                              style: TextStyle(color: corStatus, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 8),
+                            Text('• $dataAbertura', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.75))),
                           ],
                         ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Resumo financeiro
-                      _CardSection(
-                        title: 'Resumo',
-                        child: Column(
-                          children: [
-                            _kv('Subtotal', _brCurrency(subtotal), cs),
-                            _kv('Desconto', '- ${_brCurrency(desconto)}', cs, dim: true),
-                            const Divider(height: 20),
-                            _kv('Total', _brCurrency(total), cs, bold: true),
-                          ],
+                        const SizedBox(height: 8),
+                        Text(
+                          'Cliente: $cliente',
+                          style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.w700),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        Text('CPF do cliente: $cpfCliente', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.85))),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Total: ${formatarMoeda(total)}',
+                          style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                      const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                      // Pagamentos
-                      _CardSection(
-                        title: 'Pagamentos',
-                        child: _pagamentos.isEmpty
-                            ? Text('Nenhuma forma de pagamento registrada.',
-                                style: TextStyle(color: cs.onSurface.withOpacity(.70)))
-                            : Column(
-                                children: [
-                                  ..._pagamentos.map((p) {
-                                    final nome = p['forma']?['nome'] ?? p['forma_nome'] ?? 'Forma';
-                                    final valor = _toDouble(p['valor']);
-                                    final troco = _toDouble(p['troco']);
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 6),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Resumo financeiro
+                  _CardSection(
+                    title: 'Resumo',
+                    child: Column(children: [linhaResumoFinanceiro('Subtotal', formatarMoeda(subtotal), esquemaCores), linhaResumoFinanceiro('Desconto', '- ${formatarMoeda(desconto)}', esquemaCores, diminuir: true), linhaResumoFinanceiro('Total', formatarMoeda(total), esquemaCores, negrito: true)]),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Pagamentos
+                  _CardSection(
+                    title: 'Pagamentos',
+                    child: pagamentos.isEmpty
+                        ? Text('Nenhuma forma de pagamento registrada.', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.70)))
+                        : Column(
+                            children: [
+                              ...pagamentos.map((p) {
+                                final nome = p['nome'] ?? p['forma'] ?? p['forma_nome'] ?? 'Forma';
+                                final valor = p['valor'] ?? 0.0;
+                                final troco = p['troco'] ?? 0.0;
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 6),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text('$nome', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.90))),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
-                                          Expanded(
-                                            child: Text('$nome',
-                                                style: TextStyle(color: cs.onSurface.withOpacity(.90))),
+                                          Text(
+                                            formatarMoeda((valor is num) ? valor.toDouble() : double.tryParse(valor.toString()) ?? 0.0),
+                                            style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.w700),
                                           ),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.end,
-                                            children: [
-                                              Text(_brCurrency(valor),
-                                                  style: TextStyle(
-                                                      color: cs.onSurface, fontWeight: FontWeight.w700)),
-                                              if (troco > 0)
-                                                Text('Troco ${_brCurrency(troco)}',
-                                                    style: TextStyle(
-                                                        color: BrandColors.success700,
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w600)),
-                                            ],
-                                          ),
+                                          if ((troco is num ? troco : double.tryParse(troco.toString()) ?? 0.0) > 0)
+                                            Text(
+                                              'Troco ${formatarMoeda((troco is num) ? troco.toDouble() : double.tryParse(troco.toString()) ?? 0.0)}',
+                                              style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.w600),
+                                            ),
                                         ],
                                       ),
-                                    );
-                                  }),
-                                ],
-                              ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Itens
-                      _CardSection(
-                        title: 'Itens',
-                        child: _itens.isEmpty
-                            ? Text('Nenhum item na venda.',
-                                style: TextStyle(color: cs.onSurface.withOpacity(.70)))
-                            : Column(
-                                children: _itens.map((it) {
-                                  final nome = it['descricao'] ?? it['produto'] ?? '—';
-                                  final qtd = _toDouble(it['quantidade']).toStringAsFixed(0);
-                                  final unit = _brCurrency(_toDouble(it['preco_unitario'] ?? it['unitario']));
-                                  final tot = _brCurrency(_toDouble(it['preco_total'] ?? it['total']));
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(nome,
-                                                  style: TextStyle(
-                                                      color: cs.onSurface,
-                                                      fontWeight: FontWeight.w700)),
-                                              const SizedBox(height: 2),
-                                              Text('$qtd x $unit',
-                                                  style: TextStyle(
-                                                      color: cs.onSurface.withOpacity(.70), fontSize: 12)),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(tot,
-                                            style: TextStyle(
-                                                color: cs.onSurface, fontWeight: FontWeight.w800)),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                      ),
-
-                      const SizedBox(height: 80), // respiro pro CTA
-                    ],
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
                   ),
-                ),
 
-      // CTA fixo – iniciar outra venda
-    
+                  const SizedBox(height: 12),
+
+                  // Itens
+                  _CardSection(
+                    title: 'Itens',
+                    child: itens.isEmpty
+                        ? Text('Nenhum item na venda.', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.70)))
+                        : Column(
+                            children: itens.map((it) {
+                              final nome = it['descricao'] ?? it['produto'] ?? '—';
+                              final qtd = it['quantidade'] ?? 0;
+                              final unit = formatarMoeda(it['preco_unitario'] ?? 0.0);
+                              final tot = formatarMoeda(it['preco_total'] ?? 0.0);
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            nome,
+                                            style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.w700),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text('$qtd x $unit', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.70), fontSize: 12)),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      tot,
+                                      style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.w800),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Botão cancelar venda
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: (caixaAberto && status == 'Fechada')
+                          ? () async {
+                              try {
+                                await controladorVenda.cancelarVenda(widget.idVenda);
+                                await _carregarDados();
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Venda cancelada com sucesso!'), backgroundColor: Colors.green));
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao cancelar venda: $e'), backgroundColor: Colors.red));
+                              }
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Cancelar venda', style: TextStyle(fontSize: 18)),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
     );
-  }
-
-  // ---------- helpers ----------
-  String _brCurrency(double v) => 'R\$ ${v.toStringAsFixed(2)}';
-
-  double _toDouble(dynamic v) {
-    if (v == null) return 0;
-    if (v is num) return v.toDouble();
-    return double.tryParse(v.toString()) ?? 0.0;
-    }
-
-  String _fmtDateTime(dynamic raw) {
-    if (raw == null) return '—';
-    DateTime? d;
-    if (raw is DateTime) d = raw; else d = DateTime.tryParse(raw.toString());
-    if (d == null) return raw.toString();
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
   }
 }
 
-// --- Widgets auxiliares
 class _CardSection extends StatelessWidget {
   const _CardSection({required this.title, required this.child});
   final String title;
@@ -288,19 +331,21 @@ class _CardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final esquemaCores = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: cs.surface,
+        color: esquemaCores.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.onSurface.withOpacity(.10)),
+        border: Border.all(color: esquemaCores.onSurface.withOpacity(.10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w800)),
+          Text(
+            title,
+            style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 10),
           child,
         ],
@@ -309,53 +354,16 @@ class _CardSection extends StatelessWidget {
   }
 }
 
-class _StatusDot extends StatelessWidget {
-  const _StatusDot({required this.text});
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = text.toLowerCase();
-    Color c;
-    if (s.contains('pago') || s.contains('final') || s.contains('fech')) {
-      c = BrandColors.success700;
-    } else if (s.contains('pend') || s.contains('abert')) {
-      c = BrandColors.warning700;
-    } else if (s.contains('cancel')) {
-      c = Colors.redAccent;
-    } else {
-      c = Colors.blueGrey;
-    }
-
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
-        const SizedBox(width: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(999)),
-          child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
-        ),
-      ],
-    );
-  }
-}
-
-Widget _kv(String k, String v, ColorScheme cs, {bool bold = false, bool dim = false}) {
+Widget linhaResumoFinanceiro(String rotulo, String valor, ColorScheme esquemaCores, {bool negrito = false, bool diminuir = false}) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(k, style: TextStyle(color: cs.onSurface.withOpacity(dim ? .70 : .90))),
+        Text(rotulo, style: TextStyle(color: esquemaCores.onSurface.withOpacity(diminuir ? .70 : .90))),
         Text(
-          v,
-          style: TextStyle(
-            color: dim ? cs.onSurface.withOpacity(.80) : cs.onSurface,
-            fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
-          ),
+          valor,
+          style: TextStyle(color: diminuir ? esquemaCores.onSurface.withOpacity(.80) : esquemaCores.onSurface, fontWeight: negrito ? FontWeight.w800 : FontWeight.w600),
         ),
       ],
     ),

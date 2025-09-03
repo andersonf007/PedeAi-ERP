@@ -61,7 +61,6 @@ class FormaPagamentocontroller {
 
       return FormaPagamentos;
     } catch (e) {
-      print('Erro ao listar FormaPagamentos: $e');
       return [];
     }
   }
@@ -139,7 +138,6 @@ class FormaPagamentocontroller {
 
       return FormaPagamentos;
     } catch (e) {
-      print('Erro ao listar FormaPagamentos: $e');
       return [];
     }
   }

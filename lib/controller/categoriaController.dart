@@ -58,7 +58,6 @@ class Categoriacontroller {
 
       return categorias;
     } catch (e) {
-      print('Erro ao listar categorias: $e');
       return [];
     }
   }

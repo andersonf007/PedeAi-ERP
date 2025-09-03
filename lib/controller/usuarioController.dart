@@ -65,7 +65,6 @@ class UsuarioController {
 
       return usuarios;
     } catch (e) {
-      print('Erro ao listar usuários: $e');
       return [];
     }
   }
@@ -137,7 +136,6 @@ class UsuarioController {
       }
       return null;
     } catch (e) {
-      print('Erro ao buscar usuário do SharedPreferences: $e');
       return null;
     }
   }
@@ -147,7 +145,6 @@ class UsuarioController {
       prefs = await SharedPreferences.getInstance();
       return prefs.getString('uid');
     } catch (e) {
-      print('Erro ao buscar usuário do SharedPreferences: $e');
       return null;
     }
   }

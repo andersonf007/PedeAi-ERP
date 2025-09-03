@@ -15,7 +15,6 @@ class EmpresaController {
   Future<List<int>> buscarIdDasEmpresasDoUsuario(String uid) async {
     final sql = script.buscarIdDasEmpresasDoUsuario(uid);
     final result = await _databaseService.executeSql2(sql, schema: 'public');
-    print(result);
     // Ajuste aqui para pegar pelo alias
     return result.map((e) => e['id_empresa'] as int).toList();
   }
@@ -46,7 +45,6 @@ class EmpresaController {
     return dados;
   }
 
-
   // Buscar dados da empresa no SharedPreferences
   Future<Empresa?> getEmpresaFromSharedPreferences() async {
     try {
@@ -59,8 +57,16 @@ class EmpresaController {
       }
       return null;
     } catch (e) {
-      print('Erro ao buscar empresa do SharedPreferences: $e');
       return null;
     }
+  }
+
+  Future<void> atualizarDadosEmpresa(Map<String, dynamic> empresaAtualizada) async {
+    final script = ScriptEmpresa();
+    final sql = script.atualizarDadosEmpresa(empresaAtualizada);
+    await _databaseService.executeSqlUpdate(sql: sql, schema: 'public');
+    // Atualiza os dados no SharedPreferences
+    prefs = await SharedPreferences.getInstance();
+    await prefs.setString('empresa', jsonEncode(empresaAtualizada));
   }
 }
