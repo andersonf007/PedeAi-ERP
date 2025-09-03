@@ -19,7 +19,6 @@ class ScriptCaixa {
       f.tipo_forma_pagamento_id
       from ${schema}.caixa_item ci 
       join ${schema}.venda v on v.id = ci.id_venda
-      join ${schema}.caixa c on c.id = v.id_caixa
       join ${schema}.forma_pagamento f on f.id = ci.id_forma_pagamento
       where 
         v.id_caixa = $idCaixa
@@ -42,5 +41,41 @@ class ScriptCaixa {
       c.periodo_fechamento
       from ${schema}.caixa c
       where c.id = $idCaixa''';
+  }
+
+  String buscarReceitaDoMes(String schema) {
+    return '''select 
+      sum(ci.valor) as valor
+      from ${schema}.caixa_item ci 
+      join ${schema}.caixa c on c.id = ci.id_caixa
+      WHERE 
+        c.data_abertura >= date_trunc('month', NOW())
+        and ci.situacao = 11''';
+  }
+
+  String buscarReceitaDoDiaDoPdv(String schema) {
+    return '''SELECT
+        SUM(ci.valor) AS valor
+      FROM
+        ${schema}.caixa c
+        JOIN ${schema}.caixa_item ci ON c.id = ci.id_caixa
+        JOIN ${schema}.venda v ON v.id = ci.id_venda
+      WHERE
+        c.data_abertura >= date_trunc('day', NOW())
+        AND c.data_abertura < date_trunc('day', NOW()) + interval '1 day'
+        AND ci.situacao = 11
+        AND v.tipo_venda = 'P'
+        AND v.situacao_venda = 1''';
+  }
+
+String buscarReceitaCanceladaDoDia(String schema) {
+    return '''SELECT 
+        sum(ci.valor) AS valor
+      FROM ${schema}.caixa_item ci 
+      JOIN ${schema}.caixa c ON c.id = ci.id_caixa
+      WHERE 
+        c.data_abertura >= date_trunc('day', NOW())
+        AND c.data_abertura < date_trunc('day', NOW()) + interval '1 day'
+        AND ci.situacao = 12''';
   }
 }

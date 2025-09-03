@@ -106,4 +106,36 @@ class CaixaCotroller {
       throw CaixaCotrollerException('Erro ao fechar caixa: $e');
     }
   }
+
+  Future<double?> buscarReceitaDoMes() async{
+    try {
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+      String sql = _scriptCaixa.buscarReceitaDoMes(empresa!.schema);
+      final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
+      return resultado.isNotEmpty ? resultado.first['valor'] as double? : null;
+    } catch (e) {
+      throw CaixaCotrollerException('Erro ao buscar receita do mês: $e');
+    }
+  }
+Future<double?> buscarReceitaDoDiaDoPdv() async{
+    try {
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+      String sql = _scriptCaixa.buscarReceitaDoDiaDoPdv(empresa!.schema);
+      final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
+      return resultado.isNotEmpty ? resultado.first['valor'] as double? : null;
+    } catch (e) {
+      throw CaixaCotrollerException('Erro ao buscar receita do dia: $e');
+    }
+  }
+Future<double?> buscarReceitaCanceladaDoDia() async{
+    try {
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+      String sql = _scriptCaixa.buscarReceitaCanceladaDoDia(empresa!.schema);
+      final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
+      return resultado.isNotEmpty ? resultado.first['valor'] as double? : null;
+    } catch (e) {
+      throw CaixaCotrollerException('Erro ao buscar receita cancelada do dia: $e');
+    }
+  }
+
 }
