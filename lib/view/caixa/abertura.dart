@@ -25,11 +25,23 @@ class _AberturaCaixaPageState extends State<AberturaCaixaPage> {
 
   Future<void> _verificarCaixaAberto() async {
     setState(() => carregando = true);
-    int idCaixa = await _caixaController.buscarCaixaAberto();
-    setState(() {
-      caixaAberto = idCaixa != -1;
-      carregando = false;
-    });
+    try {
+      int idCaixa = await _caixaController.buscarCaixaAberto();
+      setState(() {
+        caixaAberto = idCaixa != -1;
+        carregando = false;
+      });
+    } on CaixaCotrollerException {
+      setState(() {
+        caixaAberto = false;
+        carregando = false;
+      });
+    } catch (e) {
+      setState(() {
+        caixaAberto = false;
+        carregando = false;
+      });
+    }
   }
 
   String _formatMoney(String value) {
@@ -53,7 +65,7 @@ class _AberturaCaixaPageState extends State<AberturaCaixaPage> {
     valorAbertura = double.tryParse(valor) ?? 0.0;
     int id_caixa = await _caixaController.abrirCaixa(valorAbertura!, _getPeriodo(DateTime.now()));
     if (id_caixa != -1) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Abertura: R\$ ${valorAbertura!.toStringAsFixed(2)} - Período: ${_getPeriodo(DateTime.now())}')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Abertura: R\$ ${valorAbertura!.toStringAsFixed(2)} - Período: ${_getPeriodo(DateTime.now())}'), backgroundColor: Colors.green));
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     }
   }
