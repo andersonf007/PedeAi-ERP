@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pedeai/controller/formaPagamentoController.dart';
 import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
@@ -12,21 +13,14 @@ class PagamentoPdvPage extends StatefulWidget {
   final double total;
   final List<ItemCarrinho> carrinho;
 
-  const PagamentoPdvPage({
-    super.key,
-    required this.subtotal,
-    required this.desconto,
-    required this.total,
-    required this.carrinho,
-  });
+  const PagamentoPdvPage({super.key, required this.subtotal, required this.desconto, required this.total, required this.carrinho});
 
   @override
   State<PagamentoPdvPage> createState() => _PagamentoPdvPageState();
 }
 
 class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
-  final FormaPagamentocontroller _formaPagamentoController =
-      FormaPagamentocontroller();
+  final FormaPagamentocontroller _formaPagamentoController = FormaPagamentocontroller();
   final VendaController _vendaController = VendaController();
 
   List<FormaPagamento> _formasPagamento = [];
@@ -34,6 +28,7 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
 
   bool _isLoading = true;
   bool _finalizando = false;
+  final TextEditingController _cpfCnpjController = TextEditingController();
 
   @override
   void initState() {
@@ -60,27 +55,19 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
     final valorRestante = _faltaPagar;
     final resultado = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) =>
-          PagamentoDialog(forma: forma, valorRestante: valorRestante),
+      builder: (context) => PagamentoDialog(forma: forma, valorRestante: valorRestante),
     );
 
     if (resultado != null && resultado['valor'] != null) {
       setState(() {
-        _pagamentosInseridos.add({
-          'forma': forma,
-          'valor': resultado['valor'] as double,
-          'troco': (resultado['troco'] as double?) ?? 0.0,
-        });
+        _pagamentosInseridos.add({'forma': forma, 'valor': resultado['valor'] as double, 'troco': (resultado['troco'] as double?) ?? 0.0});
       });
     }
   }
 
-  double get _totalPago =>
-      _pagamentosInseridos.fold(0.0, (a, b) => a + (b['valor'] as double));
-  double get _faltaPagar =>
-      (widget.total - _totalPago) < 0 ? 0.0 : (widget.total - _totalPago);
-  double get _trocoTotal =>
-      _pagamentosInseridos.fold(0.0, (a, b) => a + (b['troco'] as double? ?? 0));
+  double get _totalPago => _pagamentosInseridos.fold(0.0, (a, b) => a + (b['valor'] as double));
+  double get _faltaPagar => (widget.total - _totalPago) < 0 ? 0.0 : (widget.total - _totalPago);
+  double get _trocoTotal => _pagamentosInseridos.fold(0.0, (a, b) => a + (b['troco'] as double? ?? 0));
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +79,10 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
         backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
-        title: Text('Pagamentos',
-            style:
-                TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Pagamentos',
+          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: cs.onSurface),
           onPressed: () => Navigator.of(context).pop(),
@@ -107,12 +95,14 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
             children: [
               // CPF/CNPJ
               TextField(
+                controller: _cpfCnpjController,
                 style: TextStyle(color: cs.onSurface),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   hintText: 'Informar CNPJ/CPF do cliente',
                   hintStyle: TextStyle(color: cs.onSurface.withOpacity(0.6)),
-                  prefixIcon:
-                      Icon(Icons.search, color: cs.onSurface.withOpacity(0.6)),
+                  prefixIcon: Icon(Icons.search, color: cs.onSurface.withOpacity(0.6)),
                   filled: true,
                   fillColor: cs.surface,
                   border: OutlineInputBorder(
@@ -130,21 +120,15 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
               // Card resumo
               Card(
                 color: cs.surface,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 1,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      _rowKV(cs, 'Subtotal',
-                          'R\$ ${widget.subtotal.toStringAsFixed(2)}'),
-                      _rowKV(cs, 'Desconto na venda',
-                          '- R\$ ${widget.desconto.toStringAsFixed(2)}',
-                          subtle: true),
-                      _rowKV(cs, 'Total',
-                          'R\$ ${widget.total.toStringAsFixed(2)}',
-                          bold: true),
+                      _rowKV(cs, 'Subtotal', 'R\$ ${widget.subtotal.toStringAsFixed(2)}'),
+                      _rowKV(cs, 'Desconto na venda', '- R\$ ${widget.desconto.toStringAsFixed(2)}', subtle: true),
+                      _rowKV(cs, 'Total', 'R\$ ${widget.total.toStringAsFixed(2)}', bold: true),
                       Divider(color: cs.outlineVariant, height: 24),
 
                       // Pagamentos inseridos
@@ -152,40 +136,26 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                           ? Center(
                               child: Text(
                                 'Nenhuma forma de pagamento inserida',
-                                style: TextStyle(
-                                  color: cs.onSurface.withOpacity(0.7),
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: TextStyle(color: cs.onSurface.withOpacity(0.7), fontWeight: FontWeight.w600),
                               ),
                             )
                           : Column(
-                              children: _pagamentosInseridos
-                                  .asMap()
-                                  .entries
-                                  .map((e) {
+                              children: _pagamentosInseridos.asMap().entries.map((e) {
                                 final idx = e.key;
                                 final pag = e.value;
                                 final FormaPagamento forma = pag['forma'];
                                 final valor = pag['valor'] as double;
                                 return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Row(
                                     children: [
                                       Expanded(
-                                        child: Text(forma.nome ?? '',
-                                            style: TextStyle(
-                                                color: cs.onSurface)),
+                                        child: Text(forma.nome ?? '', style: TextStyle(color: cs.onSurface)),
                                       ),
-                                      Text('R\$ ${valor.toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                              color: cs.onSurface)),
+                                      Text('R\$ ${valor.toStringAsFixed(2)}', style: TextStyle(color: cs.onSurface)),
                                       IconButton(
-                                        icon: Icon(Icons.delete,
-                                            color: cs.error, size: 20),
-                                        onPressed: () => setState(
-                                            () => _pagamentosInseridos
-                                                .removeAt(idx)),
+                                        icon: Icon(Icons.delete, color: cs.error, size: 20),
+                                        onPressed: () => setState(() => _pagamentosInseridos.removeAt(idx)),
                                       ),
                                     ],
                                   ),
@@ -194,16 +164,9 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                             ),
 
                       Divider(color: cs.outlineVariant, height: 24),
-                      _rowKV(cs, 'Total pago',
-                          'R\$ ${_totalPago.toStringAsFixed(2)}',
-                          bold: true),
-                      _rowKV(cs, 'Falta pagar',
-                          'R\$ ${_faltaPagar.toStringAsFixed(2)}',
-                          bold: true,
-                          colorOverride:
-                              _faltaPagar == 0 ? cs.onSurface : cs.error),
-                      _rowKV(cs, 'Troco', 'R\$ ${_trocoTotal.toStringAsFixed(2)}',
-                          bold: true, colorOverride: Colors.green),
+                      _rowKV(cs, 'Total pago', 'R\$ ${_totalPago.toStringAsFixed(2)}', bold: true),
+                      _rowKV(cs, 'Falta pagar', 'R\$ ${_faltaPagar.toStringAsFixed(2)}', bold: true, colorOverride: _faltaPagar == 0 ? cs.onSurface : cs.error),
+                      _rowKV(cs, 'Troco', 'R\$ ${_trocoTotal.toStringAsFixed(2)}', bold: true, colorOverride: Colors.green),
                     ],
                   ),
                 ),
@@ -213,10 +176,7 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
 
               // Formas de pagamento
               _isLoading
-                  ? Center(
-                      child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation(cs.primary)),
-                    )
+                  ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(cs.primary)))
                   : Wrap(
                       spacing: 12,
                       runSpacing: 12,
@@ -241,16 +201,13 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: cs.primary),
                             foregroundColor: cs.primary,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12, horizontal: 16),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24)),
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
                           label: Text(
                             forma.nome ?? '',
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: cs.primary, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: cs.primary, fontWeight: FontWeight.bold),
                           ),
                           onPressed: () => _showPagamentoDialog(forma),
                         );
@@ -269,64 +226,28 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                       : () async {
                           setState(() => _finalizando = true);
                           try {
-                            final dadosVenda = {
-                              'valor_total': widget.total,
-                              'numero_pessoas': 1,
-                              'situacao_venda': 1,
-                              'tipo_venda': 'P',
-                            };
+                            final dadosVenda = {'valor_total': widget.total, 'numero_pessoas': 1, 'situacao_venda': 1, 'tipo_venda': 'P', 'cpf_cliente': _cpfCnpjController.text.isNotEmpty ? _cpfCnpjController.text : ''};
 
                             final dadosVendaItens = <Map<String, dynamic>>[];
                             for (var i = 0; i < widget.carrinho.length; i++) {
                               final it = widget.carrinho[i];
-                              dadosVendaItens.add({
-                                'id_produto': it.produto.produtoIdPublic,
-                                'id_produto_empresa': it.produto.id,
-                                'quantidade': it.quantidade,
-                                'preco_unitario': it.produto.preco,
-                                'preco_total':
-                                    (it.produto.preco ?? 0) * it.quantidade,
-                                'situacao': 10,
-                                'posicao_item': i + 1,
-                                'preco_custo': it.produto.precoCusto,
-                              });
+                              dadosVendaItens.add({'id_produto': it.produto.produtoIdPublic, 'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'preco_unitario': it.produto.preco, 'preco_total': (it.produto.preco ?? 0) * it.quantidade, 'situacao': 10, 'posicao_item': i + 1, 'preco_custo': it.produto.precoCusto});
                             }
 
-                            final dadosFormaPagamento = _pagamentosInseridos
-                                .map((e) => {
-                                      'tipo_movimento': 'Entrada',
-                                      'valor': e['valor'],
-                                      'id_forma_pagamento': (e['forma'] as FormaPagamento).id,
-                                      'troco': e['troco'],
-                                    })
-                                .toList();
+                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': e['valor'], 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': e['troco']}).toList();
 
-                            final dadosMovEstoque =
-                                widget.carrinho.map((it) => {
-                                      'id_produto_empresa': it.produto.id,
-                                      'quantidade': it.quantidade,
-                                      'tipo_movimento': 'Saida',
-                                      'motivo': 'Venda'
-                                    }).toList();
+                            final dadosMovEstoque = widget.carrinho.map((it) => {'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'tipo_movimento': 'Saida', 'motivo': 'Venda'}).toList();
 
-                            await _vendaController.inserirVendaPdv(
-                              dadosVenda: dadosVenda,
-                              dadosVendaItens: dadosVendaItens,
-                              dadosFormaPagamento: dadosFormaPagamento,
-                              dadosMovimentacaoEstoque: dadosMovEstoque,
-                            );
+                            await _vendaController.inserirVendaPdv(dadosVenda: dadosVenda, dadosVendaItens: dadosVendaItens, dadosFormaPagamento: dadosFormaPagamento, dadosMovimentacaoEstoque: dadosMovEstoque);
 
                             if (!mounted) return;
                             _pagamentosInseridos.clear();
                             widget.carrinho.clear();
-                            AppNotify.success(
-                                context, 'Venda finalizada com sucesso!');
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                '/pdv', (route) => false);
+                            AppNotify.success(context, 'Venda finalizada com sucesso!');
+                            Navigator.of(context).pushNamedAndRemoveUntil('/pdv', (route) => false);
                           } catch (e) {
                             if (!mounted) return;
-                            AppNotify.error(
-                                context, 'Erro ao finalizar venda: $e');
+                            AppNotify.error(context, 'Erro ao finalizar venda: $e');
                           } finally {
                             if (mounted) setState(() => _finalizando = false);
                           }
@@ -334,21 +255,10 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: cs.primary,
                     foregroundColor: cs.onPrimary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24)),
-                    textStyle:
-                        const TextStyle(fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  child: _finalizando
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(cs.onPrimary),
-                          ),
-                        )
-                      : const Text('Finalizar'),
+                  child: _finalizando ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(cs.onPrimary))) : const Text('Finalizar'),
                 ),
               ),
             ],
@@ -358,16 +268,14 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
     );
   }
 
-  Widget _rowKV(ColorScheme cs, String k, String v,
-      {bool bold = false, bool subtle = false, Color? colorOverride}) {
-    final style = TextStyle(
-      color: colorOverride ??
-          (subtle ? cs.onSurface.withOpacity(0.7) : cs.onSurface),
-      fontWeight: bold ? FontWeight.bold : FontWeight.w600,
-    );
+  Widget _rowKV(ColorScheme cs, String k, String v, {bool bold = false, bool subtle = false, Color? colorOverride}) {
+    final style = TextStyle(color: colorOverride ?? (subtle ? cs.onSurface.withOpacity(0.7) : cs.onSurface), fontWeight: bold ? FontWeight.bold : FontWeight.w600);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [Text(k, style: style), Text(v, style: style)],
+      children: [
+        Text(k, style: style),
+        Text(v, style: style),
+      ],
     );
   }
 }
