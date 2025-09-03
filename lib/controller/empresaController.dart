@@ -15,7 +15,6 @@ class EmpresaController {
   Future<List<int>> buscarIdDasEmpresasDoUsuario(String uid) async {
     final sql = script.buscarIdDasEmpresasDoUsuario(uid);
     final result = await _databaseService.executeSql2(sql, schema: 'public');
-    print(result);
     // Ajuste aqui para pegar pelo alias
     return result.map((e) => e['id_empresa'] as int).toList();
   }
@@ -59,7 +58,6 @@ class EmpresaController {
       }
       return null;
     } catch (e) {
-      print('Erro ao buscar empresa do SharedPreferences: $e');
       return null;
     }
   }

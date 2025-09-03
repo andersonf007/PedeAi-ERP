@@ -27,7 +27,6 @@ class Produtocontroller {
       final resultado = await _databaseService.executeSqlInserirProduto(params: dados);
       return resultado.first['id'] as int;
     } catch (e) {
-      print('Erro ao inserir produto: $e');
       throw Exception('Erro ao inserir produto: $e');
     }
   }
@@ -56,7 +55,6 @@ class Produtocontroller {
 
       return produtos;
     } catch (e) {
-      print('Erro ao listar produtos: $e');
       return [];
     }
   }
@@ -84,7 +82,6 @@ class Produtocontroller {
 
       return produtos;
     } catch (e) {
-      print('Erro ao listar produtos: $e');
       return [];
     }
   }
@@ -109,7 +106,6 @@ class Produtocontroller {
 
       return produto;
     } catch (e) {
-      print('Erro ao buscar produto por ID: $e');
       return null;
     }
   }
@@ -130,7 +126,6 @@ class Produtocontroller {
 
       await _databaseService.executeSqlUpdate(sql: query, schema: empresa.schema);
     } catch (e) {
-      print('Erro ao atualizar produto: $e');
       throw Exception('Erro ao atualizar produto: $e');
     }
   }
@@ -151,7 +146,6 @@ class Produtocontroller {
 
       await _databaseService.executeSqlUpdate(sql: query, schema: empresa.schema);
     } catch (e) {
-      print('Erro ao atualizar produto: $e');
       throw Exception('Erro ao atualizar produto: $e');
     }
   }
@@ -160,7 +154,6 @@ class Produtocontroller {
     try {
       return await _databaseService.uploadImage(file);
     } catch (e) {
-      print('Erro ao fazer upload da imagem: $e');
       throw Exception('Erro ao fazer upload da imagem: $e');
     }
   }
@@ -263,7 +256,6 @@ class Produtocontroller {
       return produtos;
 
     } catch (e) {
-      print('Erro ao buscar produtos: $e');
       return [];
     }
   }

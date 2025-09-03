@@ -186,8 +186,7 @@ class VendaController {
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
       String? uidUsuario = await usuarioController.getUidUsuarioFromSharedPreferences();
       final nomeDispositivo = await getDeviceName();
-      // print para auditoria
-      // print(nomeDispositivo);
+ 
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
       }

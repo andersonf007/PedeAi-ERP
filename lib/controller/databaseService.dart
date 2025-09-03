@@ -10,7 +10,6 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> executeSql(String sql, {Map<String, dynamic>? params, required String schema}) async {
     try {
       String finalSql = sql.replaceAll('{schema}', schema);
-      print(finalSql);
       final response = await _client.rpc('execute_sql', params: {'sql_query': finalSql, if (params != null) 'query_params': params});
       if (response is List) {
         if (response.isNotEmpty && response.first is int) {
@@ -38,7 +37,6 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> executeSql2(String sql, {Map<String, dynamic>? params, required String schema}) async {
     try {
       String finalSql = sql.replaceAll('{schema}', schema);
-      print(finalSql);
       final response = await _client.rpc('execute_sql2', params: {'sql_query': finalSql, if (params != null) 'query_params': params});
       if (response is List) {
         if (response.isNotEmpty && response.first is int) {
@@ -65,7 +63,6 @@ class DatabaseService {
 
   Future<List<Map<String, dynamic>>> executeSqlInserirProduto({Map<String, dynamic>? params}) async {
     try {
-      print('SQL Inserir Produto: $params');
       final response = await _client.rpc('inserir_produto', params: params);
       if (response is List) {
         if (response.isNotEmpty && response.first is int) {
@@ -96,9 +93,7 @@ class DatabaseService {
 
   Future<List<Map<String, dynamic>>> executeSqlListar({String? sql}) async {
     try {
-      print('SQL Listar: $sql');
       final response = await _adminClient.rpc('execute_sql_permissao_todal', params: {'sql_query': sql});
-      print("Resposta bruta do Supabase: ${response.runtimeType} => $response");
 
       if (response == null) return [];
 
@@ -111,14 +106,9 @@ class DatabaseService {
   Future<void> executeSqlUpdate({required String sql, required String schema, Map<String, dynamic>? params}) async {
     try {
       String finalSql = sql.replaceAll('{schema}', schema);
-      print('SQL Update: $finalSql');
-      print('Params: $params');
-
       final response = await _client.rpc('executar_update', params: {'update_sql': finalSql});
 
-      print('Update executado com sucesso');
     } catch (e) {
-      print('Erro no update: $e');
       throw Exception('Erro ao executar UPDATE SQL: ${e.toString()}');
     }
   }
@@ -138,18 +128,15 @@ class DatabaseService {
 
       return publicUrl;
     } catch (e) {
-      print('Erro ao enviar: $e');
       return null;
     }
   }
 
   Future<List<Map<String, dynamic>>> listagemSimplesDeProdutos(String schema) async {
     try {
-      print('Chamando listagemSimplesDeProdutos para schema: $schema');
 
       final response = await _client.rpc('listagem_simples_de_produtos', params: {'schema_empresa': schema});
 
-      print("Resposta bruta do Supabase: ${response.runtimeType} => $response");
 
       if (response == null) return [];
 
@@ -163,7 +150,6 @@ class DatabaseService {
     try {
       final params = {'schema_empresa': schema, 'p_venda': venda, 'p_itens_venda': itensVenda, 'p_itens_caixa': itensCaixa, 'p_itens_estoque': itensEstoque};
 
-      print('SQL Inserir Venda PDV: $params');
 
       final response = await _client.rpc('inserir_venda_pdv', params: params);
 
@@ -178,7 +164,6 @@ class DatabaseService {
 
       return null;
     } catch (e) {
-      print(e.toString());
       throw Exception('Erro ao executar SQL inserir_venda_completa: ${e.toString()}');
     }
   }
@@ -186,8 +171,6 @@ class DatabaseService {
   Future<void> fecharCaixa({required String schema, required List<Map<String, dynamic>> pagamentos, required Map<String, dynamic> caixa}) async {
     try {
       final params = {'schema_empresa': schema, 'p_formas_pagamento': pagamentos, 'p_caixa': caixa};
-
-      print('Fechar caixa params: $params');
 
       await _client.rpc('fechar_caixa', params: params);
     } catch (e) {

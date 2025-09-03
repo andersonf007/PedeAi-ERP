@@ -127,8 +127,6 @@ class _FechamentoCaixaPageState extends State<FechamentoCaixaPage> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () async {
-                    print('Fechar caixa pressed');
-                    print(pagamentos);
                     try {
                       // Monta lista de pagamentos
                       List<Map<String, dynamic>> pagamentosMap = pagamentos.map((p) => {'id_caixa': caixa.id, 'id_forma_de_pagamento': p['id'], 'valor': p['valor'], 'tipo_forma_pagamento_id': p['tipo_forma_pagamento_id']}).toList();

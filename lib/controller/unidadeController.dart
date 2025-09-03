@@ -59,7 +59,6 @@ class Unidadecontroller {
 
       return unidades;
     } catch (e) {
-      print('Erro ao listar Unidades: $e');
       return [];
     }
   }

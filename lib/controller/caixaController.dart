@@ -32,7 +32,6 @@ class CaixaCotroller {
       String? uidUsuario = await usuarioController.getUidUsuarioFromSharedPreferences();
 
       String sql = _scriptCaixa.inserirCaixa(empresa!.schema, {'aberto': true, 'data_abertura': DateTime.now(), 'id_usuario_abertura': "'$uidUsuario'", 'valor_abertura': valor, 'periodo_abertura': periodo});
-      print(sql);
       final resultado = await _databaseService.executeSql(sql, schema: empresa.schema);
       int idCaixa = resultado.first['id'] as int;
       if (idCaixa != -1) {
@@ -78,7 +77,6 @@ class CaixaCotroller {
       }
       String sql = _scriptCaixa.buscarPagamentosRealizadosNoCaixa(empresa!.schema, idCaixa!);
       final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
-      print(resultado);
       return List<Map<String, dynamic>>.from(resultado);
     } catch (e) {
       throw CaixaCotrollerException('Erro ao buscar pagamentos realizados no caixa: $e');
