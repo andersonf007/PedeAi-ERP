@@ -3,6 +3,7 @@ import 'package:pedeai/app_nav_bar.dart';
 import 'package:pedeai/view/home/drawer.dart';
 import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/theme/color_tokens.dart';
+import 'package:pedeai/utils/caixa_helper.dart';
 
 class ListagemVendasPage extends StatefulWidget {
   const ListagemVendasPage({Key? key}) : super(key: key);
@@ -217,6 +218,25 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
                       },
                     ),
                   ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: () async {
+                  await CaixaHelper.verificarCaixaAbertoENavegar(context, '/pdv');
+                },
+                child: const Text('Nova venda'),
+              ),
+            ),
           ),
         ],
       ),
