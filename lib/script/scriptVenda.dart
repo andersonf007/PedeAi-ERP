@@ -1,56 +1,77 @@
 class ScriptVenda {
-  String detectarFonteVendas(String schema) {
+  String buscarVendas(String schema, String datainicial, String datafinal) {
     return """
-      SELECT tablename
-      FROM pg_catalog.pg_tables
-      WHERE schemaname = '{schema}'
-        AND (
-          tablename IN ('vw_vendas_resumo','vendas','venda')
-          OR tablename ILIKE '%venda%'
-        )
-      ORDER BY CASE
-        WHEN tablename = 'vw_vendas_resumo' THEN 0
-        WHEN tablename = 'vendas' THEN 1
-        WHEN tablename = 'venda' THEN 2
-        ELSE 10
-      END, tablename
-      LIMIT 1;
+      SELECT 
+        v.id,
+        v.data_abertura,
+        v.valor_total,
+        v.tipo_venda,
+        v.id_caixa,
+        --v.id_cliente,
+        --c.nome,
+        s.descricao
+      FROM $schema.venda v 
+      JOIN $schema.caixa c ON c.id = v.id_caixa
+      JOIN public.situacao_venda s ON s.id = v.situacao_venda
+      --LEFT JOIN public.cliente c ON c.id = v.id_cliente
+      WHERE c.data_abertura BETWEEN '$datainicial 00:00:00' AND '$datafinal 23:59:59'
+      ORDER BY v.data_abertura DESC
     """;
   }
 
-  String detectarColunaData(String schema, String fonte) {
+  String buscarItensDaVenda(String schema, int idVenda) {
     return """
-      SELECT column_name AS col
-      FROM information_schema.columns
-      WHERE table_schema = '{schema}' AND table_name = '$fonte'
-        AND column_name IN ('data','data_venda','created_at','data_fechamento','data_abertura')
-      ORDER BY CASE column_name
-        WHEN 'data' THEN 0
-        WHEN 'data_venda' THEN 1
-        WHEN 'created_at' THEN 2
-        WHEN 'data_fechamento' THEN 3
-        WHEN 'data_abertura' THEN 4
-        ELSE 10 END
-      LIMIT 1;
+      SELECT 
+        s.descricao as situacao,
+        vi.quantidade,
+        vi.preco_unitario,
+        vi.preco_total,
+        p.descricao
+      FROM $schema.venda v 
+      JOIN $schema.venda_item vi on vi.id_venda = v.id
+      join public.produtos p on p.id = vi.id_produto
+      JOIN public.situacao_venda s ON s.id = v.situacao_venda
+      WHERE 
+        v.id = $idVenda
+        AND vi.situacao = 10
     """;
   }
 
-  String montarListagem(String schema, String fonte, {String? colunaData, DateTime? inicio, DateTime? fim, int limit = 500}) {
-    final hasFiltro = (colunaData != null && (inicio != null || fim != null));
+String buscarFormasDePagamentoDaVenda(String schema, int idVenda) {
+  return """
+    SELECT 
+      ci.valor,
+      ci.troco,
+      f.nome
+    FROM $schema.venda v 
+    LEFT JOIN $schema.caixa_item ci on v.id = ci.id_venda
+    left join $schema.forma_pagamento f on f.id = ci.id_forma_pagamento
+    JOIN public.situacao_venda s ON s.id = v.situacao_venda
+    --LEFT JOIN public.cliente c ON c.id = v.id_cliente
+    WHERE 
+      v.id = $idVenda
+  """;
+}
 
-    String where = '';
-    if (hasFiltro) {
-      final startIso = (inicio ?? DateTime(1970)).toIso8601String();
-      final endRaw = fim ?? DateTime.now();
-      final end = DateTime(endRaw.year, endRaw.month, endRaw.day, 23, 59, 59);
-      final endIso = end.toIso8601String();
-      where = "WHERE \"$colunaData\" BETWEEN '$startIso' AND '$endIso'";
-    }
-
-    final orderBy = (colunaData != null) ? 'ORDER BY "' + colunaData + '" DESC' : 'ORDER BY 1 DESC';
-    final dataAlias = (colunaData != null) ? ', "' + colunaData + '" as data' : ', NULL as data';
-
-    // Observação: o alias "data" é útil para a tela usar fallback consistente
-    return 'SELECT *' + dataAlias + ' FROM ' + schema + '.' + fonte + (where.isEmpty ? '' : ' ' + where) + ' ' + orderBy + ' LIMIT ' + limit.toString();
-  }
+String buscarDadosDaVenda(String schema, int idVenda) {
+  return """
+    SELECT 
+      v.id,
+      v.data_abertura,
+      v.valor_total,
+      v.tipo_venda,
+      v.id_caixa,
+      v.desconto,
+      v.acrescimo,
+      s.descricao as situacao,
+      v.cpf_cliente,
+      c.aberto
+    FROM $schema.venda v 
+    JOIN $schema.caixa c ON c.id = v.id_caixa
+    JOIN public.situacao_venda s ON s.id = v.situacao_venda
+    --LEFT JOIN public.cliente c ON c.id = v.id_cliente
+    WHERE 
+      v.id = $idVenda
+  """;
+}
 }

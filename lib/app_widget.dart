@@ -78,8 +78,11 @@ class _AppWidgetState extends State<AppWidget> {
 
             '/aberturaCaixa': (context) => AberturaCaixaPage(),
             '/fechamentoCaixa': (context) => FechamentoCaixaPage(),
-            '/listVendas': (context) => ListVendasPage(),
-            '/venda-detalhe': (context) => const VendaDetalhePage(),
+            '/listVendas': (context) => ListagemVendasPage(),
+            '/venda-detalhe': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+              return VendaDetalhePage(idVenda: args?['idVenda'] ?? 0);
+            },
           },
         );
       },
