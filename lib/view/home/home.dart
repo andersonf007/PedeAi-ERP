@@ -37,11 +37,47 @@ class _HomePageState extends State<HomePage> {
 
   final CaixaCotroller _caixaController = CaixaCotroller();
 
+  double receitaMes = 0.00;
+  double receitaDiaPdv = 0.00;
+  double receitaCanceladaDia = 0.00;
+  double despesa = 0.00;
+
   @override
   void initState() {
     super.initState();
     _loadPrefs();
+    _carregarValoresCaixa();
   }
+
+  Future<void> _carregarValoresCaixa() async {
+    try {
+      final receitaMesValor = await _caixaController.buscarReceitaDoMes();
+      final receitaDiaPdvValor = await _caixaController.buscarReceitaDoDiaDoPdv();
+      final receitaCanceladaDiaValor = await _caixaController.buscarReceitaCanceladaDoDia();
+
+      setState(() {
+        receitaMes = _formatarValor(receitaMesValor);
+        receitaDiaPdv = _formatarValor(receitaDiaPdvValor);
+        receitaCanceladaDia = _formatarValor(receitaCanceladaDiaValor);
+        despesa = 0.00;
+      });
+    } catch (e) {
+      setState(() {
+        receitaMes = 0.00;
+        receitaDiaPdv = 0.00;
+        receitaCanceladaDia = 0.00;
+        despesa = 0.00;
+      });
+    }
+  }
+
+  double _formatarValor(dynamic valor) {
+    if (valor == null) return 0.00;
+    if (valor is num) return double.parse(valor.toStringAsFixed(2));
+    return double.tryParse(valor.toString())?.toDouble() ?? 0.00;
+  }
+
+  String _formatarMoeda(double valor) => 'R\$ ${valor.toStringAsFixed(2)}';
 
   Future<void> _loadPrefs() async {
     final sp = await SharedPreferences.getInstance();
@@ -89,6 +125,8 @@ class _HomePageState extends State<HomePage> {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
+    final saldo = receitaMes - despesa;
+
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
@@ -116,21 +154,21 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (showCashflow) ...[
-              const _SectionHeader('Fluxo de Caixa'),
+              const _SectionHeader('Fluxo de Caixa do Mês'),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
-                    child: _financeCard(context, label: 'Receita', value: 'R\$ 12.500,00', base: Colors.green),
+                    child: _financeCard(context, label: 'Receita', value: _formatarMoeda(receitaMes), base: Colors.green),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _financeCard(context, label: 'Despesas', value: 'R\$ 8.200,00', base: Colors.red),
+                    child: _financeCard(context, label: 'Despesas', value: _formatarMoeda(despesa), base: Colors.red),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              _financeCard(context, label: 'Saldo', value: 'R\$ 4.300,00', base: Theme.of(context).colorScheme.primary, fullWidth: true),
+              _financeCard(context, label: 'Saldo', value: _formatarMoeda(saldo), base: Theme.of(context).colorScheme.primary, fullWidth: true),
               const SizedBox(height: 24),
             ],
 
@@ -140,16 +178,16 @@ class _HomePageState extends State<HomePage> {
 
               Row(
                 children: [
-                  if (sumCounter) Expanded(child: _summaryCard(context, 'Vendas no Balcão', 'R\$ 2.300,00')),
+                  if (sumCounter) Expanded(child: _summaryCard(context, 'Vendas no PDV', _formatarMoeda(receitaDiaPdv))),
                   if (sumCounter && sumDelivery) const SizedBox(width: 12),
-                  if (sumDelivery) Expanded(child: _summaryCard(context, 'Vendas por Entrega', 'R\$ 1.500,00')),
+                  if (sumDelivery) Expanded(child: _summaryCard(context, 'Vendas canceladas', _formatarMoeda(receitaCanceladaDia))),
                 ],
               ),
               if (sumCounter || sumDelivery) const SizedBox(height: 12),
 
               Row(
                 children: [
-                  if (sumExpense) Expanded(child: _summaryCard(context, 'Despesas', 'R\$ 800,00')),
+                  if (sumExpense) Expanded(child: _summaryCard(context, 'Despesas', _formatarMoeda(despesa))),
                   if (sumExpense && sumReceipt) const SizedBox(width: 12),
                   if (sumReceipt) Expanded(child: _summaryCard(context, 'Recibos', 'R\$ 1.200,00')),
                 ],
