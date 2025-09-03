@@ -158,20 +158,20 @@ class _DrawerPageState extends State<DrawerPage> {
                           _NavItem(icon: Icons.point_of_sale, label: 'PDV', selected: current == '/pdv', onTap: () => CaixaHelper.verificarCaixaAbertoENavegar(context, '/pdv')),
                         ],
                       ),
-
-                      // ENTRADAS SOLTAS
-                      _PlainEntry(icon: Icons.warehouse, label: 'Estoque', selected: current == '/estoque', onTap: () => _go(context, '/estoque')),
                       _NavSection(
                         keyValue: 'caixa',
                         title: 'Caixa',
-                        icon: Icons.shopping_cart_outlined,
+                        icon: Icons.point_of_sale_outlined,
                         isOpen: _openKey == 'caixa',
                         onToggle: () => _toggle('caixa'),
                         children: [
-                          _NavItem(icon: Icons.point_of_sale, label: 'Abertura de caixa', selected: current == '/aberturaCaixa', onTap: () => _go(context, '/aberturaCaixa')),
-                          _NavItem(icon: Icons.point_of_sale, label: 'Fechamento de caixa', selected: current == '/fechamentoCaixa', onTap: () => _go(context, '/fechamentoCaixa')),
+                          _NavItem(icon: Icons.menu_book_outlined, label: 'Abertura de caixa', selected: current == '/aberturaCaixa', onTap: () => _go(context, '/aberturaCaixa')),
+                          _NavItem(icon: Icons.book, label: 'Fechamento de caixa', selected: current == '/fechamentoCaixa', onTap: () => _go(context, '/fechamentoCaixa')),
                         ],
                       ),
+
+                      // ENTRADAS SOLTAS
+                      _PlainEntry(icon: Icons.warehouse, label: 'Estoque', selected: current == '/estoque', onTap: () => _go(context, '/estoque')),
                       _PlainEntry(icon: Icons.attach_money, label: 'Financeiro', selected: current == '/financeiro', onTap: () => _go(context, '/financeiro')),
                       _PlainEntry(icon: Icons.business, label: 'Empresa', selected: current == '/empresa', onTap: () => _go(context, '/empresa')),
                       _PlainEntry(icon: Icons.settings, label: 'Configurações', selected: current == '/config', onTap: () => _go(context, '/config')),
