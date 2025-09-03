@@ -107,4 +107,18 @@ class VendaController {
       throw Exception('Erro ao inserir venda: $e');
     }
   }
+
+  Future<void> cancelarVenda(int idVenda) async {
+    try {
+      final empresa = await empresaController.getEmpresaFromSharedPreferences();
+      if (empresa == null) throw Exception('Empresa não encontrada');
+
+      await _databaseService.cancelarVendaFunction(
+        schemaEmpresa: empresa.schema,
+        idVenda: idVenda,
+      );
+    } catch (e) {
+      throw Exception('Erro ao cancelar venda: $e');
+  }
+}
 }

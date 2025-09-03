@@ -52,9 +52,11 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
   double get valorTotalVendas {
     double total = 0.0;
     for (final venda in vendas) {
-      final valor = venda['valor_total'] ?? venda['valor'] ?? 0;
-
-      total += (valor is num) ? valor.toDouble() : double.tryParse(valor.toString()) ?? 0.0;
+      final status = venda['descricao']?.toString() ?? '';
+      if (status == 'Fechada') {
+        final valor = venda['valor_total'] ?? venda['valor'] ?? 0;
+        total += (valor is num) ? valor.toDouble() : double.tryParse(valor.toString()) ?? 0.0;
+      }
     }
     return total;
   }

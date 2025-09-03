@@ -37,8 +37,8 @@ class ScriptVenda {
     """;
   }
 
-String buscarFormasDePagamentoDaVenda(String schema, int idVenda) {
-  return """
+  String buscarFormasDePagamentoDaVenda(String schema, int idVenda) {
+    return """
     SELECT 
       ci.valor,
       ci.troco,
@@ -51,10 +51,10 @@ String buscarFormasDePagamentoDaVenda(String schema, int idVenda) {
     WHERE 
       v.id = $idVenda
   """;
-}
+  }
 
-String buscarDadosDaVenda(String schema, int idVenda) {
-  return """
+  String buscarDadosDaVenda(String schema, int idVenda) {
+    return """
     SELECT 
       v.id,
       v.data_abertura,
@@ -73,5 +73,5 @@ String buscarDadosDaVenda(String schema, int idVenda) {
     WHERE 
       v.id = $idVenda
   """;
-}
+  }
 }

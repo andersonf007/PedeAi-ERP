@@ -298,8 +298,13 @@ class _VendaDetalhePageState extends State<VendaDetalhePage> {
                     child: ElevatedButton(
                       onPressed: (caixaAberto && status == 'Fechada')
                           ? () async {
-                              // TODO: implementar cancelamento da venda
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cancelar venda ainda não implementado.'), backgroundColor: Colors.orange));
+                              try {
+                                await controladorVenda.cancelarVenda(widget.idVenda);
+                                await _carregarDados();
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Venda cancelada com sucesso!'), backgroundColor: Colors.green));
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao cancelar venda: $e'), backgroundColor: Colors.red));
+                              }
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
