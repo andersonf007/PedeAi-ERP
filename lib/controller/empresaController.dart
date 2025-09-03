@@ -45,7 +45,6 @@ class EmpresaController {
     return dados;
   }
 
-
   // Buscar dados da empresa no SharedPreferences
   Future<Empresa?> getEmpresaFromSharedPreferences() async {
     try {
@@ -60,5 +59,14 @@ class EmpresaController {
     } catch (e) {
       return null;
     }
+  }
+
+  Future<void> atualizarDadosEmpresa(Map<String, dynamic> empresaAtualizada) async {
+    final script = ScriptEmpresa();
+    final sql = script.atualizarDadosEmpresa(empresaAtualizada);
+    await _databaseService.executeSqlUpdate(sql: sql, schema: 'public');
+    // Atualiza os dados no SharedPreferences
+    prefs = await SharedPreferences.getInstance();
+    await prefs.setString('empresa', jsonEncode(empresaAtualizada));
   }
 }

@@ -4,6 +4,7 @@ import 'package:pedeai/theme/app_theme.dart';
 import 'package:pedeai/model/usuario.dart';
 import 'package:pedeai/view/caixa/abertura.dart';
 import 'package:pedeai/view/caixa/fechamento.dart';
+import 'package:pedeai/view/empresa/empresa.dart';
 import 'package:pedeai/view/estoque/estoque.dart';
 import 'package:pedeai/view/cadastro/categoria/Categoria.dart';
 import 'package:pedeai/view/cadastro/unidade/Unidade.dart';
@@ -83,6 +84,7 @@ class _AppWidgetState extends State<AppWidget> {
               final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
               return VendaDetalhePage(idVenda: args?['idVenda'] ?? 0);
             },
+            '/empresa': (context) => EmpresaPage(),
           },
         );
       },
