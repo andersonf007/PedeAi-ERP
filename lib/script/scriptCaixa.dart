@@ -21,7 +21,9 @@ class ScriptCaixa {
       join ${schema}.venda v on v.id = ci.id_venda
       join ${schema}.caixa c on c.id = v.id_caixa
       join ${schema}.forma_pagamento f on f.id = ci.id_forma_pagamento
-      where v.id_caixa = $idCaixa
+      where 
+        v.id_caixa = $idCaixa
+        and v.situacao_venda = 1
       group by 
       1,3,4''';
   }
