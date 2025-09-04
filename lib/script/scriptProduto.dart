@@ -43,6 +43,8 @@ class ScriptProduto{
       pe.ativo,
       pe.id_categoria,
       pe.id_unidade,
+      pe.id_fornecedor,
+      pe.nome_fornecedor,
       e.quantidade
     FROM public.produtos p
     INNER JOIN ${schema}.produto_empresa pe ON p.id = pe.produto_id_public
@@ -60,7 +62,7 @@ class ScriptProduto{
     WHERE id = :produto_id_public;
     
     UPDATE ${schema}.produto_empresa 
-    SET ativo = :ativo, preco_custo = :preco_custo, preco_venda = :preco_venda, validade = :validade, image_url = :image_url, id_categoria = :id_categoria, id_unidade = :id_unidade 
+    SET ativo = :ativo, preco_custo = :preco_custo, preco_venda = :preco_venda, validade = :validade, image_url = :image_url, id_categoria = :id_categoria, id_unidade = :id_unidade, id_fornecedor = :id_fornecedor, nome_fornecedor = :nome_fornecedor
     WHERE produto_id_public = :produto_id_public;
     """;
 

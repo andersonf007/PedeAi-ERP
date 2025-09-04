@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:pedeai/controller/estoqueController.dart';
+import 'package:pedeai/controller/fornecedorController.dart';
 import 'package:pedeai/controller/produtoController.dart';
 import 'package:pedeai/controller/categoriaController.dart';
 import 'package:pedeai/controller/unidadeController.dart';
@@ -26,8 +27,7 @@ class CadastroProdutoPage extends StatefulWidget {
   State<CadastroProdutoPage> createState() => _CadastroProdutoPageState();
 }
 
-class _CadastroProdutoPageState extends State<CadastroProdutoPage>
-    with SingleTickerProviderStateMixin {
+class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   // Controllers
@@ -47,6 +47,8 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
   List<Unidade> _unidades = [];
   Categoria? _selectedCategory;
   Unidade? _selectedUnit;
+  int? _idFornecedorSelecionado;
+  String? _nomeFornecedorSelecionado;
 
   bool _isLoading = false;
   bool _isEdicao = false;
@@ -78,9 +80,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
     return double.tryParse(s) ?? 0.0;
   }
 
-  List<TextInputFormatter> get _decimalInputFormatters => [
-        FilteringTextInputFormatter.allow(RegExp(r'^\d*[,.]?\d{0,2}$')),
-      ];
+  List<TextInputFormatter> get _decimalInputFormatters => [FilteringTextInputFormatter.allow(RegExp(r'^\d*[,.]?\d{0,2}$'))];
 
   Future<void> _carregarListasUnidade() async {
     try {
@@ -92,8 +92,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao carregar listas de unidade: $e',
-              style: TextStyle(color: cs.onError)),
+          content: Text('Erro ao carregar listas de unidade: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -110,8 +109,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao carregar listas de categoria: $e',
-              style: TextStyle(color: cs.onError)),
+          content: Text('Erro ao carregar listas de categoria: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -123,8 +121,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
     setState(() => _isLoading = true);
 
     try {
-      final produto =
-          await produtocontroller.buscarProdutoPorId(widget.produtoId!);
+      final produto = await produtocontroller.buscarProdutoPorId(widget.produtoId!);
 
       if (!mounted) return;
 
@@ -147,20 +144,16 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           _precoCustoController.text = produto.precoCusto.toString();
 
           if (produto.id_categoria != null && _categorias.isNotEmpty) {
-            _selectedCategory = _categorias.firstWhere(
-              (c) => c.id == produto.id_categoria,
-              orElse: () => _categorias.first,
-            );
+            _selectedCategory = _categorias.firstWhere((c) => c.id == produto.id_categoria, orElse: () => _categorias.first);
           }
           if (produto.id_unidade != null && _unidades.isNotEmpty) {
-            _selectedUnit = _unidades.firstWhere(
-              (u) => u.id == produto.id_unidade,
-              orElse: () => _unidades.first,
-            );
+            _selectedUnit = _unidades.firstWhere((u) => u.id == produto.id_unidade, orElse: () => _unidades.first);
           }
 
           imageUrl = produto.image_url ?? '';
           _ativo = produto.ativo ?? true;
+          _idFornecedorSelecionado = produto.id_fornecedor;
+          _nomeFornecedorSelecionado = produto.nome_fornecedor ?? '';
           _isLoading = false;
         });
       } else {
@@ -168,8 +161,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
         final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Produto não encontrado!',
-                style: TextStyle(color: cs.onError)),
+            content: Text('Produto não encontrado!', style: TextStyle(color: cs.onError)),
             backgroundColor: cs.error,
           ),
         );
@@ -181,8 +173,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Erro ao carregar produto: $e', style: TextStyle(color: cs.onError)),
+          content: Text('Erro ao carregar produto: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -210,8 +201,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Erro ao enviar imagem: $e', style: TextStyle(color: cs.onError)),
+          content: Text('Erro ao enviar imagem: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -231,10 +221,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           backgroundColor: cs.surface,
           title: Text(
             'Nova Categoria',
-            style: tt.titleMedium?.copyWith(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            style: tt.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -259,18 +246,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
               onPressed: () => Navigator.of(ctx).pop(),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: cs.primary, foregroundColor: cs.onPrimary),
               child: const Text('Salvar'),
               onPressed: () async {
                 if (nomeController.text.isEmpty) return;
                 try {
-                  await categoriaController.inserirCategoria({
-                    'nome': nomeController.text,
-                    'descricao': descricaoController.text
-                  });
+                  await categoriaController.inserirCategoria({'nome': nomeController.text, 'descricao': descricaoController.text});
                   if (!mounted) return;
                   Navigator.of(ctx).pop();
                   await _carregarListasCategoria();
@@ -282,8 +263,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Categoria criada com sucesso!',
-                          style: TextStyle(color: cs.onPrimary)),
+                      content: Text('Categoria criada com sucesso!', style: TextStyle(color: cs.onPrimary)),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -291,8 +271,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Erro ao criar categoria: $e',
-                          style: TextStyle(color: cs.onError)),
+                      content: Text('Erro ao criar categoria: $e', style: TextStyle(color: cs.onError)),
                       backgroundColor: cs.error,
                     ),
                   );
@@ -318,10 +297,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           backgroundColor: cs.surface,
           title: Text(
             'Nova Unidade de Medida',
-            style: tt.titleMedium?.copyWith(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            style: tt.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -347,19 +323,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
               onPressed: () => Navigator.of(ctx).pop(),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: cs.primary, foregroundColor: cs.onPrimary),
               child: const Text('Salvar'),
               onPressed: () async {
-                if (nomeController.text.isEmpty ||
-                    siglaController.text.isEmpty) return;
+                if (nomeController.text.isEmpty || siglaController.text.isEmpty) return;
                 try {
-                  await unidadeController.inserirUnidade({
-                    'nome': nomeController.text,
-                    'sigla': siglaController.text
-                  });
+                  await unidadeController.inserirUnidade({'nome': nomeController.text, 'sigla': siglaController.text});
                   if (!mounted) return;
                   Navigator.of(ctx).pop();
                   await _carregarListasUnidade();
@@ -371,8 +340,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Unidade criada com sucesso!',
-                          style: TextStyle(color: cs.onPrimary)),
+                      content: Text('Unidade criada com sucesso!', style: TextStyle(color: cs.onPrimary)),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -380,8 +348,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Erro ao criar unidade: $e',
-                          style: TextStyle(color: cs.onError)),
+                      content: Text('Erro ao criar unidade: $e', style: TextStyle(color: cs.onError)),
                       backgroundColor: cs.error,
                     ),
                   );
@@ -389,6 +356,44 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
               },
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Future<void> _abrirPopupFornecedor() async {
+    final fornecedoresController = FornecedorController();
+    final fornecedores = await fornecedoresController.listarFornecedores();
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+          title: const Text('Selecione o fornecedor'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: fornecedores.isEmpty
+                ? Text('Nenhum fornecedor encontrado.')
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: fornecedores.length,
+                    itemBuilder: (context, index) {
+                      final fornecedor = fornecedores[index];
+                      return ListTile(
+                        title: Text('${fornecedor.id} - ${fornecedor.nomeFantasia ?? fornecedor.razaoSocial ?? ''}'),
+                        onTap: () {
+                          setState(() {
+                            _idFornecedorSelecionado = fornecedor.id;
+                            _nomeFornecedorSelecionado = fornecedor.nomeFantasia ?? fornecedor.razaoSocial ?? '';
+                          });
+                          Navigator.of(context).pop();
+                        },
+                      );
+                    },
+                  ),
+          ),
+          actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancelar'))],
         );
       },
     );
@@ -416,10 +421,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
         backgroundColor: cs.surface,
         title: Text(
           _isEdicao ? 'Editar Produto' : 'Cadastrar Produto',
-          style: tt.titleMedium?.copyWith(
-            color: cs.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
+          style: tt.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: cs.onSurface),
@@ -438,8 +440,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           indicatorColor: cs.primary,
           labelColor: cs.primary,
           unselectedLabelColor: cs.onSurface.withValues(alpha: 0.7),
-          labelStyle:
-              tt.labelLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+          labelStyle: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
           unselectedLabelStyle: tt.labelLarge?.copyWith(fontSize: 12),
           tabs: const [
             Tab(text: 'Dados Cadastrais'),
@@ -452,26 +453,9 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       ),
 
       // ⬇️ Barra de navegação inferior oficial do app
-      bottomNavigationBar: AppNavBar(
-        currentRoute: ModalRoute.of(context)?.settings.name,
-      ),
+      bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
 
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(cs.primary),
-              ),
-            )
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildDadosCadastrais(),
-                _buildEmptyTab('Dados Fiscais'),
-                _buildEmptyTab('Composição'),
-                _buildEmptyTab('Opcionais'),
-                _buildEmptyTab('Características'),
-              ],
-            ),
+      body: _isLoading ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(cs.primary))) : TabBarView(controller: _tabController, children: [_buildDadosCadastrais(), _buildEmptyTab('Dados Fiscais'), _buildEmptyTab('Composição'), _buildEmptyTab('Opcionais'), _buildEmptyTab('Características')]),
     );
   }
 
@@ -491,20 +475,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           _buildLabel('Código do Produto'),
           Row(
             children: [
-              Expanded(
-                child: _buildTextField(
-                  _codigoController,
-                  'Digite o código ou escaneie',
-                ),
-              ),
+              Expanded(child: _buildTextField(_codigoController, 'Digite o código ou escaneie')),
               const SizedBox(width: _gapSm),
               Container(
                 height: 48,
                 width: 48,
-                decoration: BoxDecoration(
-                  color: cs.surface,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8)),
                 child: IconButton(
                   icon: Icon(Icons.qr_code_scanner, color: cs.onSurface),
                   onPressed: () {},
@@ -513,7 +489,44 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
             ],
           ),
           const SizedBox(height: _gapMd),
-
+          _buildLabel('Fornecedor'),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: _abrirPopupFornecedor,
+                  child: AbsorbPointer(
+                    child: TextField(
+                      controller: TextEditingController(text: _idFornecedorSelecionado != null && _nomeFornecedorSelecionado != null ? '$_idFornecedorSelecionado - $_nomeFornecedorSelecionado' : ''),
+                      decoration: InputDecoration(
+                        hintText: 'Selecione o fornecedor',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(8)),
+                child: IconButton(
+                  icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.onSurface), // ícone de borracha
+                  tooltip: 'Limpar fornecedor',
+                  onPressed: () {
+                    setState(() {
+                      _idFornecedorSelecionado = null;
+                      _nomeFornecedorSelecionado = null;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: _gapMd),
           _buildLabel('Categoria'),
           Row(
             children: [
@@ -522,10 +535,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
               Container(
                 height: 48,
                 width: 48,
-                decoration: BoxDecoration(
-                  color: cs.surface,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8)),
                 child: IconButton(
                   icon: Icon(Icons.add, color: cs.onSurface),
                   onPressed: _showCategoriaPopup,
@@ -543,10 +553,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
               Container(
                 height: 48,
                 width: 48,
-                decoration: BoxDecoration(
-                  color: cs.surface,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8)),
                 child: IconButton(
                   icon: Icon(Icons.add, color: cs.onSurface),
                   onPressed: _showUnidadePopup,
@@ -557,45 +564,21 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           const SizedBox(height: _gapMd),
 
           _buildLabel('Preço de Custo'),
-          _buildTextField(
-            _precoCustoController,
-            'R\$ 0,00',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: _decimalInputFormatters,
-          ),
+          _buildTextField(_precoCustoController, 'R\$ 0,00', keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: _decimalInputFormatters),
           const SizedBox(height: _gapMd),
 
           _buildLabel('Preço de Venda'),
-          _buildTextField(
-            _precoVendaController,
-            'R\$ 0,00',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: _decimalInputFormatters,
-          ),
+          _buildTextField(_precoVendaController, 'R\$ 0,00', keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: _decimalInputFormatters),
           const SizedBox(height: _gapMd),
 
           _buildLabel(_isEdicao ? 'Estoque Atual' : 'Estoque Inicial'),
-          _buildTextField(
-            _estoqueController,
-            '0',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: _decimalInputFormatters,
-            readOnly: _isEdicao,
-          ),
+          _buildTextField(_estoqueController, '0', keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: _decimalInputFormatters, readOnly: _isEdicao),
           const SizedBox(height: _gapMd),
 
           Row(
             children: [
-              Checkbox(
-                value: _ativo,
-                onChanged: (value) => setState(() => _ativo = value ?? true),
-                activeColor: cs.primary,
-                checkColor: cs.onPrimary,
-              ),
-              Text(
-                'Produto Ativo',
-                style: tt.bodyMedium?.copyWith(color: cs.onSurface),
-              ),
+              Checkbox(value: _ativo, onChanged: (value) => setState(() => _ativo = value ?? true), activeColor: cs.primary, checkColor: cs.onPrimary),
+              Text('Produto Ativo', style: tt.bodyMedium?.copyWith(color: cs.onSurface)),
             ],
           ),
           const SizedBox(height: _gapMd),
@@ -612,16 +595,13 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                 lastDate: DateTime(2100),
                 builder: (ctx, child) {
                   return Theme(
-                    data: Theme.of(ctx).copyWith(
-                      colorScheme: Theme.of(ctx).colorScheme,
-                    ),
+                    data: Theme.of(ctx).copyWith(colorScheme: Theme.of(ctx).colorScheme),
                     child: child!,
                   );
                 },
               );
               if (pickedDate != null) {
-                _validadeController.text =
-                    "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+                _validadeController.text = "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
               }
             },
           ),
@@ -634,13 +614,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
             child: Stack(
               children: [
                 if (_isUploadingImage)
-                  Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation(
-                        Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  )
+                  Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Theme.of(context).colorScheme.primary)))
                 else if ((imageUrl ?? '').isNotEmpty)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -649,15 +623,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                       width: double.infinity,
                       height: 100,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
-                        ),
-                      ),
+                      errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
                     ),
                   ),
                 if (!_isUploadingImage)
@@ -670,8 +636,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                         final cs = Theme.of(context).colorScheme;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Erro ao enviar imagem: $e',
-                                style: TextStyle(color: cs.onError)),
+                            content: Text('Erro ao enviar imagem: $e', style: TextStyle(color: cs.onError)),
                             backgroundColor: cs.error,
                           ),
                         );
@@ -681,16 +646,9 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                       width: double.infinity,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: (imageUrl ?? '').isNotEmpty
-                            ? Colors.transparent
-                            : Theme.of(context).colorScheme.surface,
+                        color: (imageUrl ?? '').isNotEmpty ? Colors.transparent : Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.2),
-                        ),
+                        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2)),
                       ),
                       child: (imageUrl ?? '').isNotEmpty
                           ? Align(
@@ -698,39 +656,17 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Icon(Icons.edit,
-                                      color: Colors.white, size: 24),
+                                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(20)),
+                                  child: const Icon(Icons.edit, color: Colors.white, size: 24),
                                 ),
                               ),
                             )
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
-                                  Icons.add_a_photo,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.6),
-                                  size: 30,
-                                ),
+                                Icon(Icons.add_a_photo, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), size: 30),
                                 const SizedBox(height: _gapSm),
-                                Text(
-                                  'Adicionar Imagem',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withValues(alpha: 0.6),
-                                      ),
-                                ),
+                                Text('Adicionar Imagem', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6))),
                               ],
                             ),
                     ),
@@ -749,13 +685,8 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                textStyle: Theme.of(context)
-                    .textTheme
-                    .labelLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               child: Text(_isEdicao ? 'Atualizar Produto' : 'Cadastrar Produto'),
             ),
@@ -772,12 +703,8 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
       filled: true,
       fillColor: cs.surface,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
   }
 
@@ -786,10 +713,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8)),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<Categoria>(
           value: _selectedCategory,
@@ -797,13 +721,14 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           dropdownColor: cs.surface,
           style: TextStyle(color: cs.onSurface),
           icon: Icon(Icons.arrow_drop_down, color: cs.onSurface.withValues(alpha: 0.7)),
-          hint: Text('Selecione a categoria',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
+          hint: Text('Selecione a categoria', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
           items: _categorias
-              .map((c) => DropdownMenuItem<Categoria>(
-                    value: c,
-                    child: Text(c.nome, style: TextStyle(color: cs.onSurface)),
-                  ))
+              .map(
+                (c) => DropdownMenuItem<Categoria>(
+                  value: c,
+                  child: Text(c.nome, style: TextStyle(color: cs.onSurface)),
+                ),
+              )
               .toList(),
           onChanged: (Categoria? categoria) {
             setState(() => _selectedCategory = categoria);
@@ -818,10 +743,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8)),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<Unidade>(
           value: _selectedUnit,
@@ -829,14 +751,14 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
           dropdownColor: cs.surface,
           style: TextStyle(color: cs.onSurface),
           icon: Icon(Icons.arrow_drop_down, color: cs.onSurface.withValues(alpha: 0.7)),
-          hint: Text('Selecione a unidade',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
+          hint: Text('Selecione a unidade', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
           items: _unidades
-              .map((u) => DropdownMenuItem<Unidade>(
-                    value: u,
-                    child: Text('${u.nome} (${u.sigla})',
-                        style: TextStyle(color: cs.onSurface)),
-                  ))
+              .map(
+                (u) => DropdownMenuItem<Unidade>(
+                  value: u,
+                  child: Text('${u.nome} (${u.sigla})', style: TextStyle(color: cs.onSurface)),
+                ),
+              )
               .toList(),
           onChanged: (Unidade? unidade) {
             setState(() => _selectedUnit = unidade);
@@ -855,14 +777,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
         children: [
           Icon(Icons.construction, color: cs.onSurface.withValues(alpha: 0.6), size: 60),
           const SizedBox(height: _gapMd),
-          Text(tabName,
-              style: tt.titleMedium
-                  ?.copyWith(color: cs.onSurface, fontWeight: FontWeight.bold)),
-          const SizedBox(height: _gapSm),
           Text(
-            'Esta seção ainda está em desenvolvimento',
-            style: tt.bodyMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.7)),
+            tabName,
+            style: tt.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: _gapSm),
+          Text('Esta seção ainda está em desenvolvimento', style: tt.bodyMedium?.copyWith(color: cs.onSurface.withValues(alpha: 0.7))),
         ],
       ),
     );
@@ -875,20 +795,12 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       padding: const EdgeInsets.only(bottom: _gapSm),
       child: Text(
         text,
-        style: tt.bodyMedium
-            ?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
+        style: tt.bodyMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
       ),
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String hintText, {
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    VoidCallback? onTap,
-    bool readOnly = false,
-  }) {
+  Widget _buildTextField(TextEditingController controller, String hintText, {TextInputType? keyboardType, List<TextInputFormatter>? inputFormatters, VoidCallback? onTap, bool readOnly = false}) {
     final cs = Theme.of(context).colorScheme;
     return TextField(
       controller: controller,
@@ -902,12 +814,8 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
         hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
         filled: true,
         fillColor: cs.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
@@ -920,8 +828,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       if (_nomeController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Nome do produto é obrigatório!',
-                style: TextStyle(color: cs.onError)),
+            content: Text('Nome do produto é obrigatório!', style: TextStyle(color: cs.onError)),
             backgroundColor: cs.error,
           ),
         );
@@ -940,8 +847,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       if (_selectedCategory == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Selecione uma categoria para o produto!',
-                style: TextStyle(color: cs.onError)),
+            content: Text('Selecione uma categoria para o produto!', style: TextStyle(color: cs.onError)),
             backgroundColor: cs.error,
           ),
         );
@@ -950,8 +856,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       if (_selectedUnit == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Selecione uma unidade de medida para o produto!',
-                style: TextStyle(color: cs.onError)),
+            content: Text('Selecione uma unidade de medida para o produto!', style: TextStyle(color: cs.onError)),
             backgroundColor: cs.error,
           ),
         );
@@ -966,8 +871,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       if (precoVenda < 0 || precoCusto < 0 || estoque < 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Valores não podem ser negativos.',
-                style: TextStyle(color: cs.onError)),
+            content: Text('Valores não podem ser negativos.', style: TextStyle(color: cs.onError)),
             backgroundColor: cs.error,
           ),
         );
@@ -985,14 +889,13 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
         'validade': _validadeController.text.trim(),
         'image_url': imageUrl ?? '',
         'ativo': _ativo,
+        'id_fornecedor': _idFornecedorSelecionado,
+        'nome_fornecedor': _nomeFornecedorSelecionado,
       };
 
-      final dadosQuantidadeEstoque = {'quantidade': estoque};
+      Map<String, dynamic> dadosQuantidadeEstoque = {'quantidade': estoque};
 
-      final dadosMovimentacaoEstoque = {
-        'quantidade': estoque,
-        'tipo_movimento': 'Entrada'
-      };
+      final dadosMovimentacaoEstoque = {'quantidade': estoque, 'tipo_movimento': 'Entrada'};
 
       if (_isEdicao) {
         dadosQuantidadeEstoque['id_produto_empresa'] = _produtoEdicao!.id.toDouble();
@@ -1000,11 +903,11 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
         dadosProduto['produto_id_public'] = _produtoEdicao!.produtoIdPublic;
         await produtocontroller.atualizarProduto(dadosProduto);
       } else {
-        final idProduto = await produtocontroller.inserirProduto(dadosProduto);
-        dadosQuantidadeEstoque['id_produto_empresa'] = idProduto.toDouble();
+        int idProduto = await produtocontroller.inserirProduto(dadosProduto);
+        dadosQuantidadeEstoque['id_produto_empresa'] = idProduto;
         await estoqueController.inserirQuantidadeEstoque(dadosQuantidadeEstoque);
         if (estoque != 0.0) {
-        dadosMovimentacaoEstoque['id_produto_empresa'] = idProduto.toDouble();
+          dadosMovimentacaoEstoque['id_produto_empresa'] = idProduto;
           await estoqueController.inserirMovimentacaoEstoque(dadosMovimentacaoEstoque);
         }
       }
@@ -1012,12 +915,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            _isEdicao
-                ? 'Produto atualizado com sucesso!'
-                : 'Produto cadastrado com sucesso!',
-            style: TextStyle(color: cs.onPrimary),
-          ),
+          content: Text(_isEdicao ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!', style: TextStyle(color: cs.onPrimary)),
           backgroundColor: Colors.green,
         ),
       );
