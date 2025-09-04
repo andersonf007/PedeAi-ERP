@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pedeai/Commom/validacoes.dart';
 import 'package:pedeai/controller/formaPagamentoController.dart';
 import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
@@ -25,6 +26,7 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
 
   List<FormaPagamento> _formasPagamento = [];
   final List<Map<String, dynamic>> _pagamentosInseridos = [];
+Validacoes validacoes = Validacoes();
 
   bool _isLoading = true;
   bool _finalizando = false;
@@ -234,7 +236,7 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                               dadosVendaItens.add({'id_produto': it.produto.produtoIdPublic, 'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'preco_unitario': it.produto.preco, 'preco_total': (it.produto.preco ?? 0) * it.quantidade, 'situacao': 10, 'posicao_item': i + 1, 'preco_custo': it.produto.precoCusto});
                             }
 
-                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': e['valor'], 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': e['troco']}).toList();
+                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': e['valor'], 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': validacoes.arredondaPara2Decimais(e['troco'])}).toList();
 
                             final dadosMovEstoque = widget.carrinho.map((it) => {'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'tipo_movimento': 'Saida', 'motivo': 'Venda'}).toList();
 
