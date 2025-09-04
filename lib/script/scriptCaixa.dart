@@ -55,7 +55,7 @@ class ScriptCaixa {
 
   String buscarReceitaDoDiaDoPdv(String schema) {
     return '''SELECT
-        SUM(ci.valor) AS valor
+        SUM(ci.valor) - SUM(ci.troco) AS valor
       FROM
         ${schema}.caixa c
         JOIN ${schema}.caixa_item ci ON c.id = ci.id_caixa
