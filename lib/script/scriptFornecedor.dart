@@ -1,75 +1,73 @@
 // lib/script/scriptFornecedor.dart
 
 class ScriptFornecedor {
-  String inserirFornecedor(String schema, Map<String, dynamic> dados) {
-    // Helper para tratar valores nulos ou vazios como 'NULL' no SQL
-    String formatValue(dynamic value) {
-      if (value == null || value.toString().isEmpty) {
-        return 'NULL';
-      }
-      // Adiciona aspas simples para strings
-      return "'${value.toString().replaceAll("'", "''")}'";
-    }
-
-    return '''
-      INSERT INTO ${schema}.fornecedor (
-        razao_social, nome_fantasia, cnpj, ie, telefone, email, 
-        cep, logradouro, numero, bairro, cidade, uf
-      )
-      VALUES (
-        ${formatValue(dados['razao_social'])},
-        ${formatValue(dados['nome_fantasia'])},
-        ${formatValue(dados['cnpj'])},
-        ${formatValue(dados['ie'])},
-        ${formatValue(dados['telefone'])},
-        ${formatValue(dados['email'])},
-        ${formatValue(dados['cep'])},
-        ${formatValue(dados['logradouro'])},
-        ${formatValue(dados['numero'])},
-        ${formatValue(dados['bairro'])},
-        ${formatValue(dados['cidade'])},
-        ${formatValue(dados['uf'])}
-      ) RETURNING id;
-    ''';
-  }
 
   String buscarListaFornecedores(String schema) {
-    return "SELECT * FROM ${schema}.fornecedor ORDER BY razao_social";
+    return '''select
+        cf.id,
+        cf.nome_razao,
+        cf.nome_popular,
+        cf.cpf_cnpj
+      from cliente_fornecedor cf
+      join $schema.fornecedor_empresa fe on cf.id = fe.id_fornecedor_public
+      where cf.fornecedor = true
+      order by cf.nome_popular''';
   }
 
-  String buscarFornecedorPorId(int id, String schema) {
-    return "SELECT * FROM ${schema}.fornecedor WHERE id = $id";
+  String buscarFornecedorPorId(int id) {
+    return '''SELECT cf.id,
+      cf.nome_razao,
+      cf.nome_popular,
+      cf.cpf_cnpj,
+      cf.rg_ie,
+      cf.situacao_ie,
+      cf.email,
+      e.cep,
+      e.logradouro,
+      e.numero,
+      e.bairro,
+      e.cidade,
+      e.estado,
+      e.ponto_referencia,
+      e.complemento,
+      t.numero
+      FROM cliente_fornecedor cf
+      JOIN endereco e on e.id_cliente_fornecedor = cf.id
+      join telefone t on t.id_cliente_fornecedor = cf.id
+      WHERE cf.id = $id ''';
   }
 
-  String atualizarFornecedor(String schema, Map<String, dynamic> dados) {
-    final id = dados['id'];
-    
-    // Helper para criar a parte SET da query, ignorando campos nulos
-    String createSetClause(Map<String, dynamic> data) {
-      List<String> setClauses = [];
-      data.forEach((key, value) {
-        if (key != 'id' && value != null) {
-          // Adiciona aspas para valores de texto
-          final formattedValue = "'${value.toString().replaceAll("'", "''")}'";
-          setClauses.add("$key = $formattedValue");
-        } else if (key != 'id' && value == null) {
-           setClauses.add("$key = NULL");
-        }
-      });
-      return setClauses.join(', ');
-    }
+  String scriptAtualizarFornecedor(Map<String, dynamic> dados) {
+  return """
+    UPDATE public.cliente_fornecedor
+    SET
+      nome_razao = '${dados['nome_razao']}',
+      email = '${dados['email']}',
+      cpf_cnpj = '${dados['cpf_cnpj']}',
+      rg_ie = '${dados['rg_ie']}',
+      tipo_pessoa = '${dados['tipo_pessoa']}',
+      situacao_ie = '${dados['situacao_ie']}',
+      fornecedor = ${dados['fornecedor'] ? 'true' : 'false'},
+      nome_popular = '${dados['nome_popular']}'
+    WHERE id = ${dados['id']};
 
-    final setClause = createSetClause(dados);
+    UPDATE public.endereco
+    SET
+      cep = '${dados['cep']}',
+      logradouro = '${dados['logradouro']}',
+      numero = '${dados['numero']}',
+      complemento = '${dados['complemento']}',
+      ponto_referencia = '${dados['ponto_referencia']}',
+      cidade = '${dados['cidade']}',
+      estado = '${dados['estado']}',
+      bairro = '${dados['bairro']}'
+    WHERE id_cliente_fornecedor = ${dados['id']};
 
-    return '''
-      UPDATE ${schema}.fornecedor
-      SET $setClause
-      WHERE id = $id 
-      RETURNING id;
-    ''';
-  }
+    UPDATE public.telefone
+    SET
+      numero = '${dados['numero']}'
+    WHERE id_cliente_fornecedor = ${dados['id']} returning ${dados['id']};
+  """;
+}
 
-  String deletarFornecedor(String schema, int id) {
-    return "DELETE FROM ${schema}.fornecedor WHERE id = $id RETURNING id;";
-  }
 }

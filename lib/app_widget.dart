@@ -69,9 +69,9 @@ class _AppWidgetState extends State<AppWidget> {
             },
             '/listFornecedores': (context) => const ListFornecedoresPage(),
             '/cadastroFornecedor': (context) {
-                final fornecedorId = ModalRoute.of(context)!.settings.arguments as int?;
-                return CadastroFornecedorPage(fornecedorId: fornecedorId);
-            },
+  final fornecedorId = ModalRoute.of(context)?.settings.arguments as int?;
+  return CadastroFornecedorPage(fornecedorId: fornecedorId);
+ },
             '/listUsuarios': (context) => ListUsuarioPage(),
             '/cadastro-usuario': (context) {
               final args = ModalRoute.of(context)?.settings.arguments as Usuario?;

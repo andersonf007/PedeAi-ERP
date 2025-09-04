@@ -19,6 +19,7 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
   String _error = '';
   List<Fornecedor> _fornecedores = [];
   List<Fornecedor> _filtrados = [];
+  String _tipoContribuinte = 'N';
 
   @override
   void initState() {
@@ -50,9 +51,7 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
         } else {
           _filtrados = _fornecedores.where((f) {
             final query = _searchCtrl.text.toLowerCase();
-            return f.razaoSocial.toLowerCase().contains(query) ||
-                (f.nomeFantasia?.toLowerCase() ?? '').contains(query) ||
-                (f.cnpj ?? '').contains(query);
+            return f.razaoSocial!.toLowerCase().contains(query) || (f.nomeFantasia?.toLowerCase() ?? '').contains(query) || (f.cnpj ?? '').contains(query);
           }).toList();
         }
         _loading = false;
@@ -77,9 +76,7 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
       return;
     }
     final filtrados = _fornecedores.where((f) {
-      return f.razaoSocial.toLowerCase().contains(query) ||
-          (f.nomeFantasia?.toLowerCase() ?? '').contains(query) ||
-          (f.cnpj ?? '').contains(query);
+      return f.razaoSocial!.toLowerCase().contains(query) || (f.nomeFantasia?.toLowerCase() ?? '').contains(query) || (f.cnpj ?? '').contains(query);
     }).toList();
     setState(() {
       _filtrados = filtrados;
@@ -87,12 +84,7 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
   }
 
   void _navigateToCadastro([int? fornecedorId]) async {
-    final result = await Navigator.pushNamed(
-      context,
-      '/cadastroFornecedor',
-      arguments: fornecedorId,
-    );
-
+    final result = await Navigator.pushNamed(context, '/cadastroFornecedor', arguments: fornecedorId);
     if (result == true) {
       setState(() => _loading = true);
       _load();
@@ -116,17 +108,11 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
         ),
         title: Text(
           'Fornecedores',
-          style: TextStyle(
-            color: cs.onSurface,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold, fontSize: 18),
         ),
       ),
       drawer: DrawerPage(currentRoute: ModalRoute.of(context)?.settings.name),
-      bottomNavigationBar: AppNavBar(
-        currentRoute: ModalRoute.of(context)?.settings.name,
-      ),
+      bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
       body: Column(
         children: [
           Padding(
@@ -139,14 +125,8 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: cs.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
             ),
           ),
@@ -161,9 +141,7 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: cs.primary,
                   foregroundColor: cs.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(26),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
                   textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 onPressed: () => _navigateToCadastro(),
@@ -189,9 +167,7 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
-            isSearching
-                ? 'Nenhum fornecedor encontrado para "${_searchCtrl.text}"'
-                : 'Nenhum fornecedor cadastrado, cadastre algum',
+            isSearching ? 'Nenhum fornecedor encontrado para "${_searchCtrl.text}"' : 'Nenhum fornecedor cadastrado, cadastre algum',
             textAlign: TextAlign.center,
             style: TextStyle(color: cs.onSurface.withOpacity(0.6)),
           ),
@@ -205,17 +181,14 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       itemBuilder: (context, index) {
         final fornecedor = _filtrados[index];
-        if (fornecedor.razaoSocial.trim().isEmpty &&
-            (fornecedor.cnpj == null || fornecedor.cnpj!.trim().isEmpty)) {
+        if (fornecedor.razaoSocial!.trim().isEmpty && (fornecedor.cnpj == null || fornecedor.cnpj!.trim().isEmpty)) {
           // Não renderiza card vazio
           return const SizedBox.shrink();
         }
         return Card(
           elevation: 2,
           margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () => _navigateToCadastro(fornecedor.id),
@@ -223,10 +196,7 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: cs.outline.withOpacity(0.2),
-                  width: 1,
-                ),
+                border: Border.all(color: cs.outline.withOpacity(0.2), width: 1),
               ),
               child: Row(
                 children: [
@@ -234,15 +204,8 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
                   Container(
                     width: 48,
                     height: 48,
-                    decoration: BoxDecoration(
-                      color: cs.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.business,
-                      color: cs.onPrimaryContainer,
-                      size: 24,
-                    ),
+                    decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(10)),
+                    child: Icon(Icons.business, color: cs.onPrimaryContainer, size: 24),
                   ),
                   const SizedBox(width: 16),
 
@@ -252,27 +215,18 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          fornecedor.razaoSocial,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: cs.onSurface,
-                              ),
+                          fornecedor.razaoSocial!,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
 
                         // Nome fantasia se disponível
-                        if (fornecedor.nomeFantasia != null &&
-                            fornecedor.nomeFantasia!.trim().isNotEmpty) ...[
+                        if (fornecedor.nomeFantasia != null && fornecedor.nomeFantasia!.trim().isNotEmpty) ...[
                           Text(
                             fornecedor.nomeFantasia!,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: cs.onSurface.withOpacity(0.8),
-                                  fontStyle: FontStyle.italic,
-                                ),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurface.withOpacity(0.8), fontStyle: FontStyle.italic),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -282,44 +236,20 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
                         // CNPJ ou indicação de sem CNPJ
                         Row(
                           children: [
-                            Icon(
-                              Icons.numbers,
-                              size: 14,
-                              color: cs.onSurface.withOpacity(0.6),
-                            ),
+                            Icon(Icons.numbers, size: 14, color: cs.onSurface.withOpacity(0.6)),
                             const SizedBox(width: 4),
-                            Text(
-                              (fornecedor.cnpj != null &&
-                                      fornecedor.cnpj!.trim().isNotEmpty)
-                                  ? fornecedor.cnpj!
-                                  : 'Sem CNPJ',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: cs.onSurface.withOpacity(0.7),
-                                  ),
-                            ),
+                            Text((fornecedor.cnpj != null && fornecedor.cnpj!.trim().isNotEmpty) ? fornecedor.cnpj! : 'Sem CNPJ', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurface.withOpacity(0.7))),
                           ],
                         ),
 
                         // Telefone se disponível
-                        if (fornecedor.telefone != null &&
-                            fornecedor.telefone!.trim().isNotEmpty) ...[
+                        if (fornecedor.telefone != null) ...[
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(
-                                Icons.phone,
-                                size: 14,
-                                color: cs.onSurface.withOpacity(0.6),
-                              ),
+                              Icon(Icons.phone, size: 14, color: cs.onSurface.withOpacity(0.6)),
                               const SizedBox(width: 4),
-                              Text(
-                                fornecedor.telefone!,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: cs.onSurface.withOpacity(0.7),
-                                    ),
-                              ),
+                              Text(fornecedor.telefone?.numero ?? '', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurface.withOpacity(0.7))),
                             ],
                           ),
                         ],
@@ -331,15 +261,8 @@ class _ListFornecedoresPageState extends State<ListFornecedoresPage> {
                   Container(
                     width: 32,
                     height: 32,
-                    decoration: BoxDecoration(
-                      color: cs.surfaceVariant,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.chevron_right,
-                      color: cs.onSurfaceVariant,
-                      size: 20,
-                    ),
+                    decoration: BoxDecoration(color: cs.surfaceVariant, borderRadius: BorderRadius.circular(8)),
+                    child: Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 20),
                   ),
                 ],
               ),

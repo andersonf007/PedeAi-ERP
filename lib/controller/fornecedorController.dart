@@ -14,18 +14,17 @@ class FornecedorController {
   /// Lista todos os fornecedores do schema da empresa logada
   Future<List<Fornecedor>> listarFornecedores() async {
     try {
-    Empresa? empresa = await _empresaController
-        .getEmpresaFromSharedPreferences();
-    if (empresa == null) {
-      throw Exception('Dados da empresa não encontrados');
-    }
-    final scriptSql = _script.buscarListaFornecedores(empresa.schema);
+      Empresa? empresa = await _empresaController.getEmpresaFromSharedPreferences();
+      if (empresa == null) {
+        throw Exception('Dados da empresa não encontrados');
+      }
+      final scriptSql = _script.buscarListaFornecedores(empresa.schema);
 
-    final response = await _databaseService.executeSqlListar(sql: scriptSql);
-    if (response.isEmpty) {
+      final response = await _databaseService.executeSqlListar(sql: scriptSql);
+      if (response.isEmpty) {
         return [];
-    }
-    return response.map((map) => Fornecedor.fromJson(map)).toList();
+      }
+      return response.map((map) => Fornecedor.fromJson(map)).toList();
     } catch (e) {
       return [];
     }
@@ -33,49 +32,39 @@ class FornecedorController {
 
   /// Busca um fornecedor por ID
   Future<Fornecedor?> buscarFornecedorPorId(int id) async {
-    Empresa? empresa = await _empresaController
-        .getEmpresaFromSharedPreferences();
-    if (empresa == null) {
-      throw Exception('Dados da empresa não encontrados');
-    }
-    final scriptSql = _script.buscarFornecedorPorId(id, empresa.schema);
-    final data = await _databaseService.executeSql(
-      scriptSql,
-      schema: empresa.schema,
-    );
-    if (data.isEmpty) return null;
-    return Fornecedor.fromJson(data.first);
+    final empresa = await _empresaController.getEmpresaFromSharedPreferences();
+    if (empresa == null) throw Exception('Empresa não encontrada');
+    final script = ScriptFornecedor();
+    final sql = script.buscarFornecedorPorId(id);
+
+    final resultado = await _databaseService.executeSql2(sql, schema: 'public');
+    if (resultado == null || resultado.isEmpty) return null;
+
+    final dados = resultado.first;
+    return Fornecedor.fromJson(dados);
   }
 
   /// Cadastra um novo fornecedor
-  Future<void> cadastrarFornecedor(Fornecedor fornecedor) async {
-    Empresa? empresa = await _empresaController
-        .getEmpresaFromSharedPreferences();
+  Future<int?> cadastrarFornecedor(Map<String, dynamic> fornecedorMap) async {
+    Empresa? empresa = await _empresaController.getEmpresaFromSharedPreferences();
     if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
     }
-    final scriptSql = _script.inserirFornecedor(
-      empresa.schema,
-      fornecedor.toJson(),
-    );
     try {
-        await _databaseService.executeSql(scriptSql, schema: empresa.schema);
-     } catch (e) {
-      throw Exception('Erro ao inserir fornecedor: ${e.toString()}');
+      return await _databaseService.cadastrarFornecedor(fornecedorMap: fornecedorMap, schema: empresa.schema);
+    } catch (e) {
+      throw Exception('Erro ao cadastrar fornecedor: ${e.toString()}');
     }
   }
 
   /// Atualiza um fornecedor existente
-  Future<void> atualizarFornecedor(Fornecedor fornecedor) async {
-    Empresa? empresa = await _empresaController
-        .getEmpresaFromSharedPreferences();
+  Future<void> atualizarFornecedor(Map<String, dynamic> fornecedorMap) async {
+    Empresa? empresa = await _empresaController.getEmpresaFromSharedPreferences();
     if (empresa == null) {
       throw Exception('Dados da empresa não encontrados');
     }
-    final scriptSql = _script.atualizarFornecedor(
-      empresa.schema,
-      fornecedor.toJson(),
-    );
+    final scriptSql = _script.scriptAtualizarFornecedor(fornecedorMap);
+    print(scriptSql);
     try {
       await _databaseService.executeSql(scriptSql, schema: empresa.schema);
     } catch (e) {
@@ -83,18 +72,4 @@ class FornecedorController {
     }
   }
 
-  /// Deleta um fornecedor pelo ID
-  Future<void> deletarFornecedor(int id) async {
-    Empresa? empresa = await _empresaController
-        .getEmpresaFromSharedPreferences();
-    if (empresa == null) {
-      throw Exception('Dados da empresa não encontrados');
-    }
-    final scriptSql = _script.deletarFornecedor(empresa.schema, id);
-    try {
-        await _databaseService.executeSql(scriptSql, schema: empresa.schema);
-     } catch (e) {
-      throw Exception('Erro ao deletar fornecedor: ${e.toString()}');
-    }
-  }
 }

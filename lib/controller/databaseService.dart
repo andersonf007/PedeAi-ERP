@@ -175,81 +175,24 @@ class DatabaseService {
     }
   }
 
-Future<void> cancelarVendaFunction({
-  required String schemaEmpresa,
-  required int idVenda,
-}) async {
-  try {
-    await _client.rpc(
-      'cancelar_venda',
-      params: {
-        'schema_empresa': schemaEmpresa,
-        'p_id_venda': idVenda,
-      },
-    );
-  } catch (e) {
-    throw Exception('Erro ao cancelar venda via função: $e');
+  Future<void> cancelarVendaFunction({required String schemaEmpresa, required int idVenda}) async {
+    try {
+      await _client.rpc('cancelar_venda', params: {'schema_empresa': schemaEmpresa, 'p_id_venda': idVenda});
+    } catch (e) {
+      throw Exception('Erro ao cancelar venda via função: $e');
+    }
   }
-}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  Future<int?> cadastrarFornecedor({required Map<String, dynamic> fornecedorMap, required String schema}) async {
+    try {
+      final response = await _client.rpc('cadastrar_fornecedor', params: {'p_fornecedor': fornecedorMap, 'p_schema': schema});
+      if (response is int) return response;
+      if (response is Map && response.containsKey('id')) return response['id'] as int;
+      return null;
+    } catch (e) {
+      throw Exception('Erro ao cadastrar fornecedor via função: $e');
+    }
+  }
 
   /** Métodos para manipulação de dados
 

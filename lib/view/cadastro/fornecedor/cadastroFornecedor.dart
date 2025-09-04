@@ -30,19 +30,14 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
   final _bairroCtrl = TextEditingController();
   final _cidadeCtrl = TextEditingController();
   final _ufCtrl = TextEditingController();
+  final _complementoCtrl = TextEditingController();
+  final _pontoReferenciaCtrl = TextEditingController();
 
-  final _cnpjMask = MaskTextInputFormatter(
-    mask: '##.###.###/####-##',
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-  final _telefoneMask = MaskTextInputFormatter(
-    mask: '(##) #####-####',
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-  final _cepMask = MaskTextInputFormatter(
-    mask: '#####-###',
-    filter: {"#": RegExp(r'[0-9]')},
-  );
+  String _tipoContribuinte = 'N';
+
+  final _cnpjMask = MaskTextInputFormatter(mask: '##.###.###/####-##', filter: {"#": RegExp(r'[0-9]')});
+  final _telefoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')});
+  final _cepMask = MaskTextInputFormatter(mask: '#####-###', filter: {"#": RegExp(r'[0-9]')});
 
   bool get _isEdicao => widget.fornecedorId != null;
   bool _isLoading = true;
@@ -71,6 +66,8 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
     _bairroCtrl.dispose();
     _cidadeCtrl.dispose();
     _ufCtrl.dispose();
+    _complementoCtrl.dispose();
+    _pontoReferenciaCtrl.dispose();
     super.dispose();
   }
 
@@ -86,10 +83,7 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Erro ao carregar dados: $e',
-            style: TextStyle(color: cs.onError),
-          ),
+          content: Text('Erro ao carregar dados: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -99,22 +93,24 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
 
   Future<void> _loadFornecedorData() async {
     try {
-      final fornecedor = (await _controller.listarFornecedores()).firstWhere(
-        (f) => f.id == widget.fornecedorId,
-      );
+      final fornecedor = await _controller.buscarFornecedorPorId(widget.fornecedorId!);
+      if (fornecedor == null) throw Exception('Fornecedor não encontrado');
 
-      _razaoSocialCtrl.text = fornecedor.razaoSocial;
+      _razaoSocialCtrl.text = fornecedor.razaoSocial ?? '';
       _nomeFantasiaCtrl.text = fornecedor.nomeFantasia ?? '';
       _cnpjCtrl.text = _cnpjMask.maskText(fornecedor.cnpj ?? '');
       _ieCtrl.text = fornecedor.ie ?? '';
-      _telefoneCtrl.text = _telefoneMask.maskText(fornecedor.telefone ?? '');
+      _telefoneCtrl.text = _telefoneMask.maskText(fornecedor.telefone?.numero ?? '');
       _emailCtrl.text = fornecedor.email ?? '';
-      _cepCtrl.text = _cepMask.maskText(fornecedor.cep ?? '');
-      _logradouroCtrl.text = fornecedor.logradouro ?? '';
-      _numeroCtrl.text = fornecedor.numero ?? '';
-      _bairroCtrl.text = fornecedor.bairro ?? '';
-      _cidadeCtrl.text = fornecedor.cidade ?? '';
-      _ufCtrl.text = fornecedor.uf ?? '';
+      _cepCtrl.text = _cepMask.maskText(fornecedor.endereco?.cep ?? '');
+      _logradouroCtrl.text = fornecedor.endereco?.logradouro ?? '';
+      _numeroCtrl.text = fornecedor.endereco?.numero ?? '';
+      _bairroCtrl.text = fornecedor.endereco?.bairro ?? '';
+      _cidadeCtrl.text = fornecedor.endereco?.cidade ?? '';
+      _ufCtrl.text = fornecedor.endereco?.uf ?? '';
+      _complementoCtrl.text = fornecedor.endereco?.complemento ?? '';
+      _pontoReferenciaCtrl.text = fornecedor.endereco?.pontoReferencia ?? '';
+      _tipoContribuinte = fornecedor.situacao_ie ?? 'N';
 
       setState(() => _isLoading = false);
     } catch (e) {
@@ -122,10 +118,7 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Erro ao carregar fornecedor: $e',
-            style: TextStyle(color: cs.onError),
-          ),
+          content: Text('Erro ao carregar fornecedor: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -139,39 +132,38 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
     setState(() => _isLoading = true);
 
     try {
-      final fornecedor = Fornecedor(
-        id: widget.fornecedorId,
-        razaoSocial: _razaoSocialCtrl.text,
-        nomeFantasia: _nomeFantasiaCtrl.text,
-        // Usamos .getUnmaskedText() para salvar apenas os números no banco
-        cnpj: _cnpjMask.getUnmaskedText(),
-        ie: _ieCtrl.text,
-        telefone: _telefoneMask.getUnmaskedText(),
-        email: _emailCtrl.text,
-        cep: _cepMask.getUnmaskedText(),
-        logradouro: _logradouroCtrl.text,
-        numero: _numeroCtrl.text,
-        bairro: _bairroCtrl.text,
-        cidade: _cidadeCtrl.text,
-        uf: _ufCtrl.text,
-      );
-
+      final fornecedorMap = {
+        "id": widget.fornecedorId,
+        "nome_razao": _razaoSocialCtrl.text,
+        "email": _emailCtrl.text,
+        "cpf_cnpj": _cnpjMask.unmaskText(_cnpjCtrl.text),
+        "rg_ie": _ieCtrl.text,
+        "tipo_pessoa": "J", // ou "F" conforme sua lógica
+        "situacao_ie": _tipoContribuinte, // <-- aqui vai N, I ou C
+        "fornecedor": true,
+        "nome_popular": _nomeFantasiaCtrl.text,
+        "cep": _cepMask.unmaskText(_cepCtrl.text),
+        "logradouro": _logradouroCtrl.text,
+        "numero": _numeroCtrl.text,
+        "complemento": _complementoCtrl.text,
+        "ponto_referencia": _pontoReferenciaCtrl.text,
+        "cidade": _cidadeCtrl.text,
+        "estado": _ufCtrl.text,
+        "bairro": _bairroCtrl.text,
+        "telefone": _telefoneMask.unmaskText(_telefoneCtrl.text),
+      };
+      print(fornecedorMap);
       if (_isEdicao) {
-        await _controller.atualizarFornecedor(fornecedor);
+        await _controller.atualizarFornecedor(fornecedorMap);
       } else {
-        await _controller.cadastrarFornecedor(fornecedor);
+        await _controller.cadastrarFornecedor(fornecedorMap);
       }
 
       if (!mounted) return;
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            _isEdicao
-                ? 'Fornecedor atualizado com sucesso!'
-                : 'Fornecedor cadastrado com sucesso!',
-            style: TextStyle(color: cs.onPrimary),
-          ),
+          content: Text(_isEdicao ? 'Fornecedor atualizado com sucesso!' : 'Fornecedor cadastrado com sucesso!', style: TextStyle(color: cs.onPrimary)),
           backgroundColor: Colors.green,
         ),
       );
@@ -181,10 +173,7 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Erro ao salvar: $e',
-            style: TextStyle(color: cs.onError),
-          ),
+          content: Text('Erro ao salvar: $e', style: TextStyle(color: cs.onError)),
           backgroundColor: cs.error,
         ),
       );
@@ -215,22 +204,11 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
         ),
         title: Text(
           _isEdicao ? 'Editar Fornecedor' : 'Cadastrar Fornecedor',
-          style: tt.titleMedium?.copyWith(
-            color: cs.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
+          style: tt.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.bold),
         ),
       ),
-      bottomNavigationBar: AppNavBar(
-        currentRoute: ModalRoute.of(context)?.settings.name,
-      ),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(cs.primary),
-              ),
-            )
-          : _buildForm(),
+      bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
+      body: _isLoading ? Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(cs.primary))) : _buildForm(),
     );
   }
 
@@ -244,12 +222,7 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
           children: [
             // Seção Dados Gerais
             _buildLabel('Razão Social'),
-            _buildTextField(
-              _razaoSocialCtrl,
-              'Digite a razão social do fornecedor',
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Obrigatório' : null,
-            ),
+            _buildTextField(_razaoSocialCtrl, 'Digite a razão social do fornecedor', validator: (v) => v == null || v.trim().isEmpty ? 'Obrigatório' : null),
             const SizedBox(height: _gapMd),
 
             _buildLabel('Nome Fantasia'),
@@ -264,40 +237,21 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('CNPJ'),
-                      _buildTextField(
-                        _cnpjCtrl,
-                        'Digite o CNPJ',
-                        keyboardType: TextInputType.number,
-                        formatters: [_cnpjMask],
-                        validator: (v) => v == null || v.trim().isEmpty
-                            ? 'Obrigatório'
-                            : null,
-                      ),
+                      _buildTextField(_cnpjCtrl, 'Digite o CNPJ', keyboardType: TextInputType.number, formatters: [_cnpjMask], validator: (v) => v == null || v.trim().isEmpty ? 'Obrigatório' : null),
                     ],
                   ),
                 ),
                 const SizedBox(width: _gapSm),
                 Expanded(
                   flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('Inscrição Estadual'),
-                      _buildTextField(_ieCtrl, 'Digite a inscrição estadual'),
-                    ],
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel('Inscrição Estadual'), _buildTextField(_ieCtrl, 'Digite a inscrição estadual')]),
                 ),
               ],
             ),
             const SizedBox(height: 24),
 
             _buildLabel('Telefone'),
-            _buildTextField(
-              _telefoneCtrl,
-              'Digite o telefone',
-              keyboardType: TextInputType.number,
-              formatters: [_telefoneMask],
-            ),
+            _buildTextField(_telefoneCtrl, 'Digite o telefone', keyboardType: TextInputType.number, formatters: [_telefoneMask]),
             const SizedBox(height: _gapMd),
 
             _buildLabel('E-mail'),
@@ -305,12 +259,7 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
             const SizedBox(height: 24),
 
             _buildLabel('CEP'),
-            _buildTextField(
-              _cepCtrl,
-              'Digite o CEP',
-              keyboardType: TextInputType.number,
-              formatters: [_cepMask],
-            ),
+            _buildTextField(_cepCtrl, 'Digite o CEP', keyboardType: TextInputType.number, formatters: [_cepMask]),
             const SizedBox(height: _gapMd),
 
             _buildLabel('Logradouro'),
@@ -321,24 +270,12 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
               children: [
                 Expanded(
                   flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('Número'),
-                      _buildTextField(_numeroCtrl, 'Nº'),
-                    ],
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel('Número'), _buildTextField(_numeroCtrl, 'Nº')]),
                 ),
                 const SizedBox(width: _gapSm),
                 Expanded(
                   flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('Bairro'),
-                      _buildTextField(_bairroCtrl, 'Digite o bairro'),
-                    ],
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel('Bairro'), _buildTextField(_bairroCtrl, 'Digite o bairro')]),
                 ),
               ],
             ),
@@ -348,28 +285,60 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('Cidade'),
-                      _buildTextField(_cidadeCtrl, 'Digite a cidade'),
-                    ],
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel('Cidade'), _buildTextField(_cidadeCtrl, 'Digite a cidade')]),
                 ),
                 const SizedBox(width: _gapSm),
                 Expanded(
                   flex: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('UF'),
-                      _buildTextField(_ufCtrl, 'UF'),
-                    ],
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel('UF'), _buildTextField(_ufCtrl, 'UF')]),
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            _buildLabel('Complemento'),
+            TextFormField(
+              controller: _complementoCtrl,
+              decoration: InputDecoration(
+                hintText: 'Complemento',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: _gapMd),
+
+            _buildLabel('Ponto de Referência'),
+            TextFormField(
+              controller: _pontoReferenciaCtrl,
+              decoration: InputDecoration(
+                hintText: 'Ponto de referência',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: _gapMd),
+
+            _buildLabel('Tipo de Contribuinte'),
+            DropdownButtonFormField<String>(
+              value: _tipoContribuinte,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              items: [
+                DropdownMenuItem(value: 'N', child: Text('Não Contribuinte')),
+                DropdownMenuItem(value: 'I', child: Text('Isento')),
+                DropdownMenuItem(value: 'C', child: Text('Contribuinte')),
+              ],
+              onChanged: (valor) {
+                setState(() {
+                  _tipoContribuinte = valor ?? 'N';
+                });
+              },
+            ),
+            const SizedBox(height: _gapMd),
 
             // Botão Salvar
             SizedBox(
@@ -380,14 +349,10 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                child: Text(
-                  _isEdicao ? 'Atualizar Fornecedor' : 'Cadastrar Fornecedor',
-                ),
+                child: Text(_isEdicao ? 'Atualizar Fornecedor' : 'Cadastrar Fornecedor'),
               ),
             ),
           ],
@@ -403,21 +368,12 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
       padding: const EdgeInsets.only(bottom: _gapSm),
       child: Text(
         text,
-        style: tt.bodyMedium?.copyWith(
-          color: cs.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
+        style: tt.bodyMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
       ),
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String hintText, {
-    String? Function(String?)? validator,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? formatters,
-  }) {
+  Widget _buildTextField(TextEditingController controller, String hintText, {String? Function(String?)? validator, TextInputType? keyboardType, List<TextInputFormatter>? formatters}) {
     final cs = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
@@ -430,14 +386,8 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
         hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
         filled: true,
         fillColor: cs.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
