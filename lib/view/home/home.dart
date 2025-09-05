@@ -122,10 +122,6 @@ class _HomePageState extends State<HomePage> {
   // ------------------ UI ------------------
   @override
   Widget build(BuildContext context) {
-    // Atualiza os valores do caixa toda vez que a tela é exibida
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _carregarValoresCaixa();
-    });
 
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
