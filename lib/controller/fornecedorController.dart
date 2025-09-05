@@ -6,6 +6,11 @@ import 'package:pedeai/controller/empresaController.dart';
 import 'package:pedeai/model/empresa.dart';
 import 'databaseService.dart';
 
+class FornecedorCotrollerException implements Exception {
+  String message;
+  FornecedorCotrollerException(this.message);
+}
+
 class FornecedorController {
   final DatabaseService _databaseService = DatabaseService();
   final ScriptFornecedor _script = ScriptFornecedor();
@@ -72,4 +77,44 @@ class FornecedorController {
     }
   }
 
+  Future<void> validarExistenciaDoFornecedor(String cnpj) async {
+    final empresa = await _empresaController.getEmpresaFromSharedPreferences();
+    if (empresa == null) throw Exception('Empresa não encontrada');
+    try {
+      final script = _script.scriptVerificarFornecedorJaEstaCadastrado(cnpj);
+      final resultado = await _databaseService.executeSql(script, schema: empresa.schema);
+      if (resultado != null && resultado.isNotEmpty) {
+        await verificarFornecedorJaEstaVinculadoNaEmpresa(resultado.first['id']);
+      }
+    }on FornecedorCotrollerException {
+    rethrow;
+  } catch (e) {
+    throw Exception('Erro ao validar existência do fornecedor: ${e.toString()}');
+  }
+  }
+
+  Future<int?> verificarFornecedorJaEstaVinculadoNaEmpresa(int id) async {
+    final empresa = await _empresaController.getEmpresaFromSharedPreferences();
+    if (empresa == null) throw Exception('Empresa não encontrada');
+
+    final script = _script.scriptVerificarFornecedorJaEstaVinculadoNaEmpresa(empresa.schema, id);
+    final resultado = await _databaseService.executeSql(script, schema: empresa.schema);
+    if (resultado.first['id'] != null && resultado.isNotEmpty) {
+      throw FornecedorCotrollerException('Fornecedor já está vinculado à empresa.');
+    } else {
+      await inserirIdFornecedorNaEmpresa(id);
+    }
+    return null;
+  }
+
+  Future<void> inserirIdFornecedorNaEmpresa(int idFornecedor) async {
+    final empresa = await _empresaController.getEmpresaFromSharedPreferences();
+    if (empresa == null) throw Exception('Empresa não encontrada');
+    try {
+      final script = _script.scriptInserirIdFornecedorNaEmpresa(empresa.schema, idFornecedor);
+      await _databaseService.executeSql(script, schema: empresa.schema);
+    } catch (e) {
+      throw Exception('Erro ao vincular fornecedor à empresa: ${e.toString()}');
+    }
+  }
 }

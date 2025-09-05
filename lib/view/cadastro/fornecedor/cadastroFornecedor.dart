@@ -129,6 +129,18 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
   Future<void> _salvar() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Validação obrigatória extra
+    if (_cnpjCtrl.text.trim().isEmpty || _razaoSocialCtrl.text.trim().isEmpty || _nomeFantasiaCtrl.text.trim().isEmpty) {
+      final cs = Theme.of(context).colorScheme;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Preencha CNPJ, Razão Social e Nome Fantasia!', style: TextStyle(color: cs.onError)),
+          backgroundColor: cs.error,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -136,7 +148,7 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
         "id": widget.fornecedorId,
         "nome_razao": _razaoSocialCtrl.text,
         "email": _emailCtrl.text,
-        "cpf_cnpj": _cnpjMask.unmaskText(_cnpjCtrl.text),
+        "cpf_cnpj": _cnpjCtrl.text,
         "rg_ie": _ieCtrl.text,
         "tipo_pessoa": "J", // ou "F" conforme sua lógica
         "situacao_ie": _tipoContribuinte, // <-- aqui vai N, I ou C
@@ -152,18 +164,62 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
         "bairro": _bairroCtrl.text,
         "telefone": _telefoneMask.unmaskText(_telefoneCtrl.text),
       };
-      print(fornecedorMap);
+
       if (_isEdicao) {
         await _controller.atualizarFornecedor(fornecedorMap);
-      } else {
-        await _controller.cadastrarFornecedor(fornecedorMap);
+        if (!mounted) return;
+        final cs = Theme.of(context).colorScheme;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fornecedor atualizado com sucesso!', style: TextStyle(color: cs.onPrimary)),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+        return;
       }
+
+      // Cadastro novo fornecedor
+      try {
+        // Tenta validar existência do fornecedor
+        await _controller.validarExistenciaDoFornecedor(_cnpjCtrl.text);
+
+        // Se não lançar exceção, o fornecedor já está cadastrado e vinculado
+        if (!mounted) return;
+        final cs = Theme.of(context).colorScheme;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fornecedor já está na nossa base de dados e vinculado à sua empresa.', style: TextStyle(color: cs.onError)),
+            backgroundColor: Colors.green,
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      } on FornecedorCotrollerException catch (e) {
+        // Agora esse bloco será chamado corretamente!
+        if (!mounted) return;
+        final cs = Theme.of(context).colorScheme;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message, style: TextStyle(color: cs.onError)),
+            backgroundColor: cs.error,
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      } catch (_) {
+        // Se lançar qualquer outra exceção, significa que o fornecedor não existe e pode ser cadastrado
+        // Continua para cadastrarFornecedor
+      }
+
+      // Se chegou aqui, pode cadastrar o fornecedor normalmente
+      await _controller.cadastrarFornecedor(fornecedorMap);
 
       if (!mounted) return;
       final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isEdicao ? 'Fornecedor atualizado com sucesso!' : 'Fornecedor cadastrado com sucesso!', style: TextStyle(color: cs.onPrimary)),
+          content: Text('Fornecedor cadastrado com sucesso!', style: TextStyle(color: cs.onPrimary)),
           backgroundColor: Colors.green,
         ),
       );
@@ -237,7 +293,16 @@ class _CadastroFornecedorPageState extends State<CadastroFornecedorPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('CNPJ'),
-                      _buildTextField(_cnpjCtrl, 'Digite o CNPJ', keyboardType: TextInputType.number, formatters: [_cnpjMask], validator: (v) => v == null || v.trim().isEmpty ? 'Obrigatório' : null),
+                      _buildTextField(
+                        _cnpjCtrl,
+                        'Digite o CNPJ',
+                        keyboardType: TextInputType.number,
+                        formatters: [
+                          FilteringTextInputFormatter.digitsOnly, // Só permite números
+                          LengthLimitingTextInputFormatter(14), // Limita a 14 dígitos do CNPJ
+                        ],
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Obrigatório' : null,
+                      ),
                     ],
                   ),
                 ),

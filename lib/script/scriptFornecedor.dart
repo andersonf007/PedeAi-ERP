@@ -1,7 +1,6 @@
 // lib/script/scriptFornecedor.dart
 
 class ScriptFornecedor {
-
   String buscarListaFornecedores(String schema) {
     return '''select
         cf.id,
@@ -38,7 +37,7 @@ class ScriptFornecedor {
   }
 
   String scriptAtualizarFornecedor(Map<String, dynamic> dados) {
-  return """
+    return """
     UPDATE public.cliente_fornecedor
     SET
       nome_razao = '${dados['nome_razao']}',
@@ -68,6 +67,17 @@ class ScriptFornecedor {
       numero = '${dados['numero']}'
     WHERE id_cliente_fornecedor = ${dados['id']} returning ${dados['id']};
   """;
-}
+  }
 
+  String scriptVerificarFornecedorJaEstaCadastrado(String cnpj) {
+    return '''SELECT id FROM cliente_fornecedor WHERE cpf_cnpj = '$cnpj' ''';
+  }
+
+  String scriptVerificarFornecedorJaEstaVinculadoNaEmpresa(String schema, int id) {
+    return '''SELECT id FROM $schema.fornecedor_empresa WHERE id_fornecedor_public = $id ''';
+  }
+
+  String scriptInserirIdFornecedorNaEmpresa(String schema, int idFornecedor) {
+    return '''INSERT INTO $schema.fornecedor_empresa (id_fornecedor_public) VALUES ($idFornecedor) returning id''';
+  }
 }
