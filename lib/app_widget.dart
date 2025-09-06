@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pedeai/theme/app_theme.dart';
 
 import 'package:pedeai/model/usuario.dart';
+import 'package:pedeai/view/cadastro/cliente/cadastroClientes.dart';
+import 'package:pedeai/view/cadastro/cliente/listClientes.dart';
 import 'package:pedeai/view/caixa/DetalhamentoDoCaixa.dart';
 import 'package:pedeai/view/caixa/abertura.dart';
 import 'package:pedeai/view/caixa/fechamento.dart';
@@ -95,10 +97,15 @@ class _AppWidgetState extends State<AppWidget> {
             },
             '/empresa': (context) => EmpresaPage(),
             '/resumoDeCaixa': (context) => ResumoDeCaixaPage(),
-'/detalhamentoCaixa': (context) {
+            '/detalhamentoCaixa': (context) {
               final idCaixa = ModalRoute.of(context)?.settings.arguments as int?;
               return DetalhamentoDoCaixaPage(idCaixa: idCaixa ?? 0);
             },
+            '/listClientes': (context) => const ListClientesPage(),
+             '/cadastroCliente': (context) {
+               final args = ModalRoute.of(context)?.settings.arguments as int?;
+              return CadastroClientePage(clienteId: args);
+             },
           },
         );
       },

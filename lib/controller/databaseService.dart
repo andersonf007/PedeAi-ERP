@@ -194,6 +194,16 @@ class DatabaseService {
     }
   }
 
+  Future<int?> cadastrarCliente({required Map<String, dynamic> clienteMap, required String schema}) async {
+    try {
+      final response = await _client.rpc('cadastrar_cliente', params: {'p_cliente': clienteMap, 'p_schema': schema});
+      if (response is int) return response;
+      if (response is Map && response.containsKey('id')) return response['id'] as int;
+      return null;
+    } catch (e) {
+      throw Exception('Erro ao cadastrar cliente via função: $e');
+    }
+  }
   /** Métodos para manipulação de dados
 
 String
