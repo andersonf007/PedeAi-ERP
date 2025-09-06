@@ -167,9 +167,16 @@ class _DrawerPageState extends State<DrawerPage> {
                         isOpen: _openKey == 'caixa',
                         onToggle: () => _toggle('caixa'),
                         children: [
+_NavItem(
+  icon: Icons.receipt_long_sharp,
+  label: 'Resumo de caixa',
+  selected: current == '/resumoDeCaixa',
+  onTap: () => _go(context, '/resumoDeCaixa'),
+),
                           _NavItem(icon: Icons.menu_book_outlined, label: 'Abertura de caixa', selected: current == '/aberturaCaixa', onTap: () => _go(context, '/aberturaCaixa')),
                           _NavItem(icon: Icons.book, label: 'Fechamento de caixa', selected: current == '/fechamentoCaixa', onTap: () => _go(context, '/fechamentoCaixa')),
-                        ],
+                        
+],
                       ),
 
                       // ENTRADAS SOLTAS

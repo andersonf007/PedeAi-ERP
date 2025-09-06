@@ -54,10 +54,10 @@ class _HomePageState extends State<HomePage> {
       final receitaMesValor = await _caixaController.buscarReceitaDoMes();
       final receitaDiaPdvValor = await _caixaController.buscarReceitaDoDiaDoPdv();
       final receitaCanceladaDiaValor = await _caixaController.buscarReceitaCanceladaDoDia();
-
+      print('Receita do mês: $receitaDiaPdvValor');
       setState(() {
         receitaMes = _formatarValor(receitaMesValor);
-        receitaDiaPdv = _formatarValor(receitaDiaPdvValor);
+        receitaDiaPdv = _formatarValor(receitaDiaPdvValor['valor']);
         receitaCanceladaDia = _formatarValor(receitaCanceladaDiaValor);
         despesa = 0.00;
       });
@@ -122,7 +122,6 @@ class _HomePageState extends State<HomePage> {
   // ------------------ UI ------------------
   @override
   Widget build(BuildContext context) {
-
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -210,7 +209,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  if (qaCashSummary) Expanded(child: _quickAction(context, Icons.receipt_long_sharp, 'Resumo de caixa', () {})),
+                  if (qaCashSummary) Expanded(child: _quickAction(context, Icons.receipt_long_sharp, 'Resumo de caixa', () => Navigator.of(context).pushNamed('/resumoDeCaixa'))),
                   if (qaCashSummary && qaReceive) const SizedBox(width: 12),
                   if (qaReceive) Expanded(child: _quickAction(context, Icons.payments_rounded, 'Receber Pagamento', () {})),
                 ],

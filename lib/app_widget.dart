@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pedeai/theme/app_theme.dart';
 
 import 'package:pedeai/model/usuario.dart';
+import 'package:pedeai/view/caixa/DetalhamentoDoCaixa.dart';
 import 'package:pedeai/view/caixa/abertura.dart';
 import 'package:pedeai/view/caixa/fechamento.dart';
+import 'package:pedeai/view/caixa/resumoDeCaixa.dart';
 import 'package:pedeai/view/empresa/empresa.dart';
 import 'package:pedeai/view/estoque/estoque.dart';
 import 'package:pedeai/view/cadastro/categoria/Categoria.dart';
@@ -24,7 +26,6 @@ import 'package:pedeai/theme/theme_controller.dart';
 import 'package:pedeai/view/configuracao/configuracao.dart';
 import 'package:pedeai/view/cadastro/fornecedor/listFornecedores.dart';
 import 'package:pedeai/view/cadastro/fornecedor/cadastroFornecedor.dart';
-
 
 class AppWidget extends StatefulWidget {
   const AppWidget({super.key, required this.themeController});
@@ -69,9 +70,9 @@ class _AppWidgetState extends State<AppWidget> {
             },
             '/listFornecedores': (context) => const ListFornecedoresPage(),
             '/cadastroFornecedor': (context) {
-  final fornecedorId = ModalRoute.of(context)?.settings.arguments as int?;
-  return CadastroFornecedorPage(fornecedorId: fornecedorId);
- },
+              final fornecedorId = ModalRoute.of(context)?.settings.arguments as int?;
+              return CadastroFornecedorPage(fornecedorId: fornecedorId);
+            },
             '/listUsuarios': (context) => ListUsuarioPage(),
             '/cadastro-usuario': (context) {
               final args = ModalRoute.of(context)?.settings.arguments as Usuario?;
@@ -93,6 +94,11 @@ class _AppWidgetState extends State<AppWidget> {
               return VendaDetalhePage(idVenda: args?['idVenda'] ?? 0);
             },
             '/empresa': (context) => EmpresaPage(),
+            '/resumoDeCaixa': (context) => ResumoDeCaixaPage(),
+'/detalhamentoCaixa': (context) {
+              final idCaixa = ModalRoute.of(context)?.settings.arguments as int?;
+              return DetalhamentoDoCaixaPage(idCaixa: idCaixa ?? 0);
+            },
           },
         );
       },
