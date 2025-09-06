@@ -236,7 +236,7 @@ Validacoes validacoes = Validacoes();
                               dadosVendaItens.add({'id_produto': it.produto.produtoIdPublic, 'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'preco_unitario': it.produto.preco, 'preco_total': (it.produto.preco ?? 0) * it.quantidade, 'situacao': 10, 'posicao_item': i + 1, 'preco_custo': it.produto.precoCusto});
                             }
 
-                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': e['valor'], 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': validacoes.arredondaPara2Decimais(e['troco'])}).toList();
+                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': (e['valor']-validacoes.arredondaPara2Decimais(e['troco'])), 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': validacoes.arredondaPara2Decimais(e['troco'])}).toList();
 
                             final dadosMovEstoque = widget.carrinho.map((it) => {'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'tipo_movimento': 'Saida', 'motivo': 'Venda'}).toList();
 
