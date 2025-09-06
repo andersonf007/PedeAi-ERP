@@ -133,6 +133,15 @@ flutter_native_splash:
   # Desative web por ora (opcional)
   web: false
 
+# Add This Line for error:
+# Swift Compiler Error (Xcode): Cannot find type 'PhoneNumberKit' in scope
+# Local copy of libphonenumber_plugin with fixes
+# Original version: 0.3.3
+# Copied with: cp -r ~/.pub-cache/hosted/pub.dev/libphonenumber_plugin-0.3.3 ./packages/libphonenumber_plugin
+dependency_overrides:
+  libphonenumber_plugin:
+    path: packages/libphonenumber_plugin
+
 flutter_launcher_icons:
   android: true
   ios: false
