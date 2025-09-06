@@ -86,4 +86,10 @@ class ScriptCliente {
   String scriptInserirIdClienteNaEmpresa(String schema, int idCliente) {
     return '''INSERT INTO $schema.cliente_empresa (id_cliente_public) VALUES ($idCliente) returning id''';
   }
+
+String scriptBuscaridClientePeloCpf(String schema, String cpf){
+  return '''SELECT cf.id
+      FROM public.cliente_fornecedor cf
+      JOIN $schema.cliente_empresa ce on cf.id = ce.id_cliente_public
+      WHERE cf.cpf_cnpj = '$cpf' ''';}
 }

@@ -117,4 +117,16 @@ class ClienteController {
       throw Exception('Erro ao vincular cliente à empresa: ${e.toString()}');
     }
   }
+
+Future<int?> buscarIdClientePorCpf(String cpf) async {
+    final empresa = await _empresaController.getEmpresaFromSharedPreferences();
+    if (empresa == null) throw Exception('Empresa não encontrada');
+    final sql = _script.scriptBuscaridClientePeloCpf(empresa.schema, cpf);
+
+    final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
+    if (resultado == null || resultado.isEmpty) return null;
+
+    final dados = resultado.first;
+    return dados['id'] as int?;
+  }
 }

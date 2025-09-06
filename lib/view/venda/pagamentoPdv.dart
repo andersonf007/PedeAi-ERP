@@ -5,8 +5,11 @@ import 'package:pedeai/controller/formaPagamentoController.dart';
 import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
 import 'package:pedeai/model/itemCarrinho.dart';
+import 'package:pedeai/view/cadastro/cliente/popupCadastroClientePdv.dart';
 import 'package:pedeai/view/venda/pagamentoDialog.dart';
 import 'package:pedeai/utils/app_notify.dart';
+
+import '../../../controller/clienteController.dart';
 
 class PagamentoPdvPage extends StatefulWidget {
   final double subtotal;
@@ -26,11 +29,12 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
 
   List<FormaPagamento> _formasPagamento = [];
   final List<Map<String, dynamic>> _pagamentosInseridos = [];
-Validacoes validacoes = Validacoes();
+  Validacoes validacoes = Validacoes();
 
   bool _isLoading = true;
   bool _finalizando = false;
   final TextEditingController _cpfCnpjController = TextEditingController();
+  int? id_cliente;
 
   @override
   void initState() {
@@ -96,26 +100,46 @@ Validacoes validacoes = Validacoes();
           child: Column(
             children: [
               // CPF/CNPJ
-              TextField(
-                controller: _cpfCnpjController,
-                style: TextStyle(color: cs.onSurface),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  hintText: 'Informar CNPJ/CPF do cliente',
-                  hintStyle: TextStyle(color: cs.onSurface.withOpacity(0.6)),
-                  prefixIcon: Icon(Icons.search, color: cs.onSurface.withOpacity(0.6)),
-                  filled: true,
-                  fillColor: cs.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: cs.outlineVariant),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _cpfCnpjController,
+                      style: TextStyle(color: cs.onSurface),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        hintText: 'Informar CNPJ/CPF do cliente',
+                        hintStyle: TextStyle(color: cs.onSurface.withOpacity(0.6)),
+                        filled: true,
+                        fillColor: cs.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: cs.outlineVariant),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: cs.outlineVariant),
+                        ),
+                      ),
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: cs.outlineVariant),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    height: 48,
+                    width: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Icon(Icons.search, color: cs.onPrimary),
+                      onPressed: _buscarClientePorCpf,
+                    ),
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 16),
 
@@ -228,7 +252,7 @@ Validacoes validacoes = Validacoes();
                       : () async {
                           setState(() => _finalizando = true);
                           try {
-                            final dadosVenda = {'valor_total': widget.total, 'numero_pessoas': 1, 'situacao_venda': 1, 'tipo_venda': 'P', 'cpf_cliente': _cpfCnpjController.text.isNotEmpty ? _cpfCnpjController.text : ''};
+                            final dadosVenda = {'valor_total': widget.total, 'numero_pessoas': 1, 'situacao_venda': 1, 'tipo_venda': 'P', 'cpf_cliente': _cpfCnpjController.text.isNotEmpty ? _cpfCnpjController.text : '', 'id_cliente': id_cliente ?? 0};
 
                             final dadosVendaItens = <Map<String, dynamic>>[];
                             for (var i = 0; i < widget.carrinho.length; i++) {
@@ -236,7 +260,7 @@ Validacoes validacoes = Validacoes();
                               dadosVendaItens.add({'id_produto': it.produto.produtoIdPublic, 'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'preco_unitario': it.produto.preco, 'preco_total': (it.produto.preco ?? 0) * it.quantidade, 'situacao': 10, 'posicao_item': i + 1, 'preco_custo': it.produto.precoCusto});
                             }
 
-                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': (e['valor']-validacoes.arredondaPara2Decimais(e['troco'])), 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': validacoes.arredondaPara2Decimais(e['troco'])}).toList();
+                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': (e['valor'] - validacoes.arredondaPara2Decimais(e['troco'])), 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': validacoes.arredondaPara2Decimais(e['troco'])}).toList();
 
                             final dadosMovEstoque = widget.carrinho.map((it) => {'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'tipo_movimento': 'Saida', 'motivo': 'Venda'}).toList();
 
@@ -268,6 +292,52 @@ Validacoes validacoes = Validacoes();
         ),
       ),
     );
+  }
+
+  Future<void> _buscarClientePorCpf() async {
+    final cpf = _cpfCnpjController.text.trim();
+    if (cpf.isEmpty) {
+      AppNotify.error(context, 'Digite o CPF/CNPJ para buscar o cliente.');
+      return;
+    }
+    try {
+      final clienteController = ClienteController();
+      final idCliente = await clienteController.buscarIdClientePorCpf(cpf);
+      if (idCliente != null && idCliente > 0) {
+        setState(() {
+          id_cliente = idCliente;
+        });
+        AppNotify.success(context, 'Cliente já vinculado à venda!');
+      } else {
+        final desejaCadastrar = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Cliente não encontrado'),
+            content: const Text('Cliente não está cadastrado. Deseja cadastrar agora?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Não')),
+              ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Sim, cadastrar')),
+            ],
+          ),
+        );
+        if (desejaCadastrar == true) {
+          // Fecha o popup e abre o cadastro rápido
+          final novoId = await showDialog<int>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => CadastroClienteDialog(cpf: cpf),
+          );
+          if (novoId != null && novoId > 0) {
+            setState(() {
+              id_cliente = novoId;
+            });
+            AppNotify.success(context, 'Cliente cadastrado e vinculado à venda!');
+          }
+        }
+      }
+    } catch (e) {
+      AppNotify.error(context, 'Erro ao buscar cliente: $e');
+    }
   }
 
   Widget _rowKV(ColorScheme cs, String k, String v, {bool bold = false, bool subtle = false, Color? colorOverride}) {
