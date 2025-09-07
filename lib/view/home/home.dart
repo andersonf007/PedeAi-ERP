@@ -6,6 +6,7 @@ import 'package:pedeai/utils/caixa_helper.dart';
 // seu drawer
 import 'package:pedeai/view/home/drawer.dart';
 import 'package:pedeai/app_nav_bar.dart';
+import 'package:pedeai/view/relatorio/estoqueAtual.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -203,7 +204,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   if (qaCreateProduct) Expanded(child: _quickAction(context, Icons.add, 'Criar Produto', () => Navigator.of(context).pushNamed('/cadastro-produto'))),
                   if (qaCreateProduct && qaReports) const SizedBox(width: 12),
-                  if (qaReports) Expanded(child: _quickAction(context, Icons.bar_chart_rounded, 'Relatórios', () {})),
+                  if (qaReports) Expanded(child: _quickAction(context, Icons.bar_chart_rounded, 'Relatórios', () => EstoqueAtualRelatorioPdf.exportar(context: context))),
                 ],
               ),
               const SizedBox(height: 12),

@@ -20,10 +20,7 @@ class UsuarioController {
   Future<String?> buscarLogin(LoginData data) async {
     try {
       prefs = await SharedPreferences.getInstance(); // Adicione esta linha
-      final response = await _authService.signIn(
-        email: data.name,
-        password: data.password,
-      );
+      final response = await _authService.signIn(email: data.name, password: data.password);
 
       if (response.user != null) {
         // Verificar se email foi confirmado
@@ -43,8 +40,7 @@ class UsuarioController {
   Future<List<Usuario>> listarUsuario() async {
     try {
       // Buscar dados da empresa
-      Empresa? empresa = await empresaController
-          .getEmpresaFromSharedPreferences();
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
 
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
@@ -87,10 +83,7 @@ class UsuarioController {
 
   Future<void> inserirUsuario(Map<String, dynamic> dados) async {
     try {
-      await _databaseService.executeSql(
-        script.scriptInsertUsuario(dados),
-        schema: 'public',
-      );
+      await _databaseService.executeSql(script.scriptInsertUsuario(dados), schema: 'public');
     } catch (e) {
       throw Exception('Erro ao salvar usuário: ${e.toString()}');
     }
@@ -98,16 +91,12 @@ class UsuarioController {
 
   Future<void> insertUsuarioDaEmpresa(Map<String, dynamic> dados) async {
     try {
-      Empresa? empresa = await empresaController
-          .getEmpresaFromSharedPreferences();
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
       if (empresa == null) {
         throw Exception('Dados da empresa não encontrados');
       }
       dados['id_empresa'] = empresa!.id;
-      await _databaseService.executeSql(
-        script.scriptInsertUsuarioDaEmpresa(dados),
-        schema: 'public',
-      );
+      await _databaseService.executeSql(script.scriptInsertUsuarioDaEmpresa(dados), schema: 'public');
     } catch (e) {
       throw Exception('Erro ao salvar usuário: ${e.toString()}');
     }
@@ -115,10 +104,7 @@ class UsuarioController {
 
   Future<void> atualizarUsuario(Map<String, dynamic> dados) async {
     try {
-      await _databaseService.executeSql(
-        script.scriptAtualizarUsuario(dados),
-        schema: 'public',
-      );
+      await _databaseService.executeSql(script.scriptAtualizarUsuario(dados), schema: 'public');
     } catch (e) {
       throw Exception('Erro ao salvar usuário: ${e.toString()}');
     }

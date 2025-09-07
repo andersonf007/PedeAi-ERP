@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedeai/controller/caixaController.dart';
 import 'package:pedeai/utils/caixa_helper.dart';
+import 'package:pedeai/view/relatorio/estoqueAtual.dart';
 
 class DrawerPage extends StatefulWidget {
   const DrawerPage({super.key, this.currentRoute});
@@ -167,24 +168,24 @@ class _DrawerPageState extends State<DrawerPage> {
                         isOpen: _openKey == 'caixa',
                         onToggle: () => _toggle('caixa'),
                         children: [
-_NavItem(
-  icon: Icons.receipt_long_sharp,
-  label: 'Resumo de caixa',
-  selected: current == '/resumoDeCaixa',
-  onTap: () => _go(context, '/resumoDeCaixa'),
-),
+                          _NavItem(icon: Icons.receipt_long_sharp, label: 'Resumo de caixa', selected: current == '/resumoDeCaixa', onTap: () => _go(context, '/resumoDeCaixa')),
                           _NavItem(icon: Icons.menu_book_outlined, label: 'Abertura de caixa', selected: current == '/aberturaCaixa', onTap: () => _go(context, '/aberturaCaixa')),
                           _NavItem(icon: Icons.book, label: 'Fechamento de caixa', selected: current == '/fechamentoCaixa', onTap: () => _go(context, '/fechamentoCaixa')),
-                        
-],
+                        ],
                       ),
 
                       // ENTRADAS SOLTAS
                       _PlainEntry(icon: Icons.warehouse, label: 'Estoque', selected: current == '/estoque', onTap: () => _go(context, '/estoque')),
-                      //_PlainEntry(icon: Icons.attach_money, label: 'Financeiro', selected: current == '/financeiro', onTap: () => _go(context, '/financeiro')),
+                      _PlainEntry(
+                        icon: Icons.bar_chart_rounded,
+                        label: 'Relatório',
+                        onTap: () {
+                          Navigator.pop(context); // Fecha o Drawer
+                          EstoqueAtualRelatorioPdf.exportar(context: context);
+                        },
+                      ),
                       _PlainEntry(icon: Icons.business, label: 'Empresa', selected: current == '/empresa', onTap: () => _go(context, '/empresa')),
                       _PlainEntry(icon: Icons.settings, label: 'Configurações', selected: current == '/config', onTap: () => _go(context, '/config')),
-                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
@@ -193,6 +194,7 @@ _NavItem(
               // Rodapé fixo
               Divider(height: 1, color: cs.onSurface.withValues(alpha: 0.2)),
               _PlainEntry(icon: Icons.exit_to_app, label: 'Sair', danger: true, onTap: _confirmAndLogout),
+              const SizedBox(height: 12),
             ],
           ),
         ),
