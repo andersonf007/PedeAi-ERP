@@ -181,7 +181,7 @@ _NavItem(
 
                       // ENTRADAS SOLTAS
                       _PlainEntry(icon: Icons.warehouse, label: 'Estoque', selected: current == '/estoque', onTap: () => _go(context, '/estoque')),
-                      _PlainEntry(icon: Icons.attach_money, label: 'Financeiro', selected: current == '/financeiro', onTap: () => _go(context, '/financeiro')),
+                      //_PlainEntry(icon: Icons.attach_money, label: 'Financeiro', selected: current == '/financeiro', onTap: () => _go(context, '/financeiro')),
                       _PlainEntry(icon: Icons.business, label: 'Empresa', selected: current == '/empresa', onTap: () => _go(context, '/empresa')),
                       _PlainEntry(icon: Icons.settings, label: 'Configurações', selected: current == '/config', onTap: () => _go(context, '/config')),
                       const SizedBox(height: 12),
