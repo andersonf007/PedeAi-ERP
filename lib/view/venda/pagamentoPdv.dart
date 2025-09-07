@@ -6,6 +6,7 @@ import 'package:pedeai/controller/vendaController.dart';
 import 'package:pedeai/model/forma_pagamento.dart';
 import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/view/cadastro/cliente/popupCadastroClientePdv.dart';
+import 'package:pedeai/view/impressao/impressaoDaVenda.dart';
 import 'package:pedeai/view/venda/pagamentoDialog.dart';
 import 'package:pedeai/utils/app_notify.dart';
 
@@ -252,7 +253,14 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                       : () async {
                           setState(() => _finalizando = true);
                           try {
-                            final dadosVenda = {'valor_total': widget.total, 'numero_pessoas': 1, 'situacao_venda': 1, 'tipo_venda': 'P', 'cpf_cliente': _cpfCnpjController.text.isNotEmpty ? _cpfCnpjController.text : '', 'id_cliente': id_cliente ?? 0};
+                            final dadosVenda = {
+                              'valor_total': widget.total,
+                              'numero_pessoas': 1,
+                              'situacao_venda': 1,
+                              'tipo_venda': 'P',
+                              'cpf_cliente': _cpfCnpjController.text.isNotEmpty ? _cpfCnpjController.text : '',
+                              'id_cliente': id_cliente ?? 0
+                            };
 
                             final dadosVendaItens = <Map<String, dynamic>>[];
                             for (var i = 0; i < widget.carrinho.length; i++) {
@@ -260,17 +268,68 @@ class _PagamentoPdvPageState extends State<PagamentoPdvPage> {
                               dadosVendaItens.add({'id_produto': it.produto.produtoIdPublic, 'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'preco_unitario': it.produto.preco, 'preco_total': (it.produto.preco ?? 0) * it.quantidade, 'situacao': 10, 'posicao_item': i + 1, 'preco_custo': it.produto.precoCusto});
                             }
 
-                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {'tipo_movimento': 'Entrada', 'valor': (e['valor'] - validacoes.arredondaPara2Decimais(e['troco'])), 'id_forma_pagamento': (e['forma'] as FormaPagamento).id, 'troco': validacoes.arredondaPara2Decimais(e['troco'])}).toList();
+                            final dadosFormaPagamento = _pagamentosInseridos.map((e) => {
+                              'tipo_movimento': 'Entrada',
+                              'valor': (e['valor'] - validacoes.arredondaPara2Decimais(e['troco'])),
+                              'id_forma_pagamento': (e['forma'] as FormaPagamento).id,
+                              'troco': validacoes.arredondaPara2Decimais(e['troco']),
+                              'nome': (e['forma'] as FormaPagamento).nome
+                            }).toList();
 
                             final dadosMovEstoque = widget.carrinho.map((it) => {'id_produto_empresa': it.produto.id, 'quantidade': it.quantidade, 'tipo_movimento': 'Saida', 'motivo': 'Venda'}).toList();
 
-                            await _vendaController.inserirVendaPdv(dadosVenda: dadosVenda, dadosVendaItens: dadosVendaItens, dadosFormaPagamento: dadosFormaPagamento, dadosMovimentacaoEstoque: dadosMovEstoque);
+                            final idVenda = await _vendaController.inserirVendaPdv(dadosVenda: dadosVenda, dadosVendaItens: dadosVendaItens, dadosFormaPagamento: dadosFormaPagamento, dadosMovimentacaoEstoque: dadosMovEstoque);
 
                             if (!mounted) return;
+                            AppNotify.success(context, 'Venda finalizada com sucesso!');
+
+                            // Após finalizar a venda com sucesso
+                            await showDialog(
+                              context: context,
+                              barrierDismissible: false, // Não fecha ao clicar fora
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Informação'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.info_outline, color: Colors.red, size: 48),
+                                    const SizedBox(height: 8),
+                                    const Text('Pedido finalizado'),
+                                    const SizedBox(height: 16),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(ctx).pop();
+                                        Navigator.of(context).pushNamed(
+                                          '/impressaoDaVenda',
+                                          arguments: {
+                                            'idVenda': idVenda,
+                                            'dadosVenda': dadosVenda, // <-- Envie aqui!
+                                            'carrinho': widget.carrinho,
+                                            'subtotal': widget.subtotal,
+                                            'desconto': widget.desconto,
+                                            'total': widget.total,
+                                            'pagamentos': _pagamentosInseridos,
+                                            'troco': _trocoTotal,
+                                          },
+                                        );
+                                      },
+                                      child: const Icon(Icons.print, size: 48),
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
                             _pagamentosInseridos.clear();
                             widget.carrinho.clear();
-                            AppNotify.success(context, 'Venda finalizada com sucesso!');
-                            Navigator.of(context).pushNamedAndRemoveUntil('/pdv', (route) => false);
+                                      Navigator.of(ctx).pop();
+                                      Navigator.of(context).pushNamedAndRemoveUntil('/pdv', (route) => false);
+                                    },
+                                    child: const Text('OK', style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
                           } catch (e) {
                             if (!mounted) return;
                             AppNotify.error(context, 'Erro ao finalizar venda: $e');

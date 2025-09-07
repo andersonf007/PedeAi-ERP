@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/theme/app_theme.dart';
 
 import 'package:pedeai/model/usuario.dart';
@@ -14,6 +15,7 @@ import 'package:pedeai/view/cadastro/categoria/Categoria.dart';
 import 'package:pedeai/view/cadastro/unidade/Unidade.dart';
 import 'package:pedeai/view/cadastro/forma-pagamento/forma_pagamento.dart';
 import 'package:pedeai/view/home/home.dart';
+import 'package:pedeai/view/impressao/impressaoDaVenda.dart';
 import 'package:pedeai/view/login/login.dart';
 import 'package:pedeai/view/venda/listVendas.dart';
 import 'package:pedeai/view/venda/pagamentoPdv.dart';
@@ -102,10 +104,23 @@ class _AppWidgetState extends State<AppWidget> {
               return DetalhamentoDoCaixaPage(idCaixa: idCaixa ?? 0);
             },
             '/listClientes': (context) => const ListClientesPage(),
-             '/cadastroCliente': (context) {
-               final args = ModalRoute.of(context)?.settings.arguments as int?;
+            '/cadastroCliente': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments as int?;
               return CadastroClientePage(clienteId: args);
-             },
+            },
+            '/impressaoDaVenda': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+              return ImpressaoDaVendaPage(
+                idVenda: args?['idVenda'] ?? 0,
+                dadosVenda: args?['dadosVenda'] ?? {},
+                carrinho: (args?['carrinho'] as List<ItemCarrinho>?) ?? [],
+                subtotal: (args?['subtotal'] as double?) ?? 0.0,
+                desconto: (args?['desconto'] as double?) ?? 0.0,
+                total: (args?['total'] as double?) ?? 0.0,
+                pagamentos: (args?['pagamentos'] as List<Map<String, dynamic>>?) ?? [],
+                troco: (args?['troco'] as double?) ?? 0.0,
+              );
+            },
           },
         );
       },
