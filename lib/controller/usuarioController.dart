@@ -19,7 +19,7 @@ class UsuarioController {
 
   Future<String?> buscarLogin(LoginData data) async {
     try {
-      prefs = await SharedPreferences.getInstance(); // Adicione esta linha
+      prefs = await SharedPreferences.getInstance();
       final response = await _authService.signIn(email: data.name, password: data.password);
 
       if (response.user != null) {
@@ -28,6 +28,7 @@ class UsuarioController {
           return 'Por favor, confirme seu email antes de fazer login';
         }
         await prefs.setString('uid', response.user!.id);
+        await prefs.setString('email', data.name); // <-- Salva o e-mail aqui
         return null; // Sucesso
       } else {
         return 'Credenciais inválidas';
