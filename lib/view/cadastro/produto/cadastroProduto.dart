@@ -895,7 +895,7 @@ class _CadastroProdutoPageState extends State<CadastroProdutoPage> with SingleTi
 
       Map<String, dynamic> dadosQuantidadeEstoque = {'quantidade': estoque};
 
-      final dadosMovimentacaoEstoque = {'quantidade': estoque, 'tipo_movimento': 'Entrada'};
+      final dadosMovimentacaoEstoque = {'quantidade': estoque, 'tipo_movimento': 'Entrada', 'motivo': 'Estoque Inicial'};
 
       if (_isEdicao) {
         dadosQuantidadeEstoque['id_produto_empresa'] = _produtoEdicao!.id.toDouble();
