@@ -66,12 +66,10 @@ class ScriptCaixa {
         count(v.id) as total_de_vendas
       FROM
         ${schema}.caixa c
-        JOIN ${schema}.caixa_item ci ON c.id = ci.id_caixa
-        JOIN ${schema}.venda v ON v.id = ci.id_venda
+        JOIN ${schema}.venda v ON v.id_caixa = c.id
       WHERE
         c.data_abertura >= date_trunc('day', NOW())
         AND c.data_abertura < date_trunc('day', NOW()) + interval '1 day'
-        AND ci.situacao = 11
         AND v.tipo_venda = 'P'
         AND v.situacao_venda = 1''';
   }
