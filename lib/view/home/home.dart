@@ -212,7 +212,15 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   if (qaCashSummary) Expanded(child: _quickAction(context, Icons.receipt_long_sharp, 'Resumo de caixa', () => Navigator.of(context).pushNamed('/resumoDeCaixa'))),
                   if (qaCashSummary && qaReceive) const SizedBox(width: 12),
-                  if (qaReceive) Expanded(child: _quickAction(context, Icons.payments_rounded, 'Receber Pagamento', () {})),
+                  if (qaReceive)
+                    Expanded(
+                      child: _quickAction(
+                        context,
+                        Icons.people, // Ícone de clientes
+                        'Clientes',
+                        () => Navigator.of(context).pushNamed('/listClientes'),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -382,7 +390,7 @@ class _HomePageState extends State<HomePage> {
                         if (showDailySummary) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
-                            child: Column(children: [sw('• Vendas no PDV', sumCounter, (v) => sumCounter = v), sw('• Vendas Canceladas', sumDelivery, (v) => sumDelivery = v), /*sw('• Despesas', sumExpense, (v) => sumExpense = v), sw('• Recibos', sumReceipt, (v) => sumReceipt = v)*/]),
+                            child: Column(children: [sw('• Vendas no PDV', sumCounter, (v) => sumCounter = v), sw('• Vendas Canceladas', sumDelivery, (v) => sumDelivery = v) /*sw('• Despesas', sumExpense, (v) => sumExpense = v), sw('• Recibos', sumReceipt, (v) => sumReceipt = v)*/]),
                           ),
                         ],
                         Divider(color: cs.onSurface.withValues(alpha: 0.12)),
@@ -391,7 +399,7 @@ class _HomePageState extends State<HomePage> {
                         if (showQuickActions) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
-                            child: Column(children: [sw('• Criar Produto', qaCreateProduct, (v) => qaCreateProduct = v), sw('• Relatórios', qaReports, (v) => qaReports = v), sw('• Resumo de caixa', qaCashSummary, (v) => qaCashSummary = v), sw('• Receber Pagamento', qaReceive, (v) => qaReceive = v), sw('• PDV', qaPDV, (v) => qaPDV = v)]),
+                            child: Column(children: [sw('• Criar Produto', qaCreateProduct, (v) => qaCreateProduct = v), sw('• Relatórios', qaReports, (v) => qaReports = v), sw('• Resumo de caixa', qaCashSummary, (v) => qaCashSummary = v), sw('• Cliente', qaReceive, (v) => qaReceive = v), sw('• PDV', qaPDV, (v) => qaPDV = v)]),
                           ),
                         ],
                         const SizedBox(height: 12),
