@@ -186,13 +186,13 @@ class _HomePageState extends State<HomePage> {
               ),
               if (sumCounter || sumDelivery) const SizedBox(height: 12),
 
-              Row(
+              /*Row(
                 children: [
                   if (sumExpense) Expanded(child: _summaryCard(context, 'Despesas', _formatarMoeda(despesa))),
                   if (sumExpense && sumReceipt) const SizedBox(width: 12),
                   if (sumReceipt) Expanded(child: _summaryCard(context, 'Recibos', 'R\$ 1.200,00')),
                 ],
-              ),
+              ),*/
               const SizedBox(height: 24),
             ],
 
@@ -382,7 +382,7 @@ class _HomePageState extends State<HomePage> {
                         if (showDailySummary) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
-                            child: Column(children: [sw('• Vendas no Balcão', sumCounter, (v) => sumCounter = v), sw('• Vendas por Entrega', sumDelivery, (v) => sumDelivery = v), sw('• Despesas', sumExpense, (v) => sumExpense = v), sw('• Recibos', sumReceipt, (v) => sumReceipt = v)]),
+                            child: Column(children: [sw('• Vendas no PDV', sumCounter, (v) => sumCounter = v), sw('• Vendas Canceladas', sumDelivery, (v) => sumDelivery = v), /*sw('• Despesas', sumExpense, (v) => sumExpense = v), sw('• Recibos', sumReceipt, (v) => sumReceipt = v)*/]),
                           ),
                         ],
                         Divider(color: cs.onSurface.withValues(alpha: 0.12)),
