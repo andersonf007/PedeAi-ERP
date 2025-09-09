@@ -18,10 +18,17 @@ class _LoginPageState extends State<LoginPage> {
   SharedPreferences? _prefs;
   final List<Map<String, dynamic>> _empresas = [];
 
+  final TextEditingController _emailCtrl = TextEditingController(); // <-- Adicione isso
+
   @override
   void initState() {
     super.initState();
-    SharedPreferences.getInstance().then((sp) => _prefs = sp);
+    SharedPreferences.getInstance().then((sp) {
+      _prefs = sp;
+      final emailSalvo = _prefs?.getString('email') ?? '';
+      _emailCtrl.text = emailSalvo; // <-- Preenche o campo
+      setState(() {});
+    });
   }
 
   Future<String?> _onRecoverPassword(String email) async => null;
@@ -34,8 +41,7 @@ class _LoginPageState extends State<LoginPage> {
     if (erro == null) {
       final uid = _prefs!.getString('uid') ?? '';
       final ids = await _empresaController.buscarIdDasEmpresasDoUsuario(uid);
-      final fantasias =
-          await _empresaController.buscarNomeFantasiaDasEmpresasDoUsuario(ids);
+      final fantasias = await _empresaController.buscarNomeFantasiaDasEmpresasDoUsuario(ids);
       _empresas.addAll(fantasias);
 
       if (_empresas.length == 1) {
@@ -52,9 +58,7 @@ class _LoginPageState extends State<LoginPage> {
 
     // fundos
     const base = 'assets/images';
-    final bg = isDark
-        ? '$base/background_login_dark.png'
-        : '$base/background_login_white.png';
+    final bg = isDark ? '$base/background_login_dark.png' : '$base/background_login_white.png';
     const logo = '$base/logo.png';
 
     // no claro, sem scrim; no escuro, contraste leve
@@ -67,55 +71,30 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           Image.asset(bg, fit: BoxFit.cover),
           Container(color: scrim),
-
           FlutterLogin(
-            // só a LOGO anima
             logo: const AssetImage(logo),
             // título estático dentro do card
             headerWidget: const _CardHeaderTitle(),
-
             onLogin: _onLogin,
             onRecoverPassword: _onRecoverPassword,
             hideForgotPasswordButton: false,
-
+            savedEmail: _emailCtrl.text,
             onSubmitAnimationCompleted: () {
               if (_empresas.length > 1) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        SelecionarEmpresaPage(empresas: _empresas),
-                  ),
-                );
+                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => SelecionarEmpresaPage(empresas: _empresas)));
               } else {
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil('/home', (route) => false);
+                Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
               }
             },
-
-            messages: LoginMessages(
-              userHint: 'E-mail',
-              passwordHint: 'Senha',
-              loginButton: 'Entrar',
-              forgotPasswordButton: 'Esqueceu sua senha?',
-              recoverPasswordButton: 'RECUPERAR',
-              goBackButton: 'VOLTAR',
-              recoverPasswordDescription:
-                  'Enviaremos um e-mail para recuperar sua senha',
-              recoverPasswordSuccess: 'E-mail de recuperação enviado',
-            ),
-
-            // 🔧 use os ADAPTERS do seu tema (tipos corretos)
+            messages: LoginMessages(userHint: 'E-mail', passwordHint: 'Senha', loginButton: 'Entrar', forgotPasswordButton: 'Esqueceu sua senha?', recoverPasswordButton: 'RECUPERAR', goBackButton: 'VOLTAR', recoverPasswordDescription: 'Enviaremos um e-mail para recuperar sua senha', recoverPasswordSuccess: 'E-mail de recuperação enviado'),
             theme: LoginTheme(
               pageColorDark: Colors.transparent,
               pageColorLight: Colors.transparent,
               primaryColor: Colors.transparent,
               errorColor: cs.error,
               accentColor: cs.onSurface.withValues(alpha: 0.7),
-
-              // usa os adapters
               cardTheme: LoginThemeAdapters.card(context),
               inputTheme: LoginThemeAdapters.input(context),
-
               textFieldStyle: TextStyle(color: cs.onSurface),
               bodyStyle: TextStyle(color: cs.onSurface),
               footerTextStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.70)),
@@ -148,10 +127,7 @@ class _CardHeaderTitle extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
         child: Text(
           'Login',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: cs.onSurface,
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w700),
         ),
       ),
     );

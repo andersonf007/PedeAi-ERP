@@ -72,7 +72,7 @@ class VendaController {
     }
   }
 
-  Future<void> inserirVendaPdv({required Map<String, dynamic> dadosVenda, required List<Map<String, dynamic>> dadosVendaItens, required List<Map<String, dynamic>> dadosFormaPagamento, required List<Map<String, dynamic>> dadosMovimentacaoEstoque}) async {
+  Future<int?> inserirVendaPdv({required Map<String, dynamic> dadosVenda, required List<Map<String, dynamic>> dadosVendaItens, required List<Map<String, dynamic>> dadosFormaPagamento, required List<Map<String, dynamic>> dadosMovimentacaoEstoque}) async {
     try {
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
       String? uidUsuario = await usuarioController.getUidUsuarioFromSharedPreferences();
@@ -102,7 +102,8 @@ class VendaController {
         item['id_caixa'] = await caixaController.getIdCaixaFromSharedPreferences();
       }
 
-      await _databaseService.executeSqlInserirVendaPdv(schema: empresa.schema, venda: dadosVenda, itensVenda: dadosVendaItens, itensCaixa: dadosFormaPagamento, itensEstoque: dadosMovimentacaoEstoque);
+      final idVenda = await _databaseService.executeSqlInserirVendaPdv(schema: empresa.schema, venda: dadosVenda, itensVenda: dadosVendaItens, itensCaixa: dadosFormaPagamento, itensEstoque: dadosMovimentacaoEstoque);
+      return idVenda;
     } catch (e) {
       throw Exception('Erro ao inserir venda: $e');
     }
@@ -113,12 +114,9 @@ class VendaController {
       final empresa = await empresaController.getEmpresaFromSharedPreferences();
       if (empresa == null) throw Exception('Empresa não encontrada');
 
-      await _databaseService.cancelarVendaFunction(
-        schemaEmpresa: empresa.schema,
-        idVenda: idVenda,
-      );
+      await _databaseService.cancelarVendaFunction(schemaEmpresa: empresa.schema, idVenda: idVenda);
     } catch (e) {
       throw Exception('Erro ao cancelar venda: $e');
+    }
   }
-}
 }

@@ -99,7 +99,7 @@ class CaixaCotroller {
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
       String? uidUsuario = await usuarioController.getUidUsuarioFromSharedPreferences();
 
-      caixa['id_usuario_fechamento'] = "'$uidUsuario'";
+      caixa['id_usuario_fechamento'] = uidUsuario;
 
       await _databaseService.fecharCaixa(schema: empresa!.schema, pagamentos: pagamentos, caixa: caixa);
     } catch (e) {
@@ -107,7 +107,7 @@ class CaixaCotroller {
     }
   }
 
-  Future<double?> buscarReceitaDoMes() async{
+  Future<double?> buscarReceitaDoMes() async {
     try {
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
       String sql = _scriptCaixa.buscarReceitaDoMes(empresa!.schema);
@@ -117,17 +117,23 @@ class CaixaCotroller {
       throw CaixaCotrollerException('Erro ao buscar receita do mês: $e');
     }
   }
-Future<double?> buscarReceitaDoDiaDoPdv() async{
+
+  Future<Map<String, dynamic>> buscarReceitaDoDiaDoPdv() async {
     try {
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
       String sql = _scriptCaixa.buscarReceitaDoDiaDoPdv(empresa!.schema);
+      print('sql: $sql');
       final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
-      return resultado.isNotEmpty ? resultado.first['valor'] as double? : null;
+      if (resultado.isNotEmpty) {
+        return {'valor': (resultado.first['valor'] as num?)?.toDouble() ?? 0.0, 'total_de_vendas': resultado.first['total_de_vendas'] as int? ?? 0};
+      }
+      return {'valor': 0.0, 'total_de_vendas': 0};
     } catch (e) {
       throw CaixaCotrollerException('Erro ao buscar receita do dia: $e');
     }
   }
-Future<double?> buscarReceitaCanceladaDoDia() async{
+
+  Future<double?> buscarReceitaCanceladaDoDia() async {
     try {
       Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
       String sql = _scriptCaixa.buscarReceitaCanceladaDoDia(empresa!.schema);
@@ -138,4 +144,34 @@ Future<double?> buscarReceitaCanceladaDoDia() async{
     }
   }
 
+  Future<List<Map<String, dynamic>>> buscarDatasDosCaixas(DateTime dataInicial, DateTime dataFinal) async {
+    Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+    if (empresa == null) throw CaixaCotrollerException('Empresa não encontrada');
+
+    try {
+      // Acrescenta 1 dia à dataFinal
+      final dataFinalAjustada = dataFinal.add(const Duration(days: 1));
+      final formato = (DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+      String sql = _scriptCaixa.buscarDatasDosCaixas(empresa.schema, formato(dataInicial), formato(dataFinalAjustada));
+      final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
+      return List<Map<String, dynamic>>.from(resultado);
+    } catch (e) {
+      throw CaixaCotrollerException('Erro ao buscar datas dos caixas: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> buscarReceitaDoPdvDoCaixa(int idCaixa) async {
+    try {
+      Empresa? empresa = await empresaController.getEmpresaFromSharedPreferences();
+      String sql = _scriptCaixa.buscarReceitaDoPdvDoCaixa(empresa!.schema, idCaixa);
+      print('sql: $sql');
+      final resultado = await _databaseService.executeSql2(sql, schema: empresa.schema);
+      if (resultado.isNotEmpty) {
+        return {'valor': (resultado.first['valor'] as num?)?.toDouble() ?? 0.0, 'total_de_vendas': resultado.first['total_de_vendas'] as int? ?? 0};
+      }
+      return {'valor': 0.0, 'total_de_vendas': 0};
+    } catch (e) {
+      throw CaixaCotrollerException('Erro ao buscar receita do dia: $e');
+    }
+  }
 }

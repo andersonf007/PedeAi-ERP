@@ -12,10 +12,12 @@ class Produto {
   final String validade;
   final String image_url;
   final bool ativo;
-  Produto({required this.id, required this.createdAt, required this.descricao, required this.codigo, required this.preco, required this.estoque, required this.produtoIdPublic, required this.id_unidade, required this.id_categoria, required this.precoCusto, required this.validade, required this.image_url, required this.ativo});
+  final int id_fornecedor;
+  final String nome_fornecedor;
+  Produto({required this.id, required this.createdAt, required this.descricao, required this.codigo, required this.preco, required this.estoque, required this.produtoIdPublic, required this.id_unidade, required this.id_categoria, required this.precoCusto, required this.validade, required this.image_url, required this.ativo, required this.id_fornecedor, required this.nome_fornecedor});
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'created_at': createdAt.toIso8601String(), 'descricao': descricao, 'codigo': codigo, 'preco_venda': preco, 'quantidade': estoque, 'produto_id_public': produtoIdPublic, 'id_unidade': id_unidade, 'id_categoria': id_categoria, 'preco_custo': precoCusto, 'validade': validade, 'image_url': image_url, 'ativo': ativo};
+    return {'id': id, 'created_at': createdAt.toIso8601String(), 'descricao': descricao, 'codigo': codigo, 'preco_venda': preco, 'quantidade': estoque, 'produto_id_public': produtoIdPublic, 'id_unidade': id_unidade, 'id_categoria': id_categoria, 'preco_custo': precoCusto, 'validade': validade, 'image_url': image_url, 'ativo': ativo, 'id_fornecedor': id_fornecedor, 'nome_fornecedor': nome_fornecedor};
   }
 
   factory Produto.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,8 @@ class Produto {
       validade: json['validade'] ?? '',
       image_url: json['image_url'] ?? '',
       ativo: json['ativo'] ?? true,
+      id_fornecedor: json['id_fornecedor']?.toInt() ?? 0,
+      nome_fornecedor: json['nome_fornecedor'] ?? '',
     );
   }
 

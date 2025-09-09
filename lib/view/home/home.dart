@@ -6,6 +6,7 @@ import 'package:pedeai/utils/caixa_helper.dart';
 // seu drawer
 import 'package:pedeai/view/home/drawer.dart';
 import 'package:pedeai/app_nav_bar.dart';
+import 'package:pedeai/view/relatorio/estoqueAtual.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -54,10 +55,10 @@ class _HomePageState extends State<HomePage> {
       final receitaMesValor = await _caixaController.buscarReceitaDoMes();
       final receitaDiaPdvValor = await _caixaController.buscarReceitaDoDiaDoPdv();
       final receitaCanceladaDiaValor = await _caixaController.buscarReceitaCanceladaDoDia();
-
+      print('Receita do mês: $receitaDiaPdvValor');
       setState(() {
         receitaMes = _formatarValor(receitaMesValor);
-        receitaDiaPdv = _formatarValor(receitaDiaPdvValor);
+        receitaDiaPdv = _formatarValor(receitaDiaPdvValor['valor']);
         receitaCanceladaDia = _formatarValor(receitaCanceladaDiaValor);
         despesa = 0.00;
       });
@@ -185,13 +186,13 @@ class _HomePageState extends State<HomePage> {
               ),
               if (sumCounter || sumDelivery) const SizedBox(height: 12),
 
-              Row(
+              /*Row(
                 children: [
                   if (sumExpense) Expanded(child: _summaryCard(context, 'Despesas', _formatarMoeda(despesa))),
                   if (sumExpense && sumReceipt) const SizedBox(width: 12),
                   if (sumReceipt) Expanded(child: _summaryCard(context, 'Recibos', 'R\$ 1.200,00')),
                 ],
-              ),
+              ),*/
               const SizedBox(height: 24),
             ],
 
@@ -203,15 +204,23 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   if (qaCreateProduct) Expanded(child: _quickAction(context, Icons.add, 'Criar Produto', () => Navigator.of(context).pushNamed('/cadastro-produto'))),
                   if (qaCreateProduct && qaReports) const SizedBox(width: 12),
-                  if (qaReports) Expanded(child: _quickAction(context, Icons.bar_chart_rounded, 'Relatórios', () {})),
+                  if (qaReports) Expanded(child: _quickAction(context, Icons.bar_chart_rounded, 'Relatórios', () => EstoqueAtualRelatorioPdf.exportar(context: context))),
                 ],
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  if (qaCashSummary) Expanded(child: _quickAction(context, Icons.receipt_long_sharp, 'Resumo de caixa', () {})),
+                  if (qaCashSummary) Expanded(child: _quickAction(context, Icons.receipt_long_sharp, 'Resumo de caixa', () => Navigator.of(context).pushNamed('/resumoDeCaixa'))),
                   if (qaCashSummary && qaReceive) const SizedBox(width: 12),
-                  if (qaReceive) Expanded(child: _quickAction(context, Icons.payments_rounded, 'Receber Pagamento', () {})),
+                  if (qaReceive)
+                    Expanded(
+                      child: _quickAction(
+                        context,
+                        Icons.people, // Ícone de clientes
+                        'Clientes',
+                        () => Navigator.of(context).pushNamed('/listClientes'),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -381,7 +390,7 @@ class _HomePageState extends State<HomePage> {
                         if (showDailySummary) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
-                            child: Column(children: [sw('• Vendas no Balcão', sumCounter, (v) => sumCounter = v), sw('• Vendas por Entrega', sumDelivery, (v) => sumDelivery = v), sw('• Despesas', sumExpense, (v) => sumExpense = v), sw('• Recibos', sumReceipt, (v) => sumReceipt = v)]),
+                            child: Column(children: [sw('• Vendas no PDV', sumCounter, (v) => sumCounter = v), sw('• Vendas Canceladas', sumDelivery, (v) => sumDelivery = v) /*sw('• Despesas', sumExpense, (v) => sumExpense = v), sw('• Recibos', sumReceipt, (v) => sumReceipt = v)*/]),
                           ),
                         ],
                         Divider(color: cs.onSurface.withValues(alpha: 0.12)),
@@ -390,7 +399,7 @@ class _HomePageState extends State<HomePage> {
                         if (showQuickActions) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
-                            child: Column(children: [sw('• Criar Produto', qaCreateProduct, (v) => qaCreateProduct = v), sw('• Relatórios', qaReports, (v) => qaReports = v), sw('• Resumo de caixa', qaCashSummary, (v) => qaCashSummary = v), sw('• Receber Pagamento', qaReceive, (v) => qaReceive = v), sw('• PDV', qaPDV, (v) => qaPDV = v)]),
+                            child: Column(children: [sw('• Criar Produto', qaCreateProduct, (v) => qaCreateProduct = v), sw('• Relatórios', qaReports, (v) => qaReports = v), sw('• Resumo de caixa', qaCashSummary, (v) => qaCashSummary = v), sw('• Cliente', qaReceive, (v) => qaReceive = v), sw('• PDV', qaPDV, (v) => qaPDV = v)]),
                           ),
                         ],
                         const SizedBox(height: 12),

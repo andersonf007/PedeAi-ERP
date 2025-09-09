@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:pedeai/theme/app_theme.dart';
 
 import 'package:pedeai/model/usuario.dart';
+import 'package:pedeai/view/cadastro/cliente/cadastroClientes.dart';
+import 'package:pedeai/view/cadastro/cliente/listClientes.dart';
+import 'package:pedeai/view/caixa/DetalhamentoDoCaixa.dart';
 import 'package:pedeai/view/caixa/abertura.dart';
 import 'package:pedeai/view/caixa/fechamento.dart';
+import 'package:pedeai/view/caixa/resumoDeCaixa.dart';
 import 'package:pedeai/view/empresa/empresa.dart';
 import 'package:pedeai/view/estoque/estoque.dart';
 import 'package:pedeai/view/cadastro/categoria/Categoria.dart';
 import 'package:pedeai/view/cadastro/unidade/Unidade.dart';
 import 'package:pedeai/view/cadastro/forma-pagamento/forma_pagamento.dart';
 import 'package:pedeai/view/home/home.dart';
+import 'package:pedeai/view/impressao/impressaoDaVenda.dart';
 import 'package:pedeai/view/login/login.dart';
 import 'package:pedeai/view/venda/listVendas.dart';
 import 'package:pedeai/view/venda/pagamentoPdv.dart';
@@ -24,7 +30,6 @@ import 'package:pedeai/theme/theme_controller.dart';
 import 'package:pedeai/view/configuracao/configuracao.dart';
 import 'package:pedeai/view/cadastro/fornecedor/listFornecedores.dart';
 import 'package:pedeai/view/cadastro/fornecedor/cadastroFornecedor.dart';
-
 
 class AppWidget extends StatefulWidget {
   const AppWidget({super.key, required this.themeController});
@@ -69,8 +74,8 @@ class _AppWidgetState extends State<AppWidget> {
             },
             '/listFornecedores': (context) => const ListFornecedoresPage(),
             '/cadastroFornecedor': (context) {
-                final fornecedorId = ModalRoute.of(context)!.settings.arguments as int?;
-                return CadastroFornecedorPage(fornecedorId: fornecedorId);
+              final fornecedorId = ModalRoute.of(context)?.settings.arguments as int?;
+              return CadastroFornecedorPage(fornecedorId: fornecedorId);
             },
             '/listUsuarios': (context) => ListUsuarioPage(),
             '/cadastro-usuario': (context) {
@@ -93,6 +98,29 @@ class _AppWidgetState extends State<AppWidget> {
               return VendaDetalhePage(idVenda: args?['idVenda'] ?? 0);
             },
             '/empresa': (context) => EmpresaPage(),
+            '/resumoDeCaixa': (context) => ResumoDeCaixaPage(),
+            '/detalhamentoCaixa': (context) {
+              final idCaixa = ModalRoute.of(context)?.settings.arguments as int?;
+              return DetalhamentoDoCaixaPage(idCaixa: idCaixa ?? 0);
+            },
+            '/listClientes': (context) => const ListClientesPage(),
+            '/cadastroCliente': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments as int?;
+              return CadastroClientePage(clienteId: args);
+            },
+            '/impressaoDaVenda': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+              return ImpressaoDaVendaPage(
+                idVenda: args?['idVenda'] ?? 0,
+                dadosVenda: args?['dadosVenda'] ?? {},
+                carrinho: (args?['carrinho'] as List<ItemCarrinho>?) ?? [],
+                subtotal: (args?['subtotal'] as double?) ?? 0.0,
+                desconto: (args?['desconto'] as double?) ?? 0.0,
+                total: (args?['total'] as double?) ?? 0.0,
+                pagamentos: (args?['pagamentos'] as List<Map<String, dynamic>>?) ?? [],
+                troco: (args?['troco'] as double?) ?? 0.0,
+              );
+            },
           },
         );
       },

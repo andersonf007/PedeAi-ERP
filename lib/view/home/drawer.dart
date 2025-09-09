@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedeai/controller/caixaController.dart';
 import 'package:pedeai/utils/caixa_helper.dart';
+import 'package:pedeai/view/relatorio/estoqueAtual.dart';
 
 class DrawerPage extends StatefulWidget {
   const DrawerPage({super.key, this.currentRoute});
@@ -141,7 +142,7 @@ class _DrawerPageState extends State<DrawerPage> {
                           _NavItem(icon: Icons.payment, label: 'Formas de Pagamento', selected: current == '/listFormasPagamento', onTap: () => _go(context, '/listFormasPagamento')),
                           _NavItem(icon: Icons.inventory, label: 'Produto', selected: current == '/listProdutos', onTap: () => _go(context, '/listProdutos')),
                           _NavItem(icon: Icons.business, label: 'Fornecedor', selected: current == '/listFornecedores', onTap: () => _go(context, '/listFornecedores')),
-
+                          _NavItem(icon: Icons.people, label: 'Clientes', selected: current == '/listClientes', onTap: () => _go(context, '/listClientes')),
                           _NavItem(icon: Icons.straighten, label: 'Unidade', selected: current == '/listUnidades', onTap: () => _go(context, '/listUnidades')),
                           _NavItem(icon: Icons.person, label: 'Usuário', selected: current == '/listUsuarios', onTap: () => _go(context, '/listUsuarios')),
                         ],
@@ -167,6 +168,7 @@ class _DrawerPageState extends State<DrawerPage> {
                         isOpen: _openKey == 'caixa',
                         onToggle: () => _toggle('caixa'),
                         children: [
+                          _NavItem(icon: Icons.receipt_long_sharp, label: 'Resumo de caixa', selected: current == '/resumoDeCaixa', onTap: () => _go(context, '/resumoDeCaixa')),
                           _NavItem(icon: Icons.menu_book_outlined, label: 'Abertura de caixa', selected: current == '/aberturaCaixa', onTap: () => _go(context, '/aberturaCaixa')),
                           _NavItem(icon: Icons.book, label: 'Fechamento de caixa', selected: current == '/fechamentoCaixa', onTap: () => _go(context, '/fechamentoCaixa')),
                         ],
@@ -174,10 +176,16 @@ class _DrawerPageState extends State<DrawerPage> {
 
                       // ENTRADAS SOLTAS
                       _PlainEntry(icon: Icons.warehouse, label: 'Estoque', selected: current == '/estoque', onTap: () => _go(context, '/estoque')),
-                      _PlainEntry(icon: Icons.attach_money, label: 'Financeiro', selected: current == '/financeiro', onTap: () => _go(context, '/financeiro')),
+                      _PlainEntry(
+                        icon: Icons.bar_chart_rounded,
+                        label: 'Relatório',
+                        onTap: () {
+                          Navigator.pop(context); // Fecha o Drawer
+                          EstoqueAtualRelatorioPdf.exportar(context: context);
+                        },
+                      ),
                       _PlainEntry(icon: Icons.business, label: 'Empresa', selected: current == '/empresa', onTap: () => _go(context, '/empresa')),
                       _PlainEntry(icon: Icons.settings, label: 'Configurações', selected: current == '/config', onTap: () => _go(context, '/config')),
-                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
@@ -186,6 +194,7 @@ class _DrawerPageState extends State<DrawerPage> {
               // Rodapé fixo
               Divider(height: 1, color: cs.onSurface.withValues(alpha: 0.2)),
               _PlainEntry(icon: Icons.exit_to_app, label: 'Sair', danger: true, onTap: _confirmAndLogout),
+              const SizedBox(height: 12),
             ],
           ),
         ),

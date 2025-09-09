@@ -14,7 +14,7 @@ class ScriptCaixa {
   String buscarPagamentosRealizadosNoCaixa(String schema, int idCaixa) {
     return '''select 
       f.nome,
-      sum(ci.valor) as valor,
+      sum(ci.valor) as valor, -- sum(ci.troco) as valor,
       f.id,
       f.tipo_forma_pagamento_id
       from ${schema}.caixa_item ci 
@@ -29,7 +29,7 @@ class ScriptCaixa {
   }
 
   String buscarDadosDoCaixa(String schema, int idCaixa) {
-    return '''select 
+    return '''SELECT
       c.id,
       c.aberto,
       c.data_abertura,
@@ -38,9 +38,15 @@ class ScriptCaixa {
       c.id_usuario_fechamento,
       c.valor_abertura,
       c.periodo_abertura,
-      c.periodo_fechamento
-      from ${schema}.caixa c
-      where c.id = $idCaixa''';
+      c.periodo_fechamento,
+      ua.nome AS usuario_abertura,
+      uf.nome AS usuario_fechamento
+    FROM
+      ${schema}.caixa c
+      LEFT JOIN public.usuarios ua ON ua.uid = c.id_usuario_abertura
+      LEFT JOIN public.usuarios uf ON uf.uid = c.id_usuario_fechamento
+    WHERE
+      c.id = $idCaixa''';
   }
 
   String buscarReceitaDoMes(String schema) {
@@ -55,20 +61,20 @@ class ScriptCaixa {
 
   String buscarReceitaDoDiaDoPdv(String schema) {
     return '''SELECT
-        SUM(ci.valor) AS valor
+        --SUM(ci.valor) as valor, -- SUM(ci.troco) AS valor,
+        sum(v.valor_total) as valor,
+        count(v.id) as total_de_vendas
       FROM
         ${schema}.caixa c
-        JOIN ${schema}.caixa_item ci ON c.id = ci.id_caixa
-        JOIN ${schema}.venda v ON v.id = ci.id_venda
+        JOIN ${schema}.venda v ON v.id_caixa = c.id
       WHERE
         c.data_abertura >= date_trunc('day', NOW())
         AND c.data_abertura < date_trunc('day', NOW()) + interval '1 day'
-        AND ci.situacao = 11
         AND v.tipo_venda = 'P'
         AND v.situacao_venda = 1''';
   }
 
-String buscarReceitaCanceladaDoDia(String schema) {
+  String buscarReceitaCanceladaDoDia(String schema) {
     return '''SELECT 
         sum(ci.valor) AS valor
       FROM ${schema}.caixa_item ci 
@@ -77,5 +83,32 @@ String buscarReceitaCanceladaDoDia(String schema) {
         c.data_abertura >= date_trunc('day', NOW())
         AND c.data_abertura < date_trunc('day', NOW()) + interval '1 day'
         AND ci.situacao = 12''';
+  }
+
+  String buscarDatasDosCaixas(String schema, String dataInicial, String dataFinal) {
+    return '''SELECT
+      id,
+      data_abertura,
+      data_fechamento
+    FROM
+      ${schema}.caixa
+    WHERE
+      data_abertura >= '$dataInicial'
+      AND data_abertura <= '$dataFinal'
+      --data_abertura >= date_trunc('month', NOW())
+      --AND data_abertura < date_trunc('month', NOW()) + interval '1 month'
+      order by id''';
+  }
+
+  String buscarReceitaDoPdvDoCaixa(String schema, int idCaixa) {
+    return '''SELECT
+      sum(v.valor_total) as valor,
+      count(v.id) as total_de_vendas
+    FROM
+       ${schema}.venda v 
+      join ${schema}.caixa c on c.id = v.id_caixa
+    WHERE v.tipo_venda = 'P'
+      AND v.situacao_venda = 1
+      and v.id_caixa = $idCaixa''';
   }
 }
