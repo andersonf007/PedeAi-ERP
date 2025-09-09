@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pedeai/model/itemCarrinho.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pedeai/controller/empresaController.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ImpressaoDaVendaPage extends StatelessWidget {
   final int idVenda;
@@ -25,9 +29,8 @@ class ImpressaoDaVendaPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () async {
-              final spans = await _gerarCupomRich(context);
-              final textoCupom = spans.map((e) => e.toPlainText()).join();
-              await Share.share(textoCupom);
+              final pdfFile = await _gerarPdfCupom(context);
+              await Share.shareXFiles([XFile(pdfFile.path)], text: 'Cupom do pedido $idVenda');
             },
           ),
         ],
@@ -176,5 +179,31 @@ class ImpressaoDaVendaPage extends StatelessWidget {
 
   String _formatarDataHora(DateTime dt) {
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<File> _gerarPdfCupom(BuildContext context) async {
+    final spans = await _gerarCupomRich(context);
+    final textoCupom = spans.map((e) => e.toPlainText()).join();
+
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context ctx) {
+          return pw.Center(
+            child: pw.Container(
+              padding: const pw.EdgeInsets.all(16),
+              color: PdfColors.white,
+              child: pw.Text(textoCupom, style: pw.TextStyle(font: pw.Font.courier(), fontSize: 12)),
+            ),
+          );
+        },
+      ),
+    );
+
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/cupom_pedido_${idVenda}.pdf');
+    await file.writeAsBytes(await pdf.save());
+    return file;
   }
 }
