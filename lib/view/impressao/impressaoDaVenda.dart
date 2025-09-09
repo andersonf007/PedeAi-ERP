@@ -17,20 +17,49 @@ class ImpressaoDaVendaPage extends StatelessWidget {
   final double troco;
   final Map<String, dynamic> dadosVenda;
 
-  const ImpressaoDaVendaPage({super.key, required this.idVenda, required this.dadosVenda, required this.carrinho, required this.subtotal, required this.desconto, required this.total, required this.pagamentos, required this.troco});
+  const ImpressaoDaVendaPage({
+    super.key,
+    required this.idVenda,
+    required this.dadosVenda,
+    required this.carrinho,
+    required this.subtotal,
+    required this.desconto,
+    required this.total,
+    required this.pagamentos,
+    required this.troco,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     return Scaffold(
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        title: const Text('Impressão do Pedido'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/pdv', (route) => false)),
+        backgroundColor: cs.surface,
+        elevation: 0,
+        title: Text(
+          'Impressão do Pedido',
+          style: tt.titleMedium?.copyWith(
+            color: cs.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: cs.onSurface),
+          onPressed: () => Navigator.of(context)
+              .pushNamedAndRemoveUntil('/pdv', (route) => false),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share),
+            icon: Icon(Icons.share, color: cs.onSurface),
             onPressed: () async {
               final pdfFile = await _gerarPdfCupom(context);
-              await Share.shareXFiles([XFile(pdfFile.path)], text: 'Cupom do pedido $idVenda');
+              await Share.shareXFiles(
+                [XFile(pdfFile.path)],
+                text: 'Cupom do pedido $idVenda',
+              );
             },
           ),
         ],
@@ -38,21 +67,35 @@ class ImpressaoDaVendaPage extends StatelessWidget {
       body: FutureBuilder<List<InlineSpan>>(
         future: _gerarCupomRich(context),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(cs.primary),
+              ),
+            );
+          }
           return Center(
             child: SingleChildScrollView(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                 width: double.infinity,
                 child: Card(
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  color: Colors.white,
+                  elevation: 1,
+                  color: cs.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: cs.outlineVariant),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                     child: RichText(
                       text: TextSpan(
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 15, color: Colors.black),
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 15,
+                          color: cs.onSurface,
+                        ),
                         children: snapshot.data!,
                       ),
                       textAlign: TextAlign.left,
@@ -77,14 +120,21 @@ class ImpressaoDaVendaPage extends StatelessWidget {
 
     String linhaTracejada() => '-' * charsPerLine;
 
-    spans.add(TextSpan(text: _center('*** NÃO É DOCUMENTO FISCAL ***', width: charsPerLine) + '\n'));
+    spans.add(TextSpan(
+        text: _center('*** NÃO É DOCUMENTO FISCAL ***',
+                width: charsPerLine) +
+            '\n'));
     spans.add(TextSpan(text: linhaTracejada() + '\n'));
 
     if (empresa != null) {
       spans.add(TextSpan(text: '${empresa.fantasia ?? ''}\n'));
       spans.add(TextSpan(text: '${empresa.cnpj ?? ''}\n'));
-      spans.add(TextSpan(text: '${empresa.logradouro ?? ''}, ${empresa.numero ?? ''}\n'));
-      spans.add(TextSpan(text: '${empresa.bairro ?? ''} - ${empresa.municipio ?? ''} - ${empresa.uf ?? ''}\n'));
+      spans.add(TextSpan(
+          text:
+              '${empresa.logradouro ?? ''}, ${empresa.numero ?? ''}\n'));
+      spans.add(TextSpan(
+          text:
+              '${empresa.bairro ?? ''} - ${empresa.municipio ?? ''} - ${empresa.uf ?? ''}\n'));
       if ((empresa.telefone ?? '').isNotEmpty) {
         spans.add(TextSpan(text: 'Fone: ${empresa.telefone}\n'));
       }
@@ -92,18 +142,34 @@ class ImpressaoDaVendaPage extends StatelessWidget {
     spans.add(TextSpan(text: linhaTracejada() + '\n'));
 
     spans.add(TextSpan(text: 'Pedido: $idVenda\n'));
-    spans.add(TextSpan(text: 'Data: ${_formatarDataHora(DateTime.now())}\n'));
+    spans.add(
+        TextSpan(text: 'Data: ${_formatarDataHora(DateTime.now())}\n'));
     spans.add(TextSpan(text: linhaTracejada() + '\n'));
 
-    spans.add(TextSpan(text: _linha(['Descrição', 'Qtd', 'V.Unit', 'Total'], _colWidths(charsPerLine)) + '\n'));
+    spans.add(TextSpan(
+        text: _linha(
+                ['Descrição', 'Qtd', 'V.Unit', 'Total'],
+                _colWidths(charsPerLine)) +
+            '\n'));
     spans.add(TextSpan(text: linhaTracejada() + '\n'));
 
     for (final item in carrinho) {
-      final nome = (item.produto.descricao ?? '').length > _colWidths(charsPerLine)[0] ? (item.produto.descricao ?? '').substring(0, _colWidths(charsPerLine)[0]) : (item.produto.descricao ?? '');
+      final nome = (item.produto.descricao ?? '').length >
+              _colWidths(charsPerLine)[0]
+          ? (item.produto.descricao ?? '')
+              .substring(0, _colWidths(charsPerLine)[0])
+          : (item.produto.descricao ?? '');
       final qtd = item.quantidade.toStringAsFixed(2);
-      final vlUnit = (item.produto.preco ?? 0).toStringAsFixed(2).replaceAll('.', ',');
-      final totalItem = ((item.produto.preco ?? 0) * item.quantidade).toStringAsFixed(2).replaceAll('.', ',');
-      spans.add(TextSpan(text: _linha([nome, qtd, vlUnit, totalItem], _colWidths(charsPerLine)) + '\n'));
+      final vlUnit = (item.produto.preco ?? 0)
+          .toStringAsFixed(2)
+          .replaceAll('.', ',');
+      final totalItem = ((item.produto.preco ?? 0) * item.quantidade)
+          .toStringAsFixed(2)
+          .replaceAll('.', ',');
+      spans.add(TextSpan(
+          text: _linha([nome, qtd, vlUnit, totalItem],
+                  _colWidths(charsPerLine)) +
+              '\n'));
     }
 
     spans.add(TextSpan(text: linhaTracejada() + '\n'));
@@ -111,15 +177,23 @@ class ImpressaoDaVendaPage extends StatelessWidget {
     // Subtotal em negrito
     spans.add(
       TextSpan(
-        text: _linha(['SubTotal:', '', '', _real(subtotal)], _colWidths(charsPerLine)) + '\n',
+        text: _linha(
+                ['SubTotal:', '', '', _real(subtotal)],
+                _colWidths(charsPerLine)) +
+            '\n',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
-    spans.add(TextSpan(text: _linha(['Desconto:', '', '', _real(desconto)], _colWidths(charsPerLine)) + '\n'));
+    spans.add(TextSpan(
+        text: _linha(['Desconto:', '', '', _real(desconto)],
+                _colWidths(charsPerLine)) +
+            '\n'));
     // Total em negrito
     spans.add(
       TextSpan(
-        text: _linha(['Total:', '', '', _real(total)], _colWidths(charsPerLine)) + '\n',
+        text: _linha(['Total:', '', '', _real(total)],
+                _colWidths(charsPerLine)) +
+            '\n',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
@@ -129,14 +203,23 @@ class ImpressaoDaVendaPage extends StatelessWidget {
     spans.add(const TextSpan(text: 'Pagamentos:\n'));
     for (final pag in pagamentos) {
       final nome = (pag['forma']?.nome).toString();
-      final valor = pag['valor'] != null ? _real(pag['valor']) : '';
-      spans.add(TextSpan(text: _linha([nome, '', '', valor], _colWidths(charsPerLine)) + '\n'));
+      final valor =
+          pag['valor'] != null ? _real(pag['valor']) : '';
+      spans.add(TextSpan(
+          text: _linha([nome, '', '', valor], _colWidths(charsPerLine)) +
+              '\n'));
     }
-    spans.add(TextSpan(text: _linha(['Troco:', '', '', _real(troco)], _colWidths(charsPerLine)) + '\n'));
+    spans.add(TextSpan(
+        text: _linha(['Troco:', '', '', _real(troco)],
+                _colWidths(charsPerLine)) +
+            '\n'));
 
     spans.add(TextSpan(text: linhaTracejada() + '\n'));
-    spans.add(TextSpan(text: _center('PedeAi ERP', width: charsPerLine) + '\n'));
-    spans.add(TextSpan(text: _center('Obrigado, volte sempre!', width: charsPerLine) + '\n'));
+    spans.add(TextSpan(
+        text: _center('PedeAi ERP', width: charsPerLine) + '\n'));
+    spans.add(TextSpan(
+        text:
+            _center('Obrigado, volte sempre!', width: charsPerLine) + '\n'));
     spans.add(TextSpan(text: linhaTracejada() + '\n'));
 
     return spans;
@@ -144,7 +227,6 @@ class ImpressaoDaVendaPage extends StatelessWidget {
 
   List<int> _colWidths(int charsPerLine) {
     // Proporção para 4 colunas: [Descrição, Qtd, V.Unit, Total]
-    // Exemplo: [16, 5, 8, 9] para 38 caracteres
     final desc = (charsPerLine * 0.42).floor();
     final qtd = (charsPerLine * 0.13).floor();
     final vunit = (charsPerLine * 0.21).floor();
@@ -178,7 +260,11 @@ class ImpressaoDaVendaPage extends StatelessWidget {
   }
 
   String _formatarDataHora(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    return '${dt.day.toString().padLeft(2, '0')}/'
+        '${dt.month.toString().padLeft(2, '0')}/'
+        '${dt.year} '
+        '${dt.hour.toString().padLeft(2, '0')}:'
+        '${dt.minute.toString().padLeft(2, '0')}';
   }
 
   Future<File> _gerarPdfCupom(BuildContext context) async {
@@ -194,7 +280,13 @@ class ImpressaoDaVendaPage extends StatelessWidget {
             child: pw.Container(
               padding: const pw.EdgeInsets.all(16),
               color: PdfColors.white,
-              child: pw.Text(textoCupom, style: pw.TextStyle(font: pw.Font.courier(), fontSize: 12)),
+              child: pw.Text(
+                textoCupom,
+                style: pw.TextStyle(
+                  font: pw.Font.courier(),
+                  fontSize: 12,
+                ),
+              ),
             ),
           );
         },

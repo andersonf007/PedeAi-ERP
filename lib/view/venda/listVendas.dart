@@ -36,7 +36,10 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
       erro = null;
     });
     try {
-      vendas = await vendaController.listarVendas(inicio: dataInicial, fim: dataFinal);
+      vendas = await vendaController.listarVendas(
+        inicio: dataInicial,
+        fim: dataFinal,
+      );
       setState(() {
         carregando = false;
       });
@@ -56,7 +59,9 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
       final status = venda['descricao']?.toString() ?? '';
       if (status == 'Fechada') {
         final valor = venda['valor_total'] ?? venda['valor'] ?? 0;
-        total += (valor is num) ? valor.toDouble() : double.tryParse(valor.toString()) ?? 0.0;
+        total += (valor is num)
+            ? valor.toDouble()
+            : double.tryParse(valor.toString()) ?? 0.0;
       }
     }
     return total;
@@ -81,7 +86,10 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
         centerTitle: true,
         title: Text(
           'Vendas',
-          style: TextStyle(color: esquemaCores.onSurface, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: esquemaCores.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: Builder(
           builder: (ctx) => IconButton(
@@ -103,7 +111,10 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
                 context: context,
                 firstDate: DateTime(2022, 1, 1),
                 lastDate: DateTime.now(),
-                initialDateRange: DateTimeRange(start: dataInicial, end: dataFinal),
+                initialDateRange: DateTimeRange(
+                  start: dataInicial,
+                  end: dataFinal,
+                ),
               );
               if (intervalo != null) {
                 setState(() {
@@ -117,7 +128,9 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
         ],
       ),
       drawer: const DrawerPage(),
-      bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
+      bottomNavigationBar: AppNavBar(
+        currentRoute: ModalRoute.of(context)?.settings.name,
+      ),
       body: Column(
         children: [
           Padding(
@@ -125,11 +138,17 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: _ResumoTile(rotulo: 'Quantidade de vendas', valor: '$quantidadeVendas'),
+                  child: _ResumoTile(
+                    rotulo: 'Quantidade de vendas',
+                    valor: '$quantidadeVendas',
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _ResumoTile(rotulo: 'Valor total', valor: formatarMoeda(valorTotalVendas)),
+                  child: _ResumoTile(
+                    rotulo: 'Valor total',
+                    valor: formatarMoeda(valorTotalVendas),
+                  ),
                 ),
               ],
             ),
@@ -150,7 +169,12 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
                   )
                 : vendas.isEmpty
                 ? Center(
-                    child: Text('Nenhuma venda encontrada', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.7))),
+                    child: Text(
+                      'Nenhuma venda encontrada',
+                      style: TextStyle(
+                        color: esquemaCores.onSurface.withOpacity(.7),
+                      ),
+                    ),
                   )
                 : RefreshIndicator(
                     onRefresh: buscarVendas,
@@ -175,7 +199,11 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
 
                         return InkWell(
                           onTap: () {
-                            Navigator.pushNamed(context, '/venda-detalhe', arguments: {'idVenda': idVenda});
+                            Navigator.pushNamed(
+                              context,
+                              '/venda-detalhe',
+                              arguments: {'idVenda': idVenda},
+                            );
                           },
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
@@ -184,32 +212,64 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
                             decoration: BoxDecoration(
                               color: esquemaCores.surface,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: esquemaCores.onSurface.withOpacity(.10)),
+                              border: Border.all(
+                                color: esquemaCores.onSurface.withOpacity(.10),
+                              ),
                             ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         '#$idVenda',
-                                        style: TextStyle(fontWeight: FontWeight.w700, color: esquemaCores.onSurface),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          color: esquemaCores.onSurface,
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(dataAbertura != null ? formatarData(DateTime.tryParse(dataAbertura.toString()) ?? DateTime.now()) : 'Data não informada', style: TextStyle(color: esquemaCores.onSurface.withOpacity(.70))),
+                                      Text(
+                                        dataAbertura != null
+                                            ? formatarData(
+                                                DateTime.tryParse(
+                                                      dataAbertura.toString(),
+                                                    ) ??
+                                                    DateTime.now(),
+                                              )
+                                            : 'Data não informada',
+                                        style: TextStyle(
+                                          color: esquemaCores.onSurface
+                                              .withOpacity(.70),
+                                        ),
+                                      ),
                                       const SizedBox(height: 4),
                                       Text(
                                         '$status',
-                                        style: TextStyle(color: corStatus, fontWeight: FontWeight.bold),
+                                        style: TextStyle(
+                                          color: corStatus,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  formatarMoeda((valorTotal is num) ? valorTotal.toDouble() : double.tryParse(valorTotal.toString()) ?? 0.0),
-                                  style: TextStyle(fontWeight: FontWeight.w800, color: esquemaCores.onSurface),
+                                  formatarMoeda(
+                                    (valorTotal is num)
+                                        ? valorTotal.toDouble()
+                                        : double.tryParse(
+                                                valorTotal.toString(),
+                                              ) ??
+                                              0.0,
+                                  ),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: esquemaCores.onSurface,
+                                  ),
                                 ),
                               ],
                             ),
@@ -220,19 +280,26 @@ class _ListagemVendasPageState extends State<ListagemVendasPage> {
                   ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: SizedBox(
               width: double.infinity,
-              height: 48,
+              height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+                    backgroundColor: esquemaCores.primary,
+                    foregroundColor: esquemaCores.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 onPressed: () async {
-                  await CaixaHelper.verificarCaixaAbertoENavegar(context, '/pdv');
+                  await CaixaHelper.verificarCaixaAbertoENavegar(
+                    context,
+                    '/pdv',
+                  );
                 },
                 child: const Text('Nova venda'),
               ),
@@ -253,7 +320,10 @@ class _ResumoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final esquemaCores = Theme.of(context).colorScheme;
     final temaTexto = Theme.of(context).textTheme;
-    final corFundo = Color.alphaBlend(esquemaCores.primary.withOpacity(.08), esquemaCores.surface);
+    final corFundo = Color.alphaBlend(
+      esquemaCores.primary.withOpacity(.08),
+      esquemaCores.surface,
+    );
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -265,11 +335,19 @@ class _ResumoTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(rotulo, style: temaTexto.labelSmall?.copyWith(color: esquemaCores.onSurface.withOpacity(.75))),
+          Text(
+            rotulo,
+            style: temaTexto.labelSmall?.copyWith(
+              color: esquemaCores.onSurface.withOpacity(.75),
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             valor,
-            style: temaTexto.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: esquemaCores.onSurface),
+            style: temaTexto.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: esquemaCores.onSurface,
+            ),
           ),
         ],
       ),

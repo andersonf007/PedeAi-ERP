@@ -77,22 +77,22 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
   }
 
   Future<void> _abrirCadastroUsuario([Usuario? usuario]) async {
-  try {
-    final ok = await Navigator.of(context).pushNamed<bool>(
-      '/cadastro-usuario',
-      arguments: usuario,
-    );
-    if (ok == true) await _load();
-  } catch (_) {
-    // fallback sem rota nomeada
-    final ok = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => CadastroUsuarioPage(usuario: usuario),
-      ),
-    );
-    if (ok == true) await _load();
+    try {
+      final ok = await Navigator.of(
+        context,
+      ).pushNamed<bool>('/cadastro-usuario', arguments: usuario);
+      if (ok == true) await _load();
+    } catch (_) {
+      // fallback sem rota nomeada
+      final ok = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => CadastroUsuarioPage(usuario: usuario),
+        ),
+      );
+      if (ok == true) await _load();
+    }
   }
-}
+
   Future<void> _toggleAtivo(Usuario u) async {
     try {
       if (u.uid == null || u.uid!.isEmpty) {
@@ -109,7 +109,10 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
         actionLabel: 'Desfazer',
         onAction: () async {
           try {
-            await _usuarioController.atualizarUsuario({'uid': u.uid, 'ativo': !novo});
+            await _usuarioController.atualizarUsuario({
+              'uid': u.uid,
+              'ativo': !novo,
+            });
             if (!mounted) return;
             AppNotify.success(context, 'Alteração desfeita.');
             await _load();
@@ -145,7 +148,11 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
         ),
         title: Text(
           'Usuários',
-          style: TextStyle(color: cs.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: cs.onSurface,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
@@ -155,7 +162,9 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
         ],
       ),
       drawer: DrawerPage(currentRoute: ModalRoute.of(context)?.settings.name),
-      bottomNavigationBar: AppNavBar(currentRoute: ModalRoute.of(context)?.settings.name),
+      bottomNavigationBar: AppNavBar(
+        currentRoute: ModalRoute.of(context)?.settings.name,
+      ),
 
       body: Column(
         children: [
@@ -166,12 +175,23 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
               controller: _searchCtrl,
               decoration: InputDecoration(
                 hintText: 'Buscar por nome ou e-mail…',
-                hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
-                prefixIcon: Icon(Icons.search, color: cs.onSurface.withValues(alpha: 0.5)),
+                hintStyle: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                ),
                 filled: true,
                 fillColor: cs.surface,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               style: TextStyle(color: cs.onSurface),
             ),
@@ -182,18 +202,27 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
           // Botão fixo
           SafeArea(
             top: false,
-            minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: SizedBox(
               width: double.infinity,
-              height: 46,
+              height: 50,
               child: ElevatedButton(
                 onPressed: () => _abrirCadastroUsuario(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: cs.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  foregroundColor: cs.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                child: Text('Cadastrar Novo Usuário',
-                    style: TextStyle(color: cs.onPrimary, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Cadastrar Novo Usuário',
+                  style: TextStyle(
+                    color: cs.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
@@ -206,7 +235,11 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
     final cs = Theme.of(context).colorScheme;
 
     if (_loading) {
-      return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(cs.primary)));
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation(cs.primary),
+        ),
+      );
     }
     if (_error.isNotEmpty) {
       return Center(
@@ -217,12 +250,19 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
             children: [
               Icon(Icons.error_outline, size: 56, color: cs.primary),
               const SizedBox(height: 12),
-              Text(_error, textAlign: TextAlign.center, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
+              Text(
+                _error,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+              ),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _load,
                 style: ElevatedButton.styleFrom(backgroundColor: cs.primary),
-                child: Text('Tentar novamente', style: TextStyle(color: cs.onPrimary)),
+                child: Text(
+                  'Tentar novamente',
+                  style: TextStyle(color: cs.onPrimary),
+                ),
               ),
             ],
           ),
@@ -231,7 +271,10 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
     }
     if (_filtrados.isEmpty) {
       return Center(
-        child: Text('Nenhum usuário encontrado', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))),
+        child: Text(
+          'Nenhum usuário encontrado',
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
+        ),
       );
     }
 
@@ -258,7 +301,10 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
       onTap: () => _abrirCadastroUsuario(u),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Row(
           children: [
             // avatar
@@ -279,13 +325,24 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${index + 1}. ${u.nome ?? ''}',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(
+                    '${index + 1}. ${u.nome ?? ''}',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(u.email ?? '',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 12)),
+                  Text(
+                    u.email ?? '',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.7),
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -303,7 +360,10 @@ class _ListUsuarioPageState extends State<ListUsuarioPage> {
                   icon: const Icon(Icons.edit),
                   color: isDark ? Colors.white : cs.primary,
                   onPressed: () => _abrirCadastroUsuario(u),
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
                   padding: EdgeInsets.zero,
                 ),
               ],
@@ -339,7 +399,11 @@ class _StatusChip extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),
